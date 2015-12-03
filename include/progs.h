@@ -28,6 +28,10 @@
 #define MAX_ROUTE_NODES		20 // max race checkpoints per race (including start and finish checkpoints)
 #define MAX_ROUTES			20 // max race route per map
 
+#define KTX_PICKUPS         1
+
+#define KTX_EXT_MASK        1
+
 typedef struct shared_edict_s {
 	void			*ptr; // this points to sv_edict_t but mod should NOT bother about that...
 	entvars_t       v;	// C exported fields from progs
@@ -611,6 +615,7 @@ typedef struct gedict_s {
 //	struct gedict_s *k_hoonyspawn; // hoonymode: on odd-number points, we switch the spawns
 // }
 
+	int         ktx_cmds;			// true if the user has registered for //ktx commands
 } gedict_t;
 
 typedef enum

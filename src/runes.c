@@ -4,13 +4,14 @@
 
 #include "g_local.h"
 
+void PickupNotification(gedict_t* player, gedict_t* entity);
 void RegenLostRot();
 void RuneRespawn();
 void RuneTouch();
 void RuneResetOwner();
 gedict_t* SelectRuneSpawnPoint();
 
-void DoDropRune(int rune, qbool s)
+int DoDropRune(int rune, qbool s)
 {
 	gedict_t *item;
 
@@ -44,6 +45,8 @@ void DoDropRune(int rune, qbool s)
 	// qqshka, add spawn sound to rune if rune respawned, not for player dropped from corpse rune
 	if ( s )
 		sound( item, CHAN_VOICE, "items/itembk2.wav", 1, ATTN_NORM );	// play respawn sound
+
+	return NUM_FOR_EDICT(item);
 }
 
 void DoTossRune( int rune )
@@ -96,21 +99,28 @@ void DoTossRune( int rune )
 void DropRune()
 {
 	if ( self->ctf_flag & CTF_RUNE_RES ) {
-		DoDropRune( CTF_RUNE_RES, false );
+		int runeEnt = DoDropRune( CTF_RUNE_RES, false );
 		self->ps.res_time += g_globalvars.time - self->rune_pickup_time;
+		stuffcmd_flags( world, STUFFCMD_DEMOONLY, "//ktx rd %d %d %d\n", CTF_RUNE_RES, NUM_FOR_EDICT(self) - 1, runeEnt );
 	}
 	if ( self->ctf_flag & CTF_RUNE_STR ) {
-		DoDropRune( CTF_RUNE_STR, false );
+		int runeEnt = DoDropRune( CTF_RUNE_STR, false );
 		self->ps.str_time += g_globalvars.time - self->rune_pickup_time;
+		stuffcmd_flags( world, STUFFCMD_DEMOONLY, "//ktx rd %d %d %d\n", CTF_RUNE_STR, NUM_FOR_EDICT(self) - 1, runeEnt );
 	}
 	if ( self->ctf_flag & CTF_RUNE_HST ) {
-		DoDropRune( CTF_RUNE_HST, false );
+		int runeEnt = DoDropRune( CTF_RUNE_HST, false );
 		self->ps.hst_time += g_globalvars.time - self->rune_pickup_time;
+		stuffcmd_flags( world, STUFFCMD_DEMOONLY, "//ktx rd %d %d %d\n", CTF_RUNE_HST, NUM_FOR_EDICT(self) - 1, runeEnt );
 	}
 	if ( self->ctf_flag & CTF_RUNE_RGN ) {
-		DoDropRune( CTF_RUNE_RGN, false );
+		int runeEnt = DoDropRune( CTF_RUNE_RGN, false );
 		self->ps.rgn_time += g_globalvars.time - self->rune_pickup_time;
+		stuffcmd_flags( world, STUFFCMD_DEMOONLY, "//ktx rd %d %d %d\n", CTF_RUNE_RGN, NUM_FOR_EDICT(self) - 1, runeEnt );
 	}
+
+	if ((self->ctf_flag & CTF_RUNE_MASK) && (self->ktx_cmds & KTX_PICKUPS))
+		stuffcmd_flags( self, STUFFCMD_IGNOREINDEMO, "//ktx rd %d\n", self->ctf_flag & CTF_RUNE_MASK );
 
 	self->ctf_flag -= ( self->ctf_flag & (CTF_RUNE_MASK) );
 	// self->s.v.items -= ( (int) self->s.v.items & (CTF_RUNE_MASK) );
@@ -238,6 +248,10 @@ void RuneTouch()
 
 	sound( other, CHAN_ITEM, "weapons/lock4.wav", 1, ATTN_NORM );
 	stuffcmd( other, "bf\n" );
+	if (other->ktx_cmds & KTX_PICKUPS)
+		stuffcmd_flags( other, STUFFCMD_IGNOREINDEMO, "//ktx rp %d\n", self->ctf_flag );
+	stuffcmd_flags( world, STUFFCMD_DEMOONLY, "//ktx rp %d %d %d\n", self->ctf_flag, NUM_FOR_EDICT(other) - 1, NUM_FOR_EDICT(self) );
+
 	ent_remove( self );
 }
 

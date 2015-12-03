@@ -235,6 +235,14 @@ void SP_item_health()
 	StartItem();
 }
 
+void PickupNotification(gedict_t* player, gedict_t* entity)
+{
+	if (player->ktx_cmds & KTX_PICKUPS)
+		stuffcmd_flags( player, STUFFCMD_IGNOREINDEMO, "//ktx p %d\n", (int)entity->s.v.modelindex );
+	
+	stuffcmd_flags( world, STUFFCMD_DEMOONLY, "//ktx p %d %d %d\n", (int)entity->s.v.modelindex, NUM_FOR_EDICT(player) - 1, NUM_FOR_EDICT(entity) );
+}
+
 void health_touch()
 {
 	if ( other->ct != ctPlayer )
@@ -277,6 +285,7 @@ void health_touch()
 	sound( other, CHAN_ITEM, self->s.v.noise, 1, ATTN_NORM );
 
 	stuffcmd( other, "bf\n" );
+	PickupNotification( other, self );
 
 	self->s.v.model = "";
 	self->s.v.solid = SOLID_NOT;
@@ -340,8 +349,8 @@ void armor_touch()
 	float           type = 0, value = 0;
 	float           real_value = 0;
 	int             bit = 0;
-	int		*armor = NULL;
-	char		*playername;
+	int	            *armor = NULL;
+	char            *playername;
 
 	if ( ISDEAD( other ) )
 		return;
@@ -433,7 +442,11 @@ void armor_touch()
 	G_sprint( other, PRINT_LOW, "You got the %s\n", self->s.v.netname );
 // armor touch sound
 	sound( other, CHAN_AUTO, "items/armor1.wav", 1, ATTN_NORM );
+
 	stuffcmd( other, "bf\n" );
+	if (other->ktx_cmds & KTX_PICKUPS)
+		stuffcmd_flags( other, STUFFCMD_IGNOREINDEMO, "//ktx ap %d\n", (int)self->s.v.skin );
+	stuffcmd_flags( world, STUFFCMD_DEMOONLY, "//ktx ap %d %d %d\n", (int)self->s.v.skin, NUM_FOR_EDICT(other) - 1, NUM_FOR_EDICT(self) );
 
 	activator = other;
 	SUB_UseTargets();	// fire all targets / killtargets
@@ -679,6 +692,7 @@ void weapon_touch()
 // weapon touch sound
 	sound( other, CHAN_AUTO, "weapons/pkup.wav", 1, ATTN_NORM );
 	stuffcmd( other, "bf\n" );
+	PickupNotification( other, self );
 
 	bound_other_ammo();
 
@@ -949,6 +963,7 @@ void ammo_touch()
 // ammo touch sound
 	sound( other, CHAN_ITEM, "weapons/lock4.wav", 1, ATTN_NORM );
 	stuffcmd( other, "bf\n" );
+	PickupNotification( other, self );
 
 // change to a better weapon if appropriate
 // before we got ammo we use best weapon - best weapon may change due to ammo, so check this
@@ -1185,6 +1200,8 @@ void key_touch()
 
 	sound( other, CHAN_ITEM, self->s.v.noise, 1, ATTN_NORM );
 	stuffcmd( other, "bf\n" );
+	PickupNotification( other, self );
+
 	other->s.v.items = ( int ) other->s.v.items | ( int ) self->s.v.items;
 
 	if ( !coop )
@@ -1343,6 +1360,8 @@ void sigil_touch()
 
 	sound( other, CHAN_ITEM, self->s.v.noise, 1, ATTN_NORM );
 	stuffcmd( other, "bf\n" );
+	PickupNotification( other, self );
+
 	self->s.v.solid = SOLID_NOT;
 	self->s.v.model = "";
 	g_globalvars.serverflags =
@@ -1647,6 +1666,8 @@ void powerup_touch()
 //	sound( other, CHAN_VOICE, self->s.v.noise, 1, ATTN_NORM );
 	sound( other, CHAN_ITEM, self->s.v.noise, 1, ATTN_NORM );
 	stuffcmd( other, "bf\n" );
+	PickupNotification( other, self );
+
 	self->s.v.solid = SOLID_NOT;
 	other->s.v.items = ( ( int ) other->s.v.items ) | ( ( int ) self->s.v.items );
 	self->s.v.model = "";
@@ -1905,6 +1926,8 @@ void BackpackTouch()
 			sound( other, CHAN_ITEM, "weapons/lock4.wav", 1, ATTN_NORM );
 
 		stuffcmd( other, "bf\n" );
+		stuffcmd_flags( world, STUFFCMD_DEMOONLY, "//ktx bp 0 %d %d\n", NUM_FOR_EDICT(other) - 1, NUM_FOR_EDICT(self) );
+
 		if ( other->s.v.health > 299 )
 		{
 			if ( cvar("k_instagib") )
@@ -2052,6 +2075,9 @@ void BackpackTouch()
 // backpack touch sound
 	sound( other, CHAN_ITEM, "weapons/lock4.wav", 1, ATTN_NORM );
 	stuffcmd( other, "bf\n" );
+	if (other->ktx_cmds & KTX_PICKUPS)
+		stuffcmd_flags( other, STUFFCMD_IGNOREINDEMO, "//ktx bp %d\n", (int)WeaponCode(new) );
+	stuffcmd_flags( world, STUFFCMD_DEMOONLY, "//ktx bp %d %d %d\n", (int)WeaponCode(new), NUM_FOR_EDICT(other) - 1, NUM_FOR_EDICT(self) );
 
 	ent_remove( self );
 
@@ -2071,11 +2097,21 @@ DropBackpack
 
 #define IT_DROPPABLE_WEAPONS (IT_SUPER_SHOTGUN|IT_NAILGUN|IT_SUPER_NAILGUN|IT_GRENADE_LAUNCHER|IT_ROCKET_LAUNCHER|IT_LIGHTNING)
 
+void BackpackRemove()
+{
+	// Backpack removed after timeout - store in demo so
+	if (self && self->s.v.classname && !strcmp(self->s.v.classname, "backpack"))
+		stuffcmd_flags(world, STUFFCMD_DEMOONLY, "//ktx br %d\n", NUM_FOR_EDICT(self));
+
+	SUB_Remove();
+}
+
 void DropBackpack()
 {
-    gedict_t	*item;
-    float	f1;
-    char	*playername;
+    gedict_t    *item;
+    float       f1;
+    char        *playername;
+	int         ktx_weapon = 0;
 
 	if ( k_bloodfest )
 		return;
@@ -2138,40 +2174,48 @@ void DropBackpack()
 	if ( item->s.v.items == IT_AXE ) {
 		item->s.v.netname = "Axe";
 		self->ps.wpn[wpAXE].drops++;
+		ktx_weapon = 1;
 	}
 	else if ( item->s.v.items == IT_SHOTGUN ) {
 		item->s.v.netname = "Shotgun";
 		self->ps.wpn[wpSG].drops++;
+		ktx_weapon = 2;
 	}
 	else if ( item->s.v.items == IT_SUPER_SHOTGUN ) {
 		item->s.v.netname = "Double-barrelled Shotgun";
 		//item->mdl = "progs/g_shot.mdl";
 		self->ps.wpn[wpSSG].drops++;
+		ktx_weapon = 3;
 	}
 	else if ( item->s.v.items == IT_NAILGUN ) {
 		item->s.v.netname = "Nailgun";
 		//item->mdl = "progs/g_nail.mdl";
 		self->ps.wpn[wpNG].drops++;
+		ktx_weapon = 4;
 	}
 	else if ( item->s.v.items == IT_SUPER_NAILGUN ) {
 		item->s.v.netname = "Super Nailgun";
 		//item->mdl = "progs/g_nail2.mdl";
 		self->ps.wpn[wpSNG].drops++;
+		ktx_weapon = 5;
 	}
 	else if ( item->s.v.items == IT_GRENADE_LAUNCHER ) {
 		item->s.v.netname = "Grenade Launcher";
 		//item->mdl = "progs/g_rock.mdl";
 		self->ps.wpn[wpGL].drops++;
+		ktx_weapon = 6;
 	}
 	else if ( item->s.v.items == IT_ROCKET_LAUNCHER ) {
 		item->s.v.netname = "Rocket Launcher";
 		//item->mdl = "progs/g_rock2.mdl";
 		self->ps.wpn[wpRL].drops++;
+		ktx_weapon = 7;
 	}
 	else if ( item->s.v.items == IT_LIGHTNING ) {
 		item->s.v.netname = "Thunderbolt";
 		//item->mdl = "progs/g_light.mdl";
 		self->ps.wpn[wpLG].drops++;
+		ktx_weapon = 8;
 	}
 	else
 		item->s.v.netname = "";
@@ -2213,6 +2257,10 @@ void DropBackpack()
 		(int)item->s.v.ammo_cells,
 		cleantext(playername)
 	);
+
+	if (self->ktx_cmds & KTX_PICKUPS)
+		stuffcmd_flags( self, STUFFCMD_IGNOREINDEMO, "//ktx bd %d\n", ktx_weapon );
+	stuffcmd_flags( world, STUFFCMD_DEMOONLY, "//ktx bd %d %d %d\n", ktx_weapon, NUM_FOR_EDICT(self) - 1, NUM_FOR_EDICT(item) );
 
 	item->s.v.velocity[2] = 300;
 	item->s.v.velocity[0] = -100 + ( g_random() * 200 );

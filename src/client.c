@@ -47,6 +47,7 @@ void ImpulseCommands();
 void StartDie ();
 void ZeroFpsStats ();
 void ChasecamViewButton( void );
+void KTXExt_SetNewValue( gedict_t *p, char* value );
 
 void race_start( qbool restart, const char *fmt, ... );
 void race_stoprecord( qbool cancel );
@@ -1364,6 +1365,9 @@ void ClientConnect()
 		for ( i = 0; i < totalspots; i++ )
 			self->spawn_weights[i] = totalspots;
 	}
+
+	// Enable KTX extensions if requested
+	KTXExt_SetNewValue(self, ezinfokey(self, "ktxext"));
 
 	MakeMOTD();
 }

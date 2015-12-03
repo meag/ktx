@@ -22,6 +22,7 @@
 extern qbool		isSupport_Params(gedict_t *p);
 
 extern void			info_sys_mm_update( gedict_t *p, char *from, char *to );
+void         info_ktxext_update( gedict_t *p, char *from, char *to );
 
 //========================================================
 //
@@ -75,6 +76,8 @@ cmdinfo_t cinfos[] = {
 //	{ "lra", 0 },		// ra status bar modificator
 //	{ "pbspeed", 0 },	// for /trx_play
 //	{ "runes", 0 }	// for stuffing "set rune xxx" in CTF
+
+	{ "ktxext", info_ktxext_update }
 };
 
 int cinfos_cnt = sizeof( cinfos ) / sizeof( cinfos[0] );
@@ -348,4 +351,24 @@ qbool FixPlayerTeam ( char *newteam )
 		stuffcmd_flags(self, STUFFCMD_IGNOREINDEMO, "auto%s\n", newteam);
 
 	return false;
+}
+
+void KTXExt_SetNewValue( gedict_t *p, char* value )
+{
+	int newValue = atoi( value ) & KTX_EXT_MASK;
+
+	if (p->ktx_cmds == newValue)
+		return;
+
+	p->ktx_cmds = newValue;
+
+	if (p->ktx_cmds)
+		stuffcmd_flags(p, STUFFCMD_IGNOREINDEMO, "//ktx on %d\n", p->ktx_cmds);
+	else
+		stuffcmd_flags(p, STUFFCMD_IGNOREINDEMO, "//ktx off\n");
+}
+
+void info_ktxext_update( gedict_t *p, char *from, char *to )
+{
+	KTXExt_SetNewValue( p, to );
 }
