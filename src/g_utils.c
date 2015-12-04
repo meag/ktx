@@ -1414,7 +1414,7 @@ void changelevel( const char *name )
 		
 		cvar_set("sv_entityfile", name);
 		
-		strlcpy(mapName, name, min(entityFileSep - name + 1, sizeof(mapName) / sizeof(mapName[0])));
+		strlcpy(mapName, (char*)name, min(entityFileSep - name + 1, sizeof(mapName) / sizeof(mapName[0])));
 
 		trap_changelevel(mapName);
 	}
