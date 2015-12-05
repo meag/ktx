@@ -127,7 +127,7 @@ void GetCustomEntityMapsForDirectory(char* directory)
 
 		l++; // + nul
 
-		sep = strchr(s, '$');
+		sep = strchr(s, SV_ENTITYFILE_SEPARATOR);
 		if (sep) 
 		{
 			int baseMapFound = 0, duplicateFound = 0;

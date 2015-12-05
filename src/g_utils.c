@@ -1407,7 +1407,7 @@ void changelevel( const char *name )
 	if ( isRACE() && race.race_recording )
 		race_stoprecord( true );
 
-    entityFileSep = strchr(name, '$');
+	entityFileSep = strchr(name, SV_ENTITYFILE_SEPARATOR);
 	if (entityFileSep != 0)
 	{
 		char mapName[128] = { 0 };
