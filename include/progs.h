@@ -616,6 +616,14 @@ typedef struct gedict_s {
 	qbool		racer;				// this player do race right now
 	qbool		muted;				// this player produces no sound
 	int			hideentity;			// links to entity to hide in eye chasecam
+
+	char*       race_route_name;
+	char*       race_route_description;
+	int         race_route_timeout;
+	int         race_route_weapon_mode;
+	int         race_route_falsestart_mode;
+	float       race_route_start_yaw;
+	float       race_route_start_pitch;
 // }
 
 	int			trackent;			// pseudo spectating for players.
