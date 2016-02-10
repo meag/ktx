@@ -74,7 +74,7 @@ void EvalGoal() {
 			}
 		}
 		if (goal_entity->fb.Z_ == 1) {
-			if (touch_marker_->fb.zoneTask[0] & DM6_DOOR) {
+			if (touch_marker_->fb.zones[0].task & DM6_DOOR) {
 				if (dm6_door->s.v.takedamage) {
 					if (enemy_ == look_object_) {
 						if (!self->fb.invincible_time) {

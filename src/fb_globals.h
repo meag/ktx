@@ -1246,6 +1246,7 @@ extern gedict_t* dm6_door;
 #ifndef SHOT_FOR_LUCK
 #define SHOT_FOR_LUCK 2
 #endif
+
 extern float nextthink_;
 extern float try_shoot;
 extern float marker_index;
@@ -1560,93 +1561,17 @@ extern gedict_t* m297;
 extern gedict_t* m298;
 extern gedict_t* m299;
 extern gedict_t* m300;
-#ifndef NUMBER_GOALS
-#define NUMBER_GOALS 24
-#endif
 extern float goal_number;
 extern gedict_t* test_goal;
-#ifndef NUMBER_ZONES
-#define NUMBER_ZONES 24
-#endif
 extern float same_zone;
 extern float Z1_path_success;
 extern float Z8_path_success;
 extern gedict_t* zone_stack_head;
-extern gedict_t* Z1_head;
-extern gedict_t* Z2_head;
-extern gedict_t* Z3_head;
-extern gedict_t* Z4_head;
-extern gedict_t* Z5_head;
-extern gedict_t* Z6_head;
-extern gedict_t* Z7_head;
-extern gedict_t* Z8_head;
-extern gedict_t* Z9_head;
-extern gedict_t* Z10_head;
-extern gedict_t* Z11_head;
-extern gedict_t* Z12_head;
-extern gedict_t* Z13_head;
-extern gedict_t* Z14_head;
-extern gedict_t* Z15_head;
-extern gedict_t* Z16_head;
-extern gedict_t* Z17_head;
-extern gedict_t* Z18_head;
-extern gedict_t* Z19_head;
-extern gedict_t* Z20_head;
-extern gedict_t* Z21_head;
-extern gedict_t* Z22_head;
-extern gedict_t* Z23_head;
-extern gedict_t* Z24_head;
-extern gedict_t* Z1_tail;
-extern gedict_t* Z2_tail;
-extern gedict_t* Z3_tail;
-extern gedict_t* Z4_tail;
-extern gedict_t* Z5_tail;
-extern gedict_t* Z6_tail;
-extern gedict_t* Z7_tail;
-extern gedict_t* Z8_tail;
-extern gedict_t* Z9_tail;
-extern gedict_t* Z10_tail;
-extern gedict_t* Z11_tail;
-extern gedict_t* Z12_tail;
-extern gedict_t* Z13_tail;
-extern gedict_t* Z14_tail;
-extern gedict_t* Z15_tail;
-extern gedict_t* Z16_tail;
-extern gedict_t* Z17_tail;
-extern gedict_t* Z18_tail;
-extern gedict_t* Z19_tail;
-extern gedict_t* Z20_tail;
-extern gedict_t* Z21_tail;
-extern gedict_t* Z22_tail;
-extern gedict_t* Z23_tail;
-extern gedict_t* Z24_tail;
-extern float Z1_S_index;
-extern float Z2_S_index;
-extern float Z3_S_index;
-extern float Z4_S_index;
-extern float Z5_S_index;
-extern float Z6_S_index;
-extern float Z7_S_index;
-extern float Z8_S_index;
-extern float Z9_S_index;
-extern float Z10_S_index;
-extern float Z11_S_index;
-extern float Z12_S_index;
-extern float Z13_S_index;
-extern float Z14_S_index;
-extern float Z15_S_index;
-extern float Z16_S_index;
-extern float Z17_S_index;
-extern float Z18_S_index;
-extern float Z19_S_index;
-extern float Z20_S_index;
-extern float Z21_S_index;
-extern float Z22_S_index;
-extern float Z23_S_index;
-extern float Z24_S_index;
-#ifndef NUMBER_SUBZONES
-#define NUMBER_SUBZONES 32
-#endif
+
+extern gedict_t* zone_head[NUMBER_ZONES];
+extern gedict_t* zone_tail[NUMBER_ZONES];
+extern int subzone_indexes[NUMBER_ZONES];
+
 extern float S_index;
 extern float path_normal;
 extern float leave;
@@ -2651,8 +2576,8 @@ void remove_load();
 void InitialiseMarkerRoutes();
 
 // route_fields.qc
-void EnterZone(float zoneNumber, float teamNumber, float strong);
-void LeaveZone(float zoneNumber, float teamNumber, float strong);
+void EnterZone(int zoneNumber, float teamNumber, float strong);
+void LeaveZone(int zoneNumber, float teamNumber, float strong);
 
 // items.qc
 void SUB_regen();
@@ -2866,30 +2791,33 @@ void frogbot_marker_touch();
 // marker_load.qc
 void N(float x, float y, float z);
 void LSQ();
-void Z1(gedict_t* m);
-void Z2(gedict_t* m);
-void Z3(gedict_t* m);
-void Z4(gedict_t* m);
-void Z5(gedict_t* m);
-void Z6(gedict_t* m);
-void Z7(gedict_t* m);
-void Z8(gedict_t* m);
-void Z9(gedict_t* m);
-void Z10(gedict_t* m);
-void Z11(gedict_t* m);
-void Z12(gedict_t* m);
-void Z13(gedict_t* m);
-void Z14(gedict_t* m);
-void Z15(gedict_t* m);
-void Z16(gedict_t* m);
-void Z17(gedict_t* m);
-void Z18(gedict_t* m);
-void Z19(gedict_t* m);
-void Z20(gedict_t* m);
-void Z21(gedict_t* m);
-void Z22(gedict_t* m);
-void Z23(gedict_t* m);
-void Z24(gedict_t* m);
+
+void SetZone(int zone, gedict_t* marker);
+
+#define Z1(m) SetZone(1, m)
+#define Z2(m) SetZone(2, m)
+#define Z3(m) SetZone(3, m)
+#define Z4(m) SetZone(4, m)
+#define Z5(m) SetZone(5, m)
+#define Z6(m) SetZone(6, m)
+#define Z7(m) SetZone(7, m)
+#define Z8(m) SetZone(8, m)
+#define Z9(m) SetZone(9, m)
+#define Z10(m) SetZone(10, m)
+#define Z11(m) SetZone(11, m)
+#define Z12(m) SetZone(12, m)
+#define Z13(m) SetZone(13, m)
+#define Z14(m) SetZone(14, m)
+#define Z15(m) SetZone(15, m)
+#define Z16(m) SetZone(16, m)
+#define Z17(m) SetZone(17, m)
+#define Z18(m) SetZone(18, m)
+#define Z19(m) SetZone(19, m)
+#define Z20(m) SetZone(20, m)
+#define Z21(m) SetZone(21, m)
+#define Z22(m) SetZone(22, m)
+#define Z23(m) SetZone(23, m)
+#define Z24(m) SetZone(24, m)
 
 void AddToQue(gedict_t* ent);
 void SetGoal(int goal, gedict_t* marker);

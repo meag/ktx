@@ -446,7 +446,7 @@ void frogbot_marker_touch() {
 	}
 	self->fb.old_linked_marker = touch_marker_;
 	if (goalentity_marker->fb.Z_ == 1) {
-		if (touch_marker_->fb.zoneTask[0] & DM6_DOOR) {
+		if (touch_marker_->fb.zones[0].task & DM6_DOOR) {
 			if (dm6_door->s.v.takedamage) {
 				vec3_t temp, src;
 				VectorAdd(dm6_door->s.v.absmin, dm6_door->s.v.view_ofs, temp);
