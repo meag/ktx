@@ -1339,6 +1339,16 @@ void StartFrame( int time )
 		FixRules();
 	}
 
+	if ( bots_enabled() ) {
+		if ( framecount == 3 ) {
+			InitParameters();
+			InitFrogbots1();
+		}
+		else if ( framecount == 4 ) {
+			InitFrogbots2();
+		}
+	}
+
 	FixNoSpecs(); // if no players left turn off "no spectators" mode
 
 	FixCTFItems(); // if modes have changed we may need to add/remove flags etc

@@ -1,0 +1,754 @@
+// Converted from .qc on 05/02/2016
+
+#include "g_local.h"
+#include "fb_globals.h"
+
+float rndval() {
+	if (pre_game || arenastate != A_PLAYING) {
+		return 0.3;
+	}
+	else  {
+		return 1;
+	}
+}
+
+void AttackRespawns() {
+	if (enemy_->s.v.health < 1) {
+		if (ar_time > g_globalvars.time) {
+			if (self->fb.bot_skill >= 15) {
+				if ((int)self->s.v.items & IT_ROCKET_LAUNCHER) {
+					if (self->s.v.ammo_rockets > 3) {
+						if (!self->fb.rocketjumping) {
+							if (random() > 0.15) {
+								gedict_t* resp;
+								for (resp = world; resp = trap_findradius(resp, self->s.v.origin, 1000); ) {
+									if (streq(resp->s.v.classname, "info_player_deathmatch")) {
+										vec3_t test;
+										VectorCopy(self->s.v.origin, test);
+										test[2] += 16;
+										if (VectorDistance(resp->s.v.origin, test) > 160) {
+											if (VisibleEntity(resp)) {
+												float ang1,
+												      ang2;
+												vec3_t diff;
+
+												self->fb.botchose = 1;
+												self->s.v.impulse = 7;
+												self->fb.look_object = look_object_ = resp;
+												VectorCopy(resp->s.v.origin, self->fb.predict_origin);
+												self->fb.predict_origin[2] += 16;
+												self->fb.old_linked_marker = world;
+
+												VectorSubtract(resp->s.v.origin, self->s.v.origin, diff);
+												ang2 = vectoyaw(diff);
+												ang1 = anglemod(self->s.v.angles[1] - ang2);
+												if (ang1 < 20 || ang1 > 340) {
+													self->fb.button0_ = TRUE;
+												}
+												return;
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+void CheckNewWeapon() {
+	if (self->s.v.weapon != desired_weapon) {
+		if (self->fb.lines) {
+			return;
+		}
+		self->fb.botchose = 1;
+		if (desired_weapon == IT_LIGHTNING) {
+			self->s.v.impulse = 8;
+		}
+		else if (desired_weapon == IT_ROCKET_LAUNCHER) {
+			self->s.v.impulse = 7;
+		}
+		else if (desired_weapon == IT_GRENADE_LAUNCHER) {
+			self->s.v.impulse = 6;
+		}
+		else if (desired_weapon == IT_SUPER_NAILGUN) {
+			self->s.v.impulse = 5;
+		}
+		else if (desired_weapon == IT_NAILGUN) {
+			self->s.v.impulse = 4;
+		}
+		else if (desired_weapon == IT_SUPER_SHOTGUN) {
+			self->s.v.impulse = 3;
+		}
+		else if (desired_weapon == IT_SHOTGUN) {
+			self->s.v.impulse = 2;
+		}
+		else if (desired_weapon == IT_AXE) {
+			self->s.v.impulse = 1;
+		}
+	}
+}
+
+float ShotForLuck(vec3_t object) {
+	trap_makevectors(self->s.v.v_angle);
+	traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2], object[0], object[1], object[2], TRUE, self);
+	return (g_globalvars.trace_fraction == 1);
+}
+
+void SetFireButton() {
+	if (pre_game) {
+		if (!counting_down) {
+			if ((enemy_ != attacker) || ((g_globalvars.time + random()) < enemy_->fb.attack_finished)) {
+				self->fb.button0_ = FALSE;
+				return;
+			}
+		}
+		else  {
+			self->fb.button0_ = FALSE;
+			return;
+		}
+	}
+	if (self->fb.button0_) {
+		if (look_object_ == enemy_) {
+			if (random() < 0.666667) {
+				if (!self->s.v.impulse) {
+					return;
+				}
+			}
+		}
+		if (!self->fb.rocketjumping) {
+			self->fb.button0_ = FALSE;
+		}
+	}
+	else  {
+		if (g_globalvars.time < self->fb.attack_finished) {
+			return;
+		}
+	}
+	if (self->s.v.impulse) {
+		return;
+	}
+	if (look_object_->fb.realteam != self->fb.realteam) {
+		if (self->fb.path_state & DM6_DOOR) {
+			items_ = self->s.v.items;
+			if (self->s.v.ammo_shells) {
+				desired_weapon = IT_SHOTGUN;
+			}
+			else if ((items_ & IT_NAILGUN) && (self->s.v.ammo_nails)) {
+				desired_weapon = IT_NAILGUN;
+			}
+			else if ((items_ & IT_SUPER_NAILGUN) && (self->s.v.ammo_nails)) {
+				desired_weapon = IT_SUPER_NAILGUN;
+			}
+			else if ((items_ & IT_LIGHTNING) && (self->s.v.ammo_cells)) {
+				desired_weapon = IT_LIGHTNING;
+			}
+			CheckNewWeapon();
+			if (self->s.v.weapon == desired_weapon) {
+				self->fb.button0_ = TRUE;
+			}
+		}
+		if (self->fb.state & HURT_SELF) {
+			if (self->s.v.weapon == IT_ROCKET_LAUNCHER) {
+				if (self->fb.real_pitch == 78.75) {
+					self->fb.button0_ = TRUE;
+					self->fb.state = self->fb.state & NOT_HURT_SELF;
+				}
+			}
+			return;
+		}
+		if (enemy_) {
+			if (enemy_->fb.touch_marker) {
+				traceline(origin_[0], origin_[1], origin_[2] + 16, origin_[0] + rel_pos[0], origin_[1] + rel_pos[1], origin_[2] + rel_pos[2] + 16, FALSE, self);
+				if (g_globalvars.trace_fraction == 1) {
+					if (self->s.v.weapon != IT_ROCKET_LAUNCHER) {
+						if (look_object_ != enemy_) {
+							return;
+						}
+					}
+				}
+				else  {
+					if (g_globalvars.trace_ent != NUM_FOR_EDICT(look_object_)) {
+						if (g_edicts[g_globalvars.trace_ent].fb.client_) {
+							if (self->fb.realteam != g_edicts[g_globalvars.trace_ent].fb.realteam) {
+								if (!((int)self->s.v.flags & FL_WATERJUMP)) {
+									self->s.v.enemy = g_globalvars.trace_ent;
+									enemy_ = &g_edicts[g_globalvars.trace_ent];
+									LookEnemy();
+								}
+							}
+							return;
+						}
+						else  {
+							if (look_object_ == enemy_) {
+								if (!self->s.v.waterlevel) {
+									if (self->fb.allowedMakeNoise) {
+										if ((int)self->s.v.flags & FL_ONGROUND) {
+											traceline(origin_[0], origin_[1], origin_[2] + 32, origin_[0] + rel_pos[0], origin_[1] + rel_pos[1], origin_[2] + rel_pos[2] + 32 , FALSE, self);
+											if (g_globalvars.trace_fraction == 1) {
+												self->fb.button2_ = TRUE;
+											}
+										}
+									}
+								}
+							}
+							return;
+						}
+					}
+				}
+				if (self->s.v.weapon == IT_LIGHTNING) {
+					if (self->s.v.waterlevel > 1) {
+						return;
+					}
+				}
+				risk_factor = 0.5;
+				risk = random();
+				risk = risk * risk;
+				if ((int)self->s.v.items & IT_QUAD) {
+					if (healthplay != TEAM_TOTAL_HEALTH_PROTECT) {
+						if (!((int)self->s.v.items & IT_INVULNERABILITY)) {
+							if ((self->s.v.weapon == IT_ROCKET_LAUNCHER) || (self->s.v.weapon == IT_GRENADE_LAUNCHER)) {
+								if (self->fb.look_object == enemy_) {
+									if (self->fb.enemy_dist <= 250) {
+										items_ = self->s.v.items;
+										if ((items_ & IT_LIGHTNING) && (self->s.v.ammo_cells)) {
+											desired_weapon = IT_LIGHTNING;
+										}
+										else if ((items_ & IT_SUPER_NAILGUN) && (self->s.v.ammo_nails)) {
+											desired_weapon = IT_SUPER_NAILGUN;
+										}
+										else if ((items_ & IT_NAILGUN) && (self->s.v.ammo_nails)) {
+											desired_weapon = IT_NAILGUN;
+										}
+										else if ((items_ & IT_SUPER_SHOTGUN) && (self->s.v.ammo_shells)) {
+											desired_weapon = IT_SUPER_SHOTGUN;
+										}
+										else if (self->s.v.ammo_shells) {
+											desired_weapon = IT_SHOTGUN;
+										}
+										CheckNewWeapon();
+										if (self->s.v.weapon == desired_weapon) {
+											self->fb.button0_ = TRUE;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				if (self->s.v.weapon == IT_ROCKET_LAUNCHER) {
+					hit_radius = 160;
+					VectorCopy(origin_, rocket_origin);
+					rocket_origin[2] += 16;
+					trap_makevectors(self->s.v.v_angle);
+					traceline(rocket_origin[0], rocket_origin[1], rocket_origin[2], rocket_origin[0] + (g_globalvars.v_forward[0] * 600), rocket_origin[1] + (g_globalvars.v_forward[1] * 600), rocket_origin[2] + (g_globalvars.v_forward[2] * 600), FALSE, self);
+					VectorCopy(g_globalvars.trace_endpos, rocket_endpos);
+					risk_strength = g_globalvars.trace_fraction;
+					realteam_ = self->fb.realteam;
+					test_enemy = first_client;
+					while (test_enemy) {
+						if (test_enemy->s.v.takedamage) {
+							if (test_enemy == enemy_) {
+								predict_dist = 1000000;
+								if (look_object_->fb.client_) {
+									if (look_object_ == enemy_) {
+										VectorCopy(self->fb.predict_origin, testplace);
+										predict_dist = VectorDistance(testplace, rocket_endpos);
+									}
+								}
+								else if (look_object_) {
+									if (self->fb.allowedMakeNoise) {
+										if (self->fb.predict_shoot) {
+											VectorAdd(look_object_->s.v.absmin, look_object_->s.v.view_ofs, testplace);
+											from_marker = enemy_->fb.touch_marker;
+											path_normal = TRUE;
+											look_object_->fb.zone_marker();
+											look_object_->fb.sub_arrival_time();
+											predict_dist = (traveltime * sv_maxspeed) + VectorDistance(testplace, rocket_endpos);
+										}
+									}
+								}
+							}
+							else  {
+								VectorCopy(test_enemy->s.v.origin, testplace);
+								predict_dist = VectorDistance(testplace, rocket_endpos);
+							}
+							if (predict_dist <= (hit_radius / (1 - risk))) {
+								traceline(rocket_endpos[0], rocket_endpos[1], rocket_endpos[2], testplace[0], testplace[1], testplace[2], TRUE, self);
+								if (g_globalvars.trace_fraction == 1) {
+									if (test_enemy->fb.realteam != realteam_) {
+										risk_factor = risk_factor / risk_strength;
+										if (look_object_ == enemy_) {
+											self->fb.button0_ = TRUE;
+										}
+										else if (predict_dist <= (80 / (1.2 - risk))) {
+											self->fb.button0_ = TRUE;
+										}
+										else  {
+											if ((int)self->s.v.items & IT_ROCKET_LAUNCHER) {
+												if (!self->fb.lines) {
+													if (look_object_) {
+														VectorAdd(self->fb.look_object->s.v.absmin, self->fb.look_object->s.v.view_ofs, testplace);
+														VectorSubtract(testplace, self->s.v.origin, rel_pos);
+														rel_dist = vlen(rel_pos);
+														if ((int)self->s.v.items & IT_QUAD) {
+															dist_sfl = 300;
+														}
+														else  {
+															dist_sfl = 250;
+														}
+														if (self->s.v.ammo_rockets > 3) {
+															if (!visible_teammate(self)) {
+																if (!self->fb.rocketjumping) {
+																	if (self->fb.allowedMakeNoise) {
+																		if (rel_dist > dist_sfl) {
+																			if (ShotForLuck(testplace)) {
+																				if (RocketSafe()) {
+																					traceline(
+																						origin_[0], origin_[1], origin_[2] + 16, 
+																						self->s.v.origin[0] + rel_pos[0], 
+																						self->s.v.origin[1] + rel_pos[1], 
+																						self->s.v.origin[2] + rel_pos[2] - 22, 
+																						TRUE, self);
+																					if (g_globalvars.trace_fraction == 1) {
+																						rel_pos[2] = rel_pos[2] - 38;
+																					}
+																					self->fb.state = self->fb.state | SHOT_FOR_LUCK;
+																					self->fb.botchose = 1;
+																					self->s.v.impulse = 7;
+																					self->fb.button0_ = TRUE;
+																				}
+																				else  {
+																					self->fb.state = self->fb.state - (self->fb.state & SHOT_FOR_LUCK);
+																				}
+																			}
+																		}
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+											if ((int)self->s.v.items & IT_GRENADE_LAUNCHER) {
+												if (!self->fb.lines) {
+													if (enemy_) {
+														if (!self->fb.rocketjumping) {
+															if (self->fb.allowedMakeNoise) {
+																if (self->s.v.ammo_rockets > 3) {
+																	if (!visible_teammate(self)) {
+																		if (self->fb.arrow == BACK) {
+																			self->fb.botchose = 1;
+																			self->s.v.impulse = 6;
+																			self->fb.button0_ = TRUE;
+																		}
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+									else  {
+										if (test_enemy != self) {
+											return;
+										}
+										else  {
+											risk_factor = risk_factor * risk_strength;
+										}
+									}
+								}
+							}
+						}
+						test_enemy = test_enemy->fb.next;
+					}
+					return;
+				}
+				VectorSubtract(desired_angle, self->s.v.v_angle, angle_error);
+				if (angle_error[1] >= 180) {
+					angle_error[1] = angle_error[1] - 360;
+				}
+				else if (angle_error[1] < -180) {
+					angle_error[1] = angle_error[1] + 360;
+				}
+				if (angle_error[0] < 0) {
+					angle_error[0] = 0 - angle_error[0];
+				}
+				if (angle_error[1] < 0) {
+					angle_error[1] = 0 - angle_error[1];
+				}
+				min_angle_error = (1 + risk) * risk_factor * (self->fb.accuracy + (1440 / rel_dist));
+				if (angle_error[0] > min_angle_error) {
+					return;
+				}
+				if (angle_error[1] > min_angle_error) {
+					return;
+				}
+				self->fb.button0_ = TRUE;
+			}
+		}
+	}
+}
+
+float RocketSafe() {
+	splash_damage = 80 - (0.25 * self->fb.enemy_dist);
+	if (splash_damage <= 0) {
+		return TRUE;
+	}
+	if (healthplay == TEAM_TOTAL_HEALTH_PROTECT) {
+		return TRUE;
+	}
+	if (self->fb.super_damage_finished > g_globalvars.time) {
+		splash_damage = splash_damage * quad_factor;
+		if (self->fb.player_flag & ITEM_RUNE_MASK) {
+			if (self->fb.player_flag & ITEM_RUNE2_FLAG) {
+				splash_damage = splash_damage * 2;
+			}
+			else if (self->fb.player_flag & ITEM_RUNE1_FLAG) {
+				splash_damage = splash_damage * 0.5;
+			}
+		}
+	}
+	if (self->fb.total_damage > splash_damage) {
+		return TRUE;
+	}
+	return FALSE;
+}
+
+void DesiredWeapon() {
+	avoid_rockets = FALSE;
+	items_ = self->s.v.items;
+	if ((int)self->s.v.items & IT_QUAD) {
+		if (teamplay && (healthplay != TEAM_TOTAL_HEALTH_PROTECT)) {
+			search_entity = identify_teammate_(self);
+			if (!search_entity->fb.invincible_time) {
+				if (VisibleEntity(search_entity)) {
+					if (enemy_visible) {
+						if (VectorDistance(search_entity->s.v.origin, enemy_->s.v.origin) < 150) {
+							if (self->s.v.ammo_shells) {
+								desired_weapon = IT_SHOTGUN;
+								return;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	if (game_rl_pref || fb_lg_disabled()) {
+		if (items_ & IT_ROCKET_LAUNCHER) {
+			if (self->s.v.ammo_rockets) {
+				if (RocketSafe()) {
+					desired_weapon = IT_ROCKET_LAUNCHER;
+					return;
+				}
+				avoid_rockets = TRUE;
+			}
+		}
+	}
+	shaft_available = FALSE;
+	if (game_lg_pref && !fb_lg_disabled()) {
+		if ((self->s.v.waterlevel <= 1) || ((int)self->s.v.items & IT_INVULNERABILITY)) {
+			if (items_ & IT_LIGHTNING) {
+				if (self->s.v.ammo_cells) {
+					if (self->fb.enemy_dist <= 600) {
+						desired_weapon = IT_LIGHTNING;
+						return;
+					}
+					shaft_available = TRUE;
+				}
+			}
+		}
+	}
+	if (BotShouldDischarge()) {
+		desired_weapon = IT_LIGHTNING;
+		return;
+	}
+	if (!fb_lg_disabled()) {
+		if ((self->s.v.waterlevel <= 1) || ((int)self->s.v.items & IT_INVULNERABILITY)) {
+			if (items_ & IT_LIGHTNING) {
+				if (self->s.v.ammo_cells) {
+					if (self->fb.enemy_dist <= 600) {
+						if (look_object_ == enemy_) {
+							vec3_t diff;
+							VectorSubtract(look_object_->s.v.origin, origin_, diff);
+							vectoangles(diff, enemy_angles);
+							if (enemy_angles[0] < 15) {
+								if (enemy_angles[0] > -15) {
+									desired_weapon = IT_LIGHTNING;
+									return;
+								}
+							}
+						}
+						else  {
+							desired_weapon = IT_LIGHTNING;
+							return;
+						}
+						shaft_available = TRUE;
+					}
+				}
+			}
+		}
+	}
+	if (!avoid_rockets) {
+		if (items_ & IT_ROCKET_LAUNCHER) {
+			if (self->s.v.ammo_rockets) {
+				if (RocketSafe()) {
+					desired_weapon = IT_ROCKET_LAUNCHER;
+					return;
+				}
+				if (!((int)self->s.v.items & IT_INVULNERABILITY)) {
+					avoid_rockets = TRUE;
+				}
+			}
+		}
+	}
+	if (self->fb.state & WAIT) {
+		if (items_ & IT_ROCKET_LAUNCHER) {
+			if (self->s.v.ammo_rockets) {
+				if (RocketSafe()) {
+					desired_weapon = IT_ROCKET_LAUNCHER;
+					return;
+				}
+			}
+		}
+		else if (items_ & IT_LIGHTNING) {
+			if (self->s.v.ammo_cells) {
+				if (shaft_available) {
+					desired_weapon = IT_LIGHTNING;
+					return;
+				}
+			}
+		}
+	}
+	if (shaft_available) {
+		desired_weapon = IT_LIGHTNING;
+		return;
+	}
+	if (self->fb.enemy_dist <= 320) {
+		if (!avoid_rockets) {
+			if (items_ & IT_GRENADE_LAUNCHER) {
+				if (self->s.v.ammo_rockets) {
+					if (RocketSafe()) {
+						if (WaterCombat()) {
+							desired_weapon = IT_GRENADE_LAUNCHER;
+							return;
+						}
+					}
+				}
+			}
+		}
+	}
+	if (self->fb.enemy_dist <= 600) {
+		if (items_ & IT_SUPER_NAILGUN) {
+			if (self->s.v.ammo_nails) {
+				desired_weapon = IT_SUPER_NAILGUN;
+				return;
+			}
+		}
+		if (items_ & IT_SUPER_SHOTGUN) {
+			if (self->s.v.ammo_shells) {
+				desired_weapon = IT_SUPER_SHOTGUN;
+				return;
+			}
+		}
+		if (items_ & IT_NAILGUN) {
+			if (self->s.v.ammo_nails) {
+				desired_weapon = IT_NAILGUN;
+				return;
+			}
+		}
+	}
+	if (self->s.v.ammo_shells) {
+		desired_weapon = IT_SHOTGUN;
+		return;
+	}
+}
+
+void SelectWeapon() {
+	if (self->fb.path_state & DM6_DOOR) {
+		return;
+	}
+	if (self->fb.state & HURT_SELF) {
+		if ((int)self->s.v.items & IT_ROCKET_LAUNCHER) {
+			if (self->s.v.ammo_rockets) {
+				if (self->s.v.health >= 50) {
+					if (self->fb.super_damage_finished <= g_globalvars.time) {
+						if (self->s.v.weapon != IT_ROCKET_LAUNCHER) {
+							self->fb.botchose = 1;
+							self->s.v.impulse = 7;
+						}
+						return;
+					}
+				}
+			}
+		}
+		self->fb.state = self->fb.state & NOT_HURT_SELF;
+	}
+	DesiredWeapon();
+	CheckNewWeapon();
+}
+
+void DelayUpdateWeapons() {
+	weapon_refresh_time_ = g_globalvars.time + 1;
+	if (self->fb.weapon_refresh_time > weapon_refresh_time_) {
+		self->fb.weapon_refresh_time = weapon_refresh_time_;
+	}
+}
+
+void UpdateWeapons() {
+	self->fb.weapon_refresh_time = 1000000;
+	if (deathmatch != 4) {
+		attackbonus = 0;
+		items_ = self->s.v.items;
+		if (items_ & IT_ROCKET_LAUNCHER) {
+			firepower_ = self->s.v.ammo_rockets * 8;
+			if (self->s.v.ammo_rockets) {
+				attackbonus = 50;
+			}
+		}
+		else if (items_ & IT_GRENADE_LAUNCHER) {
+			firepower_ = self->s.v.ammo_rockets * 6;
+			if (firepower_ > 50) {
+				firepower_ = 50;
+			}
+		}
+		else  {
+			firepower_ = 0;
+		}
+		if (items_ & IT_LIGHTNING) {
+			firepower_ = firepower_ + self->s.v.ammo_cells;
+			if (self->s.v.ammo_cells >= 10) {
+				attackbonus = attackbonus + 50;
+			}
+		}
+		if (items_ & IT_EITHER_NAILGUN) {
+			firepower_ = firepower_ + (self->s.v.ammo_nails * 0.1);
+		}
+		if (items_ & IT_SUPER_SHOTGUN) {
+			if (self->s.v.ammo_shells >= 50) {
+				firepower_ = firepower_ + 20;
+			}
+			else  {
+				firepower_ = firepower_ + self->s.v.ammo_shells * 0.4;
+			}
+		}
+		else  {
+			if (self->s.v.ammo_shells >= 25) {
+				firepower_ = firepower_ + 10;
+			}
+			else  {
+				firepower_ = firepower_ + self->s.v.ammo_shells * 0.4;
+			}
+		}
+		if (firepower_ > 100) {
+			firepower_ = 100;
+		}
+		if (self->s.v.ammo_rockets >= 15) {
+			self->fb.desire_rockets = 5;
+		}
+		else  {
+			self->fb.desire_rockets = 20 - self->s.v.ammo_rockets;
+		}
+		if (self->s.v.ammo_cells >= 37.5) {
+			self->fb.desire_cells = 2.5;
+		}
+		else  {
+			self->fb.desire_cells = (50 - self->s.v.ammo_cells) * 0.2;
+		}
+		self->fb.desire_rocketlauncher = 100 - firepower_;
+		if (self->fb.desire_rocketlauncher < self->fb.desire_rockets) {
+			self->fb.desire_rocketlauncher = self->fb.desire_rockets;
+		}
+		if (self->fb.desire_rocketlauncher >= self->fb.desire_cells) {
+			self->fb.desire_lightning = self->fb.desire_rocketlauncher;
+		}
+		else  {
+			self->fb.desire_lightning = self->fb.desire_cells;
+		}
+		if (items_ & IT_ROCKET_LAUNCHER) {
+			self->fb.desire_rockets = self->fb.desire_grenadelauncher = self->fb.desire_rocketlauncher;
+		}
+		else  {
+			if (firepower_ >= 50) {
+				self->fb.desire_grenadelauncher = 0;
+			}
+			else  {
+				self->fb.desire_grenadelauncher = 50 - firepower_;
+			}
+			if (self->fb.desire_grenadelauncher < self->fb.desire_rockets) {
+				self->fb.desire_grenadelauncher = self->fb.desire_rockets;
+			}
+			if (items_ & IT_GRENADE_LAUNCHER) {
+				self->fb.desire_rockets = self->fb.desire_grenadelauncher;
+			}
+		}
+		if (items_ & IT_LIGHTNING) {
+			self->fb.desire_cells = self->fb.desire_lightning;
+		}
+		if (firepower_ < 20) {
+			self->fb.desire_nails = 2.5 - (self->s.v.ammo_nails * 0.0125);
+			if (self->s.v.ammo_shells >= 50) {
+				self->fb.desire_shells = 0;
+			}
+			else  {
+				self->fb.desire_shells = 2.5 - (self->s.v.ammo_shells * 0.05);
+			}
+		}
+		else  {
+			self->fb.desire_nails = self->fb.desire_shells = 0;
+		}
+		if (firepower_ >= 20) {
+			self->fb.desire_supershotgun = 0;
+		}
+		else  {
+			self->fb.desire_supershotgun = 20 - firepower_;
+		}
+		if (self->fb.desire_supershotgun >= self->fb.desire_nails) {
+			self->fb.desire_nailgun = self->fb.desire_supernailgun = self->fb.desire_supershotgun;
+		}
+		else  {
+			self->fb.desire_nailgun = self->fb.desire_supernailgun = self->fb.desire_nails;
+		}
+		if (self->fb.desire_supershotgun < self->fb.desire_shells) {
+			self->fb.desire_supershotgun = self->fb.desire_shells;
+		}
+		if (items_ & IT_EITHER_NAILGUN) {
+			self->fb.desire_nails = self->fb.desire_supernailgun;
+		}
+		if (items_ & IT_SUPER_SHOTGUN) {
+			self->fb.desire_shells = self->fb.desire_supershotgun;
+		}
+		firepower_ = firepower_ + attackbonus;
+		if (firepower_ > 100) {
+			firepower_ = 100;
+		}
+		if (boomstick_only()) {
+			self->fb.desire_backpack = self->fb.desire_supershotgun;
+		}
+		if (self->fb.super_damage_finished > g_globalvars.time) {
+			firepower_ = firepower_ * 4;
+		}
+		if (self->fb.player_flag & ITEM_RUNE2_FLAG) {
+			firepower_ = firepower_ * 2;
+		}
+		self->fb.firepower = firepower_;
+	}
+	else  {
+		if (self->fb.super_damage_finished > g_globalvars.time) {
+			self->fb.firepower = 800;
+		}
+		else  {
+			self->fb.firepower = 100;
+		}
+		if (self->fb.player_flag & ITEM_RUNE2_FLAG) {
+			self->fb.firepower = self->fb.firepower * 2;
+		}
+	}
+}
+

@@ -3121,37 +3121,9 @@ void WS_CheckUpdate( gedict_t *p )
 // } end of new weapon stats
 // ====================================
 
-////////////////
-// GlobalParams:
-// time
-// self
-///////////////
-void PlayerPostThink()
+
+void CheckLand()
 {
-//dprint ("post think\n");
-
-	WS_CheckUpdate( self );
-
-	if ( intermission_running )
-    {
-		setorigin( self, PASSVEC3( intermission_spot->s.v.origin ) );
-        SetVector( self->s.v.velocity, 0, 0, 0 ); 	// don't stray off the intermission spot too far
-
-        return;
-    }
-
-	if ( self->s.v.deadflag )
-		return;
-
-//team
-
-// WaterMove function call moved here from PlayerPreThink to avoid
-// occurrence of the spawn lavaburn bug and to fix the problem on spawning
-// and playing the leave water sound if the player died underwater.
-
-    WaterMove ();
-
-
 // clear the flag if we landed
     if( (int)self->s.v.flags & FL_ONGROUND )
 		self->brokenankle = 0;
@@ -3191,6 +3163,39 @@ void PlayerPostThink()
 	}
 
 	self->jump_flag = self->s.v.velocity[2];
+}
+
+////////////////
+// GlobalParams:
+// time
+// self
+///////////////
+void PlayerPostThink()
+{
+//dprint ("post think\n");
+
+	WS_CheckUpdate( self );
+
+	if ( intermission_running )
+    {
+		setorigin( self, PASSVEC3( intermission_spot->s.v.origin ) );
+        SetVector( self->s.v.velocity, 0, 0, 0 ); 	// don't stray off the intermission spot too far
+
+        return;
+    }
+
+	if ( self->s.v.deadflag )
+		return;
+
+//team
+
+// WaterMove function call moved here from PlayerPreThink to avoid
+// occurrence of the spawn lavaburn bug and to fix the problem on spawning
+// and playing the leave water sound if the player died underwater.
+
+    WaterMove ();
+
+	CheckLand();
 
 	CheckPowerups();
 	CheckLightEffects(); // NOTE: guess, this must be after CheckPowerups(), so u r warned.

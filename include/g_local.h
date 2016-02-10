@@ -980,3 +980,9 @@ void LaunchLaser( vec3_t org, vec3_t vec );
 
 // identify alternative .ent files by format <map>#<name>.ent
 #define K_ENTITYFILE_SEPARATOR '#'
+
+// bots
+qbool bots_enabled();
+void InitFrogbots1();
+void InitFrogbots2();
+void InitParameters();
