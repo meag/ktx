@@ -299,54 +299,20 @@ void frogbot_marker_touch() {
 			EvalPath();
 		}
 	}
-	test_marker = touch_marker_->fb.P0;
-	if (test_marker) {
-		description = touch_marker_->fb.D0;
-		path_time = touch_marker_->fb.P0_time;
-		EvalPath();
+
+	{ 
+		int i = 0;
+
+		for (i = 0; i < sizeof(touch_marker_->fb.paths) / sizeof(touch_marker_->fb.paths[0]); ++i) {
+			test_marker = touch_marker_->fb.paths[i].next_marker;
+			if (test_marker && test_marker != world) {
+				description = touch_marker_->fb.paths[i].flags;
+				path_time = touch_marker_->fb.paths[i].time;
+				EvalPath();
+			}
+		}
 	}
-	test_marker = touch_marker_->fb.P1;
-	if (test_marker) {
-		description = touch_marker_->fb.D1;
-		path_time = touch_marker_->fb.P1_time;
-		EvalPath();
-	}
-	test_marker = touch_marker_->fb.P2;
-	if (test_marker) {
-		description = touch_marker_->fb.D2;
-		path_time = touch_marker_->fb.P2_time;
-		EvalPath();
-	}
-	test_marker = touch_marker_->fb.P3;
-	if (test_marker) {
-		description = touch_marker_->fb.D3;
-		path_time = touch_marker_->fb.P3_time;
-		EvalPath();
-	}
-	test_marker = touch_marker_->fb.P4;
-	if (test_marker) {
-		description = touch_marker_->fb.D4;
-		path_time = touch_marker_->fb.P4_time;
-		EvalPath();
-	}
-	test_marker = touch_marker_->fb.P5;
-	if (test_marker) {
-		description = touch_marker_->fb.D5;
-		path_time = touch_marker_->fb.P5_time;
-		EvalPath();
-	}
-	test_marker = touch_marker_->fb.P6;
-	if (test_marker) {
-		description = touch_marker_->fb.D6;
-		path_time = touch_marker_->fb.P6_time;
-		EvalPath();
-	}
-	test_marker = touch_marker_->fb.P7;
-	if (test_marker) {
-		description = touch_marker_->fb.D7;
-		path_time = touch_marker_->fb.P7_time;
-		EvalPath();
-	}
+
 	if (streq(touch_marker_->s.v.classname, "door")) {
 		if (streq(deathtype, "squish")) {
 			if (linked_marker_->s.v.absmin[2] + linked_marker_->s.v.view_ofs[2] > self->s.v.origin[2] + 18) {
@@ -371,6 +337,7 @@ void frogbot_marker_touch() {
 			}
 		}
 	}
+
 	if (self->fb.state & WAIT) {
 		if (!look_object_->fb.client_) {
 			//traceline(linked_marker_->s.v.absmin + linked_marker_->s.v.view_ofs + '0 0 32', look_object_->s.v.absmin + look_object_->s.v.view_ofs + '0 0 32', TRUE, self);
@@ -387,6 +354,7 @@ void frogbot_marker_touch() {
 			self->fb.state = self->fb.state - (self->fb.state & WAIT);
 		}
 	}
+
 	if (streq(g_globalvars.mapname, "dm3")) {
 		if (numberofclients > 1) {
 			if (teamplay && deathmatch <= 3) {
@@ -576,37 +544,15 @@ void frogbot_marker_touch() {
 	}
 	VectorAdd(linked_marker_->s.v.absmin, linked_marker_->s.v.view_ofs, linked_marker_origin);
 	best_score = -1000000;
-	from_marker = linked_marker_->fb.P0;
-	if (from_marker) {
-		EvalLook();
-	}
-	from_marker = linked_marker_->fb.P1;
-	if (from_marker) {
-		EvalLook();
-	}
-	from_marker = linked_marker_->fb.P2;
-	if (from_marker) {
-		EvalLook();
-	}
-	from_marker = linked_marker_->fb.P3;
-	if (from_marker) {
-		EvalLook();
-	}
-	from_marker = linked_marker_->fb.P4;
-	if (from_marker) {
-		EvalLook();
-	}
-	from_marker = linked_marker_->fb.P5;
-	if (from_marker) {
-		EvalLook();
-	}
-	from_marker = linked_marker_->fb.P6;
-	if (from_marker) {
-		EvalLook();
-	}
-	from_marker = linked_marker_->fb.P7;
-	if (from_marker) {
-		EvalLook();
+
+	{
+		int i = 0;
+		for (i = 0; i < sizeof(linked_marker_->fb.paths) / sizeof(linked_marker_->fb.paths[0]); ++i) {
+			from_marker = linked_marker_->fb.paths[i].next_marker;
+			if (from_marker) {
+				EvalLook();
+			}
+		}
 	}
 	self->fb.look_object = look_object_;
 	self->fb.predict_shoot = FALSE;

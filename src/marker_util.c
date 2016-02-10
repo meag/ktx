@@ -121,34 +121,19 @@ void AssignVirtualGoal_apply(gedict_t* marker_) {
 	if (goal_number) {
 		test_goal = marker_;
 		if (test_goal->s.v.nextthink) {
-			test_goal = marker_->fb.P0;
-			if ((test_goal->fb.G_ != goal_number) || (test_goal->s.v.nextthink)) {
-				test_goal = marker_->fb.P1;
-				if ((test_goal->fb.G_ != goal_number) || (test_goal->s.v.nextthink)) {
-					test_goal = marker_->fb.P2;
-					if ((test_goal->fb.G_ != goal_number) || (test_goal->s.v.nextthink)) {
-						test_goal = marker_->fb.P3;
-						if ((test_goal->fb.G_ != goal_number) || (test_goal->s.v.nextthink)) {
-							test_goal = marker_->fb.P4;
-							if ((test_goal->fb.G_ != goal_number) || (test_goal->s.v.nextthink)) {
-								test_goal = marker_->fb.P5;
-								if ((test_goal->fb.G_ != goal_number) || (test_goal->s.v.nextthink)) {
-									test_goal = marker_->fb.P6;
-									if ((test_goal->fb.G_ != goal_number) || (test_goal->s.v.nextthink)) {
-										test_goal = marker_->fb.P7;
-										if ((test_goal->fb.G_ != goal_number) || (test_goal->s.v.nextthink)) {
-											if ((marker_->s.v.nextthink > 0) && (marker_->s.v.think == (func_t) SUB_regen)) {
-												test_goal = marker_;
-											}
-											else  {
-												test_goal = dropper;
-											}
-										}
-									}
-								}
-							}
-						}
-					}
+			int i = 0;
+			for (i = 0; i < sizeof(marker_->fb.paths) / sizeof(marker_->fb.paths[0]); ++i) {
+				test_goal = marker_->fb.paths[0].next_marker;
+				if ((test_goal->fb.G_ != goal_number) || (test_goal->s.v.nextthink))
+					break;
+			}
+
+			if (i >= sizeof(marker_->fb.paths) / sizeof(marker_->fb.paths[0])) {
+				if ((marker_->s.v.nextthink > 0) && (marker_->s.v.think == (func_t) SUB_regen)) {
+					test_goal = marker_;
+				}
+				else  {
+					test_goal = dropper;
 				}
 			}
 		}
@@ -165,38 +150,15 @@ void AssignVirtualGoal() {
 }
 
 float ExistsPath() {
-	if (from_marker->fb.P0 == to_marker) {
-		new_path_state = from_marker->fb.D0;
-		return TRUE;
+	int i = 0;
+
+	for (i = 0; i < sizeof(from_marker->fb.paths) / sizeof(from_marker->fb.paths[0]); ++i) {
+		if (from_marker->fb.paths[i].next_marker == to_marker) {
+			new_path_state = from_marker->fb.paths[i].flags;
+			return TRUE;
+		}
 	}
-	if (from_marker->fb.P1 == to_marker) {
-		new_path_state = from_marker->fb.D1;
-		return TRUE;
-	}
-	if (from_marker->fb.P2 == to_marker) {
-		new_path_state = from_marker->fb.D2;
-		return TRUE;
-	}
-	if (from_marker->fb.P3 == to_marker) {
-		new_path_state = from_marker->fb.D3;
-		return TRUE;
-	}
-	if (from_marker->fb.P4 == to_marker) {
-		new_path_state = from_marker->fb.D4;
-		return TRUE;
-	}
-	if (from_marker->fb.P5 == to_marker) {
-		new_path_state = from_marker->fb.D5;
-		return TRUE;
-	}
-	if (from_marker->fb.P6 == to_marker) {
-		new_path_state = from_marker->fb.D6;
-		return TRUE;
-	}
-	if (from_marker->fb.P7 == to_marker) {
-		new_path_state = from_marker->fb.D7;
-		return TRUE;
-	}
+
 	return FALSE;
 }
 

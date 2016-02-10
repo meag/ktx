@@ -295,6 +295,17 @@ typedef struct fb_runaway_route_s {
 	float score;
 } fb_runaway_route_t;
 
+typedef struct fb_path_s {
+	struct gedict_s* next_marker;
+	float time;
+	int flags;
+} fb_path_t;
+
+typedef struct fb_goal_s {
+	struct gedict_s* next_marker;
+	float time;
+} fb_goal_t;
+
 typedef struct fb_entvars_s {
 	char* wad;
 	char* map;
@@ -402,30 +413,8 @@ typedef struct fb_entvars_s {
 	float track_pitchspeed;
 	float track_yawspeed;
 	float _highermarker;
-	struct gedict_s* P0;
-	struct gedict_s* P1;
-	struct gedict_s* P2;
-	struct gedict_s* P3;
-	struct gedict_s* P4;
-	struct gedict_s* P5;
-	struct gedict_s* P6;
-	struct gedict_s* P7;
-	float P0_time;
-	float P1_time;
-	float P2_time;
-	float P3_time;
-	float P4_time;
-	float P5_time;
-	float P6_time;
-	float P7_time;
-	int D0;
-	int D1;
-	int D2;
-	int D3;
-	int D4;
-	int D5;
-	int D6;
-	int D7;
+
+	fb_path_t paths[8];
 	int path_state;
 
 	fb_runaway_route_t runaway[8];
@@ -437,54 +426,9 @@ typedef struct fb_entvars_s {
 	//struct gedict_s* friend;
 	float frogbot_nextthink;
 	float fire_nextthink;
-	struct gedict_s* G1_;
-	struct gedict_s* G2_;
-	struct gedict_s* G3_;
-	struct gedict_s* G4_;
-	struct gedict_s* G5_;
-	struct gedict_s* G6_;
-	struct gedict_s* G7_;
-	struct gedict_s* G8_;
-	struct gedict_s* G9_;
-	struct gedict_s* G10_;
-	struct gedict_s* G11_;
-	struct gedict_s* G12_;
-	struct gedict_s* G13_;
-	struct gedict_s* G14_;
-	struct gedict_s* G15_;
-	struct gedict_s* G16_;
-	struct gedict_s* G17_;
-	struct gedict_s* G18_;
-	struct gedict_s* G19_;
-	struct gedict_s* G20_;
-	struct gedict_s* G21_;
-	struct gedict_s* G22_;
-	struct gedict_s* G23_;
-	struct gedict_s* G24_;
-	float G1_time;
-	float G2_time;
-	float G3_time;
-	float G4_time;
-	float G5_time;
-	float G6_time;
-	float G7_time;
-	float G8_time;
-	float G9_time;
-	float G10_time;
-	float G11_time;
-	float G12_time;
-	float G13_time;
-	float G14_time;
-	float G15_time;
-	float G16_time;
-	float G17_time;
-	float G18_time;
-	float G19_time;
-	float G20_time;
-	float G21_time;
-	float G22_time;
-	float G23_time;
-	float G24_time;
+
+	fb_goal_t goals[24];
+
 	float G_;
 	struct gedict_s* virtual_goal;
 	struct gedict_s* Z1_;

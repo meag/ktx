@@ -2648,7 +2648,7 @@ void spawn_load();
 void set_load();
 void remove_load();
 
-void Calc_G_time_1();
+void InitialiseMarkerRoutes();
 
 // route_fields.qc
 void EnterZone(float zoneNumber, float teamNumber, float strong);
@@ -2704,19 +2704,6 @@ void BecomeMarker(gedict_t* marker);
 
 // route_calc.qc
 void CheckWaterColumn(gedict_t* m, vec3_t m_pos, vec3_t testplace);
-void Calc_G_time_3_path();
-void Calc_G_time_4_path();
-void Calc_G_time_5_path();
-void Calc_G_time_6_path();
-void Calc_G_time_8_path();
-void Calc_G_time_10_path();
-void Calc_G_time_7();
-void Calc_G_time_9();
-void Calc_G_time_11();
-void Calc_G_time_12();
-void Calc_G_time_13();
-void Calc_G_time_14();
-void Calc_G_time_2();
 
 // route_lookup.qc
 void SightMarker();
@@ -2904,40 +2891,33 @@ void Z22(gedict_t* m);
 void Z23(gedict_t* m);
 void Z24(gedict_t* m);
 
-void G1(gedict_t* m);
-void G2(gedict_t* m);
-void G3(gedict_t* m);
-void G4(gedict_t* m);
-void G5(gedict_t* m);
-void G6(gedict_t* m);
-void G7(gedict_t* m);
-void G8(gedict_t* m);
-void G9(gedict_t* m);
-void G10(gedict_t* m);
-void G11(gedict_t* m);
-void G12(gedict_t* m);
-void G13(gedict_t* m);
-void G14(gedict_t* m);
-void G15(gedict_t* m);
-void G16(gedict_t* m);
-void G17(gedict_t* m);
-void G18(gedict_t* m);
-void G19(gedict_t* m);
-void G20(gedict_t* m);
-void G21(gedict_t* m);
-void G22(gedict_t* m);
-void G23(gedict_t* m);
-void G24(gedict_t* m);
-void G25(gedict_t* m);
-void G26(gedict_t* m);
-void G27(gedict_t* m);
-void G28(gedict_t* m);
-void G29(gedict_t* m);
-void G30(gedict_t* m);
-void G31(gedict_t* m);
-void G32(gedict_t* m);
-
 void AddToQue(gedict_t* ent);
+void SetGoal(int goal, gedict_t* marker);
+
+#define G1(m) SetGoal(1, m)
+#define G2(m) SetGoal(2, m)
+#define G3(m) SetGoal(3, m)
+#define G4(m) SetGoal(4, m)
+#define G5(m) SetGoal(5, m)
+#define G6(m) SetGoal(6, m)
+#define G7(m) SetGoal(7, m)
+#define G8(m) SetGoal(8, m)
+#define G9(m) SetGoal(9, m)
+#define G10(m) SetGoal(10, m)
+#define G11(m) SetGoal(11, m)
+#define G12(m) SetGoal(12, m)
+#define G13(m) SetGoal(13, m)
+#define G14(m) SetGoal(14, m)
+#define G15(m) SetGoal(15, m)
+#define G16(m) SetGoal(16, m)
+#define G17(m) SetGoal(17, m)
+#define G18(m) SetGoal(18, m)
+#define G19(m) SetGoal(19, m)
+#define G20(m) SetGoal(20, m)
+#define G21(m) SetGoal(21, m)
+#define G22(m) SetGoal(22, m)
+#define G23(m) SetGoal(23, m)
+#define G24(m) SetGoal(24, m)
 
 // added for ktx
 qbool fb_lg_disabled();

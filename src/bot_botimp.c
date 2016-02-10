@@ -141,6 +141,7 @@ void InitParameters() {
 		teamplay = 0;
 		cvar_set("teamplay", "0");
 	}
+
 	next_teamplay = teamplay;
 	if (!temp1) {
 		ds = atof(infokey(world, "d_skill", buffer, sizeof(buffer)));

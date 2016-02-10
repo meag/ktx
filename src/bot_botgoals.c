@@ -167,6 +167,8 @@ void EvalGoal2() {
 }
 
 void UpdateGoal() {
+	int i = 0;
+
 	self->fb.goal_refresh_time = g_globalvars.time + 2 + random();
 	prediction_error_ = self->fb.prediction_error;
 	best_score = 0;
@@ -237,54 +239,12 @@ void UpdateGoal() {
 	else  {
 		virtual_enemy = dropper;
 	}
-	goal_entity = touch_marker_->fb.G1_->fb.virtual_goal;
-	EvalGoal();
-	goal_entity = touch_marker_->fb.G2_->fb.virtual_goal;
-	EvalGoal();
-	goal_entity = touch_marker_->fb.G3_->fb.virtual_goal;
-	EvalGoal();
-	goal_entity = touch_marker_->fb.G4_->fb.virtual_goal;
-	EvalGoal();
-	goal_entity = touch_marker_->fb.G5_->fb.virtual_goal;
-	EvalGoal();
-	goal_entity = touch_marker_->fb.G6_->fb.virtual_goal;
-	EvalGoal();
-	goal_entity = touch_marker_->fb.G7_->fb.virtual_goal;
-	EvalGoal();
-	goal_entity = touch_marker_->fb.G8_->fb.virtual_goal;
-	EvalGoal();
-	goal_entity = touch_marker_->fb.G9_->fb.virtual_goal;
-	EvalGoal();
-	goal_entity = touch_marker_->fb.G10_->fb.virtual_goal;
-	EvalGoal();
-	goal_entity = touch_marker_->fb.G11_->fb.virtual_goal;
-	EvalGoal();
-	goal_entity = touch_marker_->fb.G12_->fb.virtual_goal;
-	EvalGoal();
-	goal_entity = touch_marker_->fb.G13_->fb.virtual_goal;
-	EvalGoal();
-	goal_entity = touch_marker_->fb.G14_->fb.virtual_goal;
-	EvalGoal();
-	goal_entity = touch_marker_->fb.G15_->fb.virtual_goal;
-	EvalGoal();
-	goal_entity = touch_marker_->fb.G16_->fb.virtual_goal;
-	EvalGoal();
-	goal_entity = touch_marker_->fb.G17_->fb.virtual_goal;
-	EvalGoal();
-	goal_entity = touch_marker_->fb.G18_->fb.virtual_goal;
-	EvalGoal();
-	goal_entity = touch_marker_->fb.G19_->fb.virtual_goal;
-	EvalGoal();
-	goal_entity = touch_marker_->fb.G20_->fb.virtual_goal;
-	EvalGoal();
-	goal_entity = touch_marker_->fb.G21_->fb.virtual_goal;
-	EvalGoal();
-	goal_entity = touch_marker_->fb.G22_->fb.virtual_goal;
-	EvalGoal();
-	goal_entity = touch_marker_->fb.G23_->fb.virtual_goal;
-	EvalGoal();
-	goal_entity = touch_marker_->fb.G24_->fb.virtual_goal;
-	EvalGoal();
+
+	for (i = 0; i < sizeof(m->fb.goals) / sizeof(m->fb.goals[0]); ++i) {
+		goal_entity = touch_marker_->fb.goals[i].next_marker->fb.virtual_goal;
+		EvalGoal();
+	}
+
 	goal_entity = ez_find(world, "dynamic_item");
 	while (goal_entity) {
 		if (goal_entity->fb.touch_marker) {
@@ -342,54 +302,12 @@ void UpdateGoal() {
 				}
 			}
 		}
-		goal_entity = touch_marker_->fb.G1_->fb.virtual_goal;
-		EvalGoal2();
-		goal_entity = touch_marker_->fb.G2_->fb.virtual_goal;
-		EvalGoal2();
-		goal_entity = touch_marker_->fb.G3_->fb.virtual_goal;
-		EvalGoal2();
-		goal_entity = touch_marker_->fb.G4_->fb.virtual_goal;
-		EvalGoal2();
-		goal_entity = touch_marker_->fb.G5_->fb.virtual_goal;
-		EvalGoal2();
-		goal_entity = touch_marker_->fb.G6_->fb.virtual_goal;
-		EvalGoal2();
-		goal_entity = touch_marker_->fb.G7_->fb.virtual_goal;
-		EvalGoal2();
-		goal_entity = touch_marker_->fb.G8_->fb.virtual_goal;
-		EvalGoal2();
-		goal_entity = touch_marker_->fb.G9_->fb.virtual_goal;
-		EvalGoal2();
-		goal_entity = touch_marker_->fb.G10_->fb.virtual_goal;
-		EvalGoal2();
-		goal_entity = touch_marker_->fb.G11_->fb.virtual_goal;
-		EvalGoal2();
-		goal_entity = touch_marker_->fb.G12_->fb.virtual_goal;
-		EvalGoal2();
-		goal_entity = touch_marker_->fb.G13_->fb.virtual_goal;
-		EvalGoal2();
-		goal_entity = touch_marker_->fb.G14_->fb.virtual_goal;
-		EvalGoal2();
-		goal_entity = touch_marker_->fb.G15_->fb.virtual_goal;
-		EvalGoal2();
-		goal_entity = touch_marker_->fb.G16_->fb.virtual_goal;
-		EvalGoal2();
-		goal_entity = touch_marker_->fb.G17_->fb.virtual_goal;
-		EvalGoal2();
-		goal_entity = touch_marker_->fb.G18_->fb.virtual_goal;
-		EvalGoal2();
-		goal_entity = touch_marker_->fb.G19_->fb.virtual_goal;
-		EvalGoal2();
-		goal_entity = touch_marker_->fb.G20_->fb.virtual_goal;
-		EvalGoal2();
-		goal_entity = touch_marker_->fb.G21_->fb.virtual_goal;
-		EvalGoal2();
-		goal_entity = touch_marker_->fb.G22_->fb.virtual_goal;
-		EvalGoal2();
-		goal_entity = touch_marker_->fb.G23_->fb.virtual_goal;
-		EvalGoal2();
-		goal_entity = touch_marker_->fb.G24_->fb.virtual_goal;
-		EvalGoal2();
+
+		for (i = 0; i < sizeof(m->fb.goals) / sizeof(m->fb.goals[0]); ++i) {
+			goal_entity = touch_marker_->fb.goals[i].next_marker->fb.virtual_goal;
+			EvalGoal2();
+		}
+
 		goal_entity = ez_find(world, "dynamic_item");
 		while (goal_entity) {
 			if (goal_entity->fb.touch_marker) {

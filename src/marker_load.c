@@ -351,6 +351,6 @@ void LSQ() {
 	m_zone = zone_stack_head;
 	path_normal = TRUE;
 	//spawn_load();
-	Calc_G_time_1();
+	InitialiseMarkerRoutes();
 }
 
