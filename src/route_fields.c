@@ -3,10 +3,30 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
-void SetGoal(int goal, gedict_t* marker)
-{
-	marker->fb.goals[goal - 1].next_marker = marker;
-	marker->fb.G_ = goal - 1;
+void SetGoalForMarker(int goal, gedict_t* marker) {
+	--goal;
+
+	if (goal < 0 || goal >= NUMBER_GOALS)
+		return;
+
+	marker->fb.goals[goal].next_marker = marker;
+	marker->fb.G_ = goal;
+}
+
+void SetGoal(int goal, int marker_number) {
+	gedict_t* marker = NULL;
+	
+	--marker_number;
+	--goal;
+
+	if (marker_number < 0 || marker_number >= NUMBER_MARKERS)
+		return;
+	if (goal < 0 || goal >= NUMBER_GOALS)
+		return;
+
+	marker = markers[marker_number];
+	marker->fb.goals[goal].next_marker = marker;
+	marker->fb.G_ = goal;
 }
 
 fb_void_func_t sub_arrival_time_functions[] = {
@@ -114,7 +134,8 @@ void Set_sub_arrival_time(gedict_t* marker, int index) {
 	Z23_ ## name, \
 	Z24_ ## name
 
-void SetZone(int zone, gedict_t* marker) {
+void SetZone(int zone, int marker_number) {
+	gedict_t* marker;
 	fb_zone_t* z;
 	fb_void_func_t zone_marker_functions[] = { ZONEFUNCTIONS(marker) };
 	fb_void_func_t zone_next_zone_marker_functions[] = { ZONEFUNCTIONS(next_zone_marker) };
@@ -123,11 +144,18 @@ void SetZone(int zone, gedict_t* marker) {
 	fb_void_func_t zone_higher_sight_from_marker_functions[] = { ZONEFUNCTIONS(higher_sight_from_marker) };
 	fb_void_func_t zone_sight_from_time_functions[] = { ZONEFUNCTIONS(sight_from_time) };
 
+	// old frogbot code was 1-based
 	--zone;
+	--marker_number;
+
 	if (zone < 0 || zone >= NUMBER_ZONES)
 		return;
+	if (marker_number < 0 || marker_number >= NUMBER_MARKERS)
+		return;
 
+	marker = markers[marker_number];
 	z = &marker->fb.zones[zone];
+
 	Set_sub_arrival_time(marker, subzone_indexes[zone]++);
 	z->marker = z->reverse_marker = z->next_zone = z->next = z->reverse_next = marker;
 	marker->fb.Z_ = zone;
@@ -147,6 +175,15 @@ void SetZone(int zone, gedict_t* marker) {
 		zone_stack_head = zone_head[zone];
 	}
 	marker->fb.Z_head = zone_head[zone];
+}
+
+void SetMarkerFlag(int marker_number, int flags) {
+	--marker_number;
+	
+	if (marker_number < 0 || marker_number >= NUMBER_MARKERS)
+		return;
+
+	markers[marker_number]->fb.T = flags;
 }
 
 void NameZone(float zoneNumber, char* name) {
@@ -280,4 +317,3 @@ void DebugZones() {
 		DebugZone(i);
 	}
 }
-

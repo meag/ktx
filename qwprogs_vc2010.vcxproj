@@ -205,6 +205,7 @@
     <ClCompile Include="src\bot_botutil.c" />
     <ClCompile Include="src\bot_botwater.c" />
     <ClCompile Include="src\bot_botweap.c" />
+    <ClCompile Include="src\bot_commands.c" />
     <ClCompile Include="src\bot_items.c" />
     <ClCompile Include="src\bot_lists.c" />
     <ClCompile Include="src\bot_loadmap.c" />

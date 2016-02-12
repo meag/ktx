@@ -1324,6 +1324,7 @@ void CheckTeamStatus();
 void DoMVDAutoTrack( void );
 
 void FixNoSpecs( void );
+void BotStartFrame( int );
 
 void StartFrame( int time )
 {
@@ -1346,6 +1347,9 @@ void StartFrame( int time )
 		}
 		else if ( framecount == 4 ) {
 			InitFrogbots2();
+		}
+		else if ( framecount > 4 ) {
+			BotStartFrame( time );
 		}
 	}
 

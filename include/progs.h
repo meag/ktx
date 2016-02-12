@@ -288,6 +288,9 @@ typedef enum
 typedef void (*fb_void_func_t)();
 typedef qbool (*fb_bool_func_t)();
 
+#ifndef NUMBER_MARKERS
+#define NUMBER_MARKERS 300
+#endif
 #ifndef NUMBER_GOALS
 #define NUMBER_GOALS 24
 #endif

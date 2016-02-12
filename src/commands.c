@@ -251,6 +251,11 @@ static void dumpent( );
 void ToggleCArena();
 // }
 
+// { Frogbots
+void FrogbotsAddbot();
+void FrogbotsRemovebot();
+// }
+
 // Save the first 5 demo markers to print at the end.
 demo_marker_t demo_markers[10];
 int demo_markers_count = 10;
@@ -590,6 +595,8 @@ const char CD_NODESC[] = "no desc";
 
 #define CD_DEMOMARK     "put mark in the demo"
 
+#define CD_ADDBOT       (CD_NODESC)  // todo
+#define CD_REMOVEBOT    (CD_NODESC)  // todo
 
 void dummy() {}
 void redirect();
@@ -908,6 +915,11 @@ cmd_t cmds[] = {
 	{ "votecoop",    votecoop,                  0    , CF_PLAYER | CF_MATCHLESS, CD_VOTECOOP },
 	{ "coop_nm_pu",	 ToggleNewCoopNm,           0    , CF_PLAYER | CF_MATCHLESS, CD_COOPNMPU },
 	{ "demomark",	 DemoMark,                  0    , CF_BOTH, CD_DEMOMARK },
+
+// { FROGBOTS
+	{ "addbot",      FrogbotsAddbot,            0    , CF_PLAYER, CD_ADDBOT },
+	{ "removebot",   FrogbotsRemovebot,         0    , CF_PLAYER, CD_REMOVEBOT }
+// }
 };
 
 #undef DEF

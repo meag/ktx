@@ -187,7 +187,9 @@ void cmdinfo_infoset ( gedict_t *p )
 {
 	if ( strnull( ezinfokey( p, "*is" ) ) )
 	{
+		Com_Printf("Setting *is\n");
 		SetUserInfo( p, "*is", "1", SETUSERINFO_STAR ); // mark we are call infoset already
+		Com_Printf("Done\n");
 		stuffcmd_flags(p, STUFFCMD_IGNOREINDEMO, "%sinfoset\n", p->ct == ctSpec ? "s" : ""); // and call infoset
 		stuffcmd_flags(p, STUFFCMD_IGNOREINDEMO, "ktx_%sinfoset\n", p->ct == ctSpec ? "s" : ""); // and call ktx_infoset
 		// kick cmd back to server, so we know client get infoset,

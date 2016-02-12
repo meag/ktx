@@ -35,20 +35,7 @@ void SetAttribs() {
 
 void CalculatePhysicsVariables() {
 	sv_maxspeed = cvar("sv_maxspeed");
-	if (sv_maxspeed >= 346.666666) {
-		if (sv_maxspeed > 400) {
-			cvar_set("sv_maxspeed", "400");
-			sv_maxspeed = 400;
-		}
-		sv_maxstrafespeed = 346.666666;
-	}
-	else  {
-		if (sv_maxspeed < 320) {
-			cvar_set("sv_maxspeed", "320");
-			sv_maxspeed = 320;
-		}
-		sv_maxstrafespeed = sv_maxspeed;
-	}
+	sv_maxstrafespeed = sv_maxspeed;
 	sv_maxwaterspeed = sv_maxspeed * 0.7;
 	half_sv_maxspeed = sv_maxspeed * 0.5;
 	inv_sv_maxspeed = 1 / sv_maxspeed;
@@ -268,46 +255,8 @@ void LoadFrogbot() {
 }
 
 void CheckParameters() {
-	if (!game_not_match || game_arena) {
-		real_time = check_parm_time - start_time;
-	}
-	if ((!game_not_match) && start_time) {
-		//DoCountDown();
-	}
-	if (timelimit) {
-		if (!game_not_match) {
-			if (!pre_game) {
-				if (real_time >= timelimit_user * 60) {
-					NextLevel();
-				}
-			}
-		}
-		else  {
-			if (real_time >= timelimit * 60) {
-				NextLevel();
-			}
-		}
-	}
 	check_parm_time = floor(g_globalvars.time) + 1;
-	if (sv_accelerate != cvar("sv_accelerate")) {
-		sv_accelerate = cvar("sv_accelerate");
-		if (sv_accelerate < 10) {
-			sv_accelerate = 10;
-		}
-		cvar_fset("sv_accelerate", sv_accelerate);
-	}
-	if (next_deathmatch != cvar("deathmatch")) {
-		next_deathmatch = cvar("deathmatch");
-		bprint_fb(2, "deathmatch changed to ");
-		bprint_ftos(2, next_deathmatch);
-		bprint_fb(2, "\\(enabled after restart)\\");
-	}
-	if (next_teamplay != cvar("teamplay")) {
-		next_teamplay = cvar("teamplay");
-		bprint_fb(2, "teamplay changed to ");
-		bprint_ftos(2, next_teamplay);
-		bprint_fb(2, "\\(enabled after restart)\\");
-	}
+	/*
 	if (sv_accelerate > 10) {
 		sv_maxfriction = 10;
 	}
@@ -324,19 +273,7 @@ void CheckParameters() {
 		}
 		cvar_fset("sv_friction", sv_friction);
 	}
-	fraglimit = cvar("fraglimit");
-	if ((cvar("sv_gravity") != 800) && (strneq(g_globalvars.mapname, "e1m8"))) {
-		cvar_set("sv_gravity", "800");
-	}
-	if ((cvar("sv_gravity") != 100) && (streq(g_globalvars.mapname, "e1m8"))) {
-		cvar_set("sv_gravity", "100");
-	}
-	if (cvar("sv_mintic") != 0) {
-		cvar_set("sv_mintic", "0");
-	}
-	if (sv_maxspeed != cvar("sv_maxspeed")) {
-		NextLevel();
-	}
+	*/
 }
 
 float BotExists() {

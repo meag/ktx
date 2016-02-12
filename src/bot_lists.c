@@ -160,7 +160,7 @@ void InitFrogbots2() {
 		self->s.v.origin[2] = self->s.v.origin[2] + 6;
 		droptofloor(self);
 		setsize(self, self->s.v.mins[0] - 49, self->s.v.mins[1] - 49, self->s.v.mins[2], self->s.v.maxs[0] + 49, self->s.v.maxs[1] + 49, self->s.v.maxs[2]);
-		adjust_view_ofs_z();
+		adjust_view_ofs_z(self);
 
 		VectorCopy(self->s.v.absmin, self->fb.virtual_mins);
 		self->fb.virtual_mins[0] += 32;
@@ -205,6 +205,8 @@ void ClearName(float to, gedict_t* client) {
 }
 
 void SetColorName(float to, gedict_t* client) {
+	float clientpants = 0;
+	float clientshirt = 0;
 	char* s1;
 	WriteByte(to, SVC_UPDATEPING);
 	WriteByte(to, client->fb.score_pos);

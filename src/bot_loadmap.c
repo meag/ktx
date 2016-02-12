@@ -73,7 +73,7 @@ static void fb_spawn_armor(gedict_t* ent) {
 }
 
 static void fb_spawn_ssg(gedict_t* ent) {
-	G21(ent);
+	SetGoalForMarker(21, ent);
 
 	available_weapons |= IT_SUPER_SHOTGUN;
 	if (deathmatch == 1) {
@@ -89,7 +89,7 @@ static void fb_spawn_ssg(gedict_t* ent) {
 }
 
 static void fb_spawn_ng(gedict_t* ent) {
-	G22(ent);
+	SetGoalForMarker(22, ent);
 
 	available_weapons |= IT_NAILGUN;
 	if (deathmatch == 1) {
@@ -105,7 +105,7 @@ static void fb_spawn_ng(gedict_t* ent) {
 }
 
 static void fb_spawn_sng(gedict_t* ent) {
-	G20(ent);
+	SetGoalForMarker(20, ent);
 
 	available_weapons |= IT_SUPER_NAILGUN;
 	if (deathmatch == 1) {
@@ -169,7 +169,7 @@ static void fb_spawn_lg(gedict_t* ent) {
 }
 
 static void fb_spawn_shells(gedict_t* ent) {
-	G24(ent);
+	SetGoalForMarker(24, ent);
 
 	ent->fb.desire = goal_shells;
 	ent->fb.pickup = pickup_shells;
@@ -178,7 +178,7 @@ static void fb_spawn_shells(gedict_t* ent) {
 }
 
 static void fb_spawn_spikes(gedict_t* ent) {
-	G23(ent);
+	SetGoalForMarker(23, ent);
 
 	ent->fb.desire = goal_spikes;
 	ent->fb.pickup = pickup_spikes;
@@ -196,7 +196,7 @@ static void fb_spawn_rockets(gedict_t* ent) {
 }
 
 static void fb_spawn_cells(gedict_t* ent) {
-	G19(ent);
+	SetGoalForMarker(19, ent);
 
 	ent->fb.desire = goal_cells;
 	ent->fb.pickup = pickup_cells;
@@ -380,7 +380,6 @@ void LoadMap() {
 	int i = 0;
 
 	load_frogbots = invalid_map = TRUE;
-	item_marker_index = marker_index;
 
 	for (i = 0; i < sizeof(maps) / sizeof(maps[0]); ++i) {
 		if (streq(g_globalvars.mapname, maps[i].name)) {

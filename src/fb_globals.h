@@ -1249,8 +1249,6 @@ extern gedict_t* dm6_door;
 
 extern float nextthink_;
 extern float try_shoot;
-extern float marker_index;
-extern float item_marker_index;
 extern float markers_loaded;
 extern float no_change;
 extern float goal_index;
@@ -1260,307 +1258,7 @@ extern vec3_t m_pos;
 extern vec3_t m_P_pos;
 extern gedict_t* current_load_position;
 extern gedict_t* load_position;
-extern float que_size;
-extern gedict_t* m1;
-extern gedict_t* m2;
-extern gedict_t* m3;
-extern gedict_t* m4;
-extern gedict_t* m5;
-extern gedict_t* m6;
-extern gedict_t* m7;
-extern gedict_t* m8;
-extern gedict_t* m9;
-extern gedict_t* m10;
-extern gedict_t* m11;
-extern gedict_t* m12;
-extern gedict_t* m13;
-extern gedict_t* m14;
-extern gedict_t* m15;
-extern gedict_t* m16;
-extern gedict_t* m17;
-extern gedict_t* m18;
-extern gedict_t* m19;
-extern gedict_t* m20;
-extern gedict_t* m21;
-extern gedict_t* m22;
-extern gedict_t* m23;
-extern gedict_t* m24;
-extern gedict_t* m25;
-extern gedict_t* m26;
-extern gedict_t* m27;
-extern gedict_t* m28;
-extern gedict_t* m29;
-extern gedict_t* m30;
-extern gedict_t* m31;
-extern gedict_t* m32;
-extern gedict_t* m33;
-extern gedict_t* m34;
-extern gedict_t* m35;
-extern gedict_t* m36;
-extern gedict_t* m37;
-extern gedict_t* m38;
-extern gedict_t* m39;
-extern gedict_t* m40;
-extern gedict_t* m41;
-extern gedict_t* m42;
-extern gedict_t* m43;
-extern gedict_t* m44;
-extern gedict_t* m45;
-extern gedict_t* m46;
-extern gedict_t* m47;
-extern gedict_t* m48;
-extern gedict_t* m49;
-extern gedict_t* m50;
-extern gedict_t* m51;
-extern gedict_t* m52;
-extern gedict_t* m53;
-extern gedict_t* m54;
-extern gedict_t* m55;
-extern gedict_t* m56;
-extern gedict_t* m57;
-extern gedict_t* m58;
-extern gedict_t* m59;
-extern gedict_t* m60;
-extern gedict_t* m61;
-extern gedict_t* m62;
-extern gedict_t* m63;
-extern gedict_t* m64;
-extern gedict_t* m65;
-extern gedict_t* m66;
-extern gedict_t* m67;
-extern gedict_t* m68;
-extern gedict_t* m69;
-extern gedict_t* m70;
-extern gedict_t* m71;
-extern gedict_t* m72;
-extern gedict_t* m73;
-extern gedict_t* m74;
-extern gedict_t* m75;
-extern gedict_t* m76;
-extern gedict_t* m77;
-extern gedict_t* m78;
-extern gedict_t* m79;
-extern gedict_t* m80;
-extern gedict_t* m81;
-extern gedict_t* m82;
-extern gedict_t* m83;
-extern gedict_t* m84;
-extern gedict_t* m85;
-extern gedict_t* m86;
-extern gedict_t* m87;
-extern gedict_t* m88;
-extern gedict_t* m89;
-extern gedict_t* m90;
-extern gedict_t* m91;
-extern gedict_t* m92;
-extern gedict_t* m93;
-extern gedict_t* m94;
-extern gedict_t* m95;
-extern gedict_t* m96;
-extern gedict_t* m97;
-extern gedict_t* m98;
-extern gedict_t* m99;
-extern gedict_t* m100;
-extern gedict_t* m101;
-extern gedict_t* m102;
-extern gedict_t* m103;
-extern gedict_t* m104;
-extern gedict_t* m105;
-extern gedict_t* m106;
-extern gedict_t* m107;
-extern gedict_t* m108;
-extern gedict_t* m109;
-extern gedict_t* m110;
-extern gedict_t* m111;
-extern gedict_t* m112;
-extern gedict_t* m113;
-extern gedict_t* m114;
-extern gedict_t* m115;
-extern gedict_t* m116;
-extern gedict_t* m117;
-extern gedict_t* m118;
-extern gedict_t* m119;
-extern gedict_t* m120;
-extern gedict_t* m121;
-extern gedict_t* m122;
-extern gedict_t* m123;
-extern gedict_t* m124;
-extern gedict_t* m125;
-extern gedict_t* m126;
-extern gedict_t* m127;
-extern gedict_t* m128;
-extern gedict_t* m129;
-extern gedict_t* m130;
-extern gedict_t* m131;
-extern gedict_t* m132;
-extern gedict_t* m133;
-extern gedict_t* m134;
-extern gedict_t* m135;
-extern gedict_t* m136;
-extern gedict_t* m137;
-extern gedict_t* m138;
-extern gedict_t* m139;
-extern gedict_t* m140;
-extern gedict_t* m141;
-extern gedict_t* m142;
-extern gedict_t* m143;
-extern gedict_t* m144;
-extern gedict_t* m145;
-extern gedict_t* m146;
-extern gedict_t* m147;
-extern gedict_t* m148;
-extern gedict_t* m149;
-extern gedict_t* m150;
-extern gedict_t* m151;
-extern gedict_t* m152;
-extern gedict_t* m153;
-extern gedict_t* m154;
-extern gedict_t* m155;
-extern gedict_t* m156;
-extern gedict_t* m157;
-extern gedict_t* m158;
-extern gedict_t* m159;
-extern gedict_t* m160;
-extern gedict_t* m161;
-extern gedict_t* m162;
-extern gedict_t* m163;
-extern gedict_t* m164;
-extern gedict_t* m165;
-extern gedict_t* m166;
-extern gedict_t* m167;
-extern gedict_t* m168;
-extern gedict_t* m169;
-extern gedict_t* m170;
-extern gedict_t* m171;
-extern gedict_t* m172;
-extern gedict_t* m173;
-extern gedict_t* m174;
-extern gedict_t* m175;
-extern gedict_t* m176;
-extern gedict_t* m177;
-extern gedict_t* m178;
-extern gedict_t* m179;
-extern gedict_t* m180;
-extern gedict_t* m181;
-extern gedict_t* m182;
-extern gedict_t* m183;
-extern gedict_t* m184;
-extern gedict_t* m185;
-extern gedict_t* m186;
-extern gedict_t* m187;
-extern gedict_t* m188;
-extern gedict_t* m189;
-extern gedict_t* m190;
-extern gedict_t* m191;
-extern gedict_t* m192;
-extern gedict_t* m193;
-extern gedict_t* m194;
-extern gedict_t* m195;
-extern gedict_t* m196;
-extern gedict_t* m197;
-extern gedict_t* m198;
-extern gedict_t* m199;
-extern gedict_t* m200;
-extern gedict_t* m201;
-extern gedict_t* m202;
-extern gedict_t* m203;
-extern gedict_t* m204;
-extern gedict_t* m205;
-extern gedict_t* m206;
-extern gedict_t* m207;
-extern gedict_t* m208;
-extern gedict_t* m209;
-extern gedict_t* m210;
-extern gedict_t* m211;
-extern gedict_t* m212;
-extern gedict_t* m213;
-extern gedict_t* m214;
-extern gedict_t* m215;
-extern gedict_t* m216;
-extern gedict_t* m217;
-extern gedict_t* m218;
-extern gedict_t* m219;
-extern gedict_t* m220;
-extern gedict_t* m221;
-extern gedict_t* m222;
-extern gedict_t* m223;
-extern gedict_t* m224;
-extern gedict_t* m225;
-extern gedict_t* m226;
-extern gedict_t* m227;
-extern gedict_t* m228;
-extern gedict_t* m229;
-extern gedict_t* m230;
-extern gedict_t* m231;
-extern gedict_t* m232;
-extern gedict_t* m233;
-extern gedict_t* m234;
-extern gedict_t* m235;
-extern gedict_t* m236;
-extern gedict_t* m237;
-extern gedict_t* m238;
-extern gedict_t* m239;
-extern gedict_t* m240;
-extern gedict_t* m241;
-extern gedict_t* m242;
-extern gedict_t* m243;
-extern gedict_t* m244;
-extern gedict_t* m245;
-extern gedict_t* m246;
-extern gedict_t* m247;
-extern gedict_t* m248;
-extern gedict_t* m249;
-extern gedict_t* m250;
-extern gedict_t* m251;
-extern gedict_t* m252;
-extern gedict_t* m253;
-extern gedict_t* m254;
-extern gedict_t* m255;
-extern gedict_t* m256;
-extern gedict_t* m257;
-extern gedict_t* m258;
-extern gedict_t* m259;
-extern gedict_t* m260;
-extern gedict_t* m261;
-extern gedict_t* m262;
-extern gedict_t* m263;
-extern gedict_t* m264;
-extern gedict_t* m265;
-extern gedict_t* m266;
-extern gedict_t* m267;
-extern gedict_t* m268;
-extern gedict_t* m269;
-extern gedict_t* m270;
-extern gedict_t* m271;
-extern gedict_t* m272;
-extern gedict_t* m273;
-extern gedict_t* m274;
-extern gedict_t* m275;
-extern gedict_t* m276;
-extern gedict_t* m277;
-extern gedict_t* m278;
-extern gedict_t* m279;
-extern gedict_t* m280;
-extern gedict_t* m281;
-extern gedict_t* m282;
-extern gedict_t* m283;
-extern gedict_t* m284;
-extern gedict_t* m285;
-extern gedict_t* m286;
-extern gedict_t* m287;
-extern gedict_t* m288;
-extern gedict_t* m289;
-extern gedict_t* m290;
-extern gedict_t* m291;
-extern gedict_t* m292;
-extern gedict_t* m293;
-extern gedict_t* m294;
-extern gedict_t* m295;
-extern gedict_t* m296;
-extern gedict_t* m297;
-extern gedict_t* m298;
-extern gedict_t* m299;
-extern gedict_t* m300;
+
 extern float goal_number;
 extern gedict_t* test_goal;
 extern float same_zone;
@@ -1568,6 +1266,7 @@ extern float Z1_path_success;
 extern float Z8_path_success;
 extern gedict_t* zone_stack_head;
 
+extern gedict_t* markers[NUMBER_MARKERS];
 extern gedict_t* zone_head[NUMBER_ZONES];
 extern gedict_t* zone_tail[NUMBER_ZONES];
 extern int subzone_indexes[NUMBER_ZONES];
@@ -1830,8 +1529,6 @@ extern vec3_t blood_org;
 extern float blood_count;
 extern vec3_t puff_org;
 extern float puff_count;
-extern float clientpants;
-extern float clientshirt;
 extern float load_frogbots;
 extern float frogbot_removetime;
 extern float invalid_map;
@@ -2768,7 +2465,7 @@ void SetFireButton();
 void set_marker(gedict_t* client, gedict_t* marker);
 void Visible_infront();
 void AssignVirtualGoal_apply(gedict_t* marker_);
-void adjust_view_ofs_z();
+void adjust_view_ofs_z(gedict_t* ent);
 
 // botenemy.qc
 void ClearLookObject(gedict_t* client);
@@ -2792,60 +2489,13 @@ void frogbot_marker_touch();
 void N(float x, float y, float z);
 void LSQ();
 
-void SetZone(int zone, gedict_t* marker);
-
-#define Z1(m) SetZone(1, m)
-#define Z2(m) SetZone(2, m)
-#define Z3(m) SetZone(3, m)
-#define Z4(m) SetZone(4, m)
-#define Z5(m) SetZone(5, m)
-#define Z6(m) SetZone(6, m)
-#define Z7(m) SetZone(7, m)
-#define Z8(m) SetZone(8, m)
-#define Z9(m) SetZone(9, m)
-#define Z10(m) SetZone(10, m)
-#define Z11(m) SetZone(11, m)
-#define Z12(m) SetZone(12, m)
-#define Z13(m) SetZone(13, m)
-#define Z14(m) SetZone(14, m)
-#define Z15(m) SetZone(15, m)
-#define Z16(m) SetZone(16, m)
-#define Z17(m) SetZone(17, m)
-#define Z18(m) SetZone(18, m)
-#define Z19(m) SetZone(19, m)
-#define Z20(m) SetZone(20, m)
-#define Z21(m) SetZone(21, m)
-#define Z22(m) SetZone(22, m)
-#define Z23(m) SetZone(23, m)
-#define Z24(m) SetZone(24, m)
-
+void SetZone(int zone_number, int marker_number);
+void SetMarkerFlag(int marker_number, int flags);
 void AddToQue(gedict_t* ent);
-void SetGoal(int goal, gedict_t* marker);
-
-#define G1(m) SetGoal(1, m)
-#define G2(m) SetGoal(2, m)
-#define G3(m) SetGoal(3, m)
-#define G4(m) SetGoal(4, m)
-#define G5(m) SetGoal(5, m)
-#define G6(m) SetGoal(6, m)
-#define G7(m) SetGoal(7, m)
-#define G8(m) SetGoal(8, m)
-#define G9(m) SetGoal(9, m)
-#define G10(m) SetGoal(10, m)
-#define G11(m) SetGoal(11, m)
-#define G12(m) SetGoal(12, m)
-#define G13(m) SetGoal(13, m)
-#define G14(m) SetGoal(14, m)
-#define G15(m) SetGoal(15, m)
-#define G16(m) SetGoal(16, m)
-#define G17(m) SetGoal(17, m)
-#define G18(m) SetGoal(18, m)
-#define G19(m) SetGoal(19, m)
-#define G20(m) SetGoal(20, m)
-#define G21(m) SetGoal(21, m)
-#define G22(m) SetGoal(22, m)
-#define G23(m) SetGoal(23, m)
-#define G24(m) SetGoal(24, m)
+void SetGoal(int goal, int marker_number);
+void SetGoalForMarker(int goal, gedict_t* marker);
+void SetMarkerPathFlags(int marker_number, int path_index, int flags);
+void SetMarkerPath(int source_marker, int path_index, int next_marker);
 
 // added for ktx
 qbool fb_lg_disabled();
@@ -2870,3 +2520,4 @@ void map_ztndm3();
 void map_ztndm4();
 void map_ztndm5();
 
+// 
