@@ -40,7 +40,7 @@ void map_pkeg1() {
 	N(543, -463, -232);
 	N(480, -1241, -232);
 
-	LSQ();
+	AllMarkersLoaded();
 
 	SetZone(5, 78);
 	SetZone(3, 77);

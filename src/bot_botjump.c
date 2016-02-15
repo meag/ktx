@@ -32,36 +32,21 @@ float right_direction() {
 }
 
 float able_rj() {
-	float health_after;
+	float health_after = min(self->s.v.armorvalue, ceil(self->s.v.armortype * 50));
+
+	// If invincible, can always rocket jump
 	if ((int)self->s.v.items & (IT_INVULNERABILITY_QUAD | IT_INVULNERABILITY)) {
 		return 1;
 	}
-	health_after = ceil(self->s.v.armortype * 50);
-	if (health_after > self->s.v.armorvalue) {
-		health_after = self->s.v.armorvalue;
-	}
-	health_after = self->s.v.health - ceil(50 - health_after);
-	if (self->fb.linked_marker && self->fb.linked_marker->fb.healamount > 0 && self->fb.linked_marker->s.v.nextthink == 0) {
-		health_after = health_after + self->fb.linked_marker->fb.healamount;
-	}
-	if (((health_after > 50) || (teamplay == 1) || (teamplay == 5)) && ((int)self->s.v.items & IT_ROCKET_LAUNCHER) && (self->s.v.ammo_rockets > 2) && ((!game_arena) || (arenastate == A_PLAYING)) && (!beQuiet) && (self->fb.willRocketJumpThisTic)) {
-		return 1;
-	}
-	return 0;
-}
 
-float a_evalpath() {
-	if (streq(test_marker->s.v.classname, "door")) {
-		if (test_marker->fb.state != STATE_BOTTOM) {
-			return 1;
-		}
+	// work out how much health we'll have after - factor in if we're heading towards a respawned healthbox
+	health_after = ((teamplay == 1) || (teamplay == 5) ? 100 : self->s.v.health - ceil(55 - health_after));
+	if (self->fb.linked_marker && self->fb.linked_marker->healamount > 0 && self->fb.linked_marker->s.v.nextthink == 0) {
+		health_after = health_after + self->fb.linked_marker->healamount;
 	}
-	if (description & ROCKET_JUMP) {
-		if (self->fb.willRocketJumpThisTic) {
-			VectorAdd(touch_marker_->s.v.absmin, touch_marker_->s.v.view_ofs, m_pos);
-			VectorAdd(test_marker->s.v.absmin, test_marker->s.v.view_ofs, m_P_pos);
-			path_time = ((VectorDistance(m_P_pos, m_pos) / sv_maxspeed));
-		}
+
+	if (health_after > 50 && ((int)self->s.v.items & IT_ROCKET_LAUNCHER) && (self->s.v.ammo_rockets >= 1) && (!beQuiet) && (self->fb.willRocketJumpThisTic)) {
+		return 1;
 	}
 	return 0;
 }
@@ -85,6 +70,7 @@ void lava_jump() {
 	         *pt;
 	float bdist,
 	      byaw;
+
 	bdist = 1001;
 	pt = self;
 	for (e = world; e = trap_findradius(e, e->s.v.origin, 1000); world) {
@@ -94,8 +80,8 @@ void lava_jump() {
 				pt = e;
 			}
 		}
-		e = &g_edicts[e->s.v.chain];
 	}
+
 	byaw = vectoyaw(t->s.v.origin);
 	self->fb.real_yaw = (360 - byaw);
 	self->fb.yawaccel = 0;
@@ -119,7 +105,7 @@ void lava_jump() {
 			self->fb.rocketjumping = 1;
 			self->fb.botchose = 1;
 			self->s.v.impulse = 7;
-			self->fb.button0_ = 1;
+			self->fb.firing = true;
 			self->fb.up_finished = g_globalvars.time + 0.1;
 		}
 		else  {
@@ -133,7 +119,7 @@ void lava_jump() {
 
 void a_rocketjump() {
 	self->fb.rocketjumping = 0;
-	if (pre_game && counting_down) {
+	if (match_in_progress != 2) {
 		return;
 	}
 	if (!self->s.v.ammo_rockets) {
@@ -162,16 +148,13 @@ void a_rocketjump() {
 	if (!((int)self->fb.path_state & ROCKET_JUMP)) {
 		return;
 	}
-	if (self->fb.button0_) {
-		return;
-	}
-	if (self->fb.button2_) {
+	if (self->fb.firing || self->fb.jumping) {
 		return;
 	}
 	if (near_teammate(self)) {
 		return;
 	}
-	if (self->fb.attack_finished > g_globalvars.time) {
+	if (self->attack_finished > g_globalvars.time) {
 		return;
 	}
 	if (!((int)self->s.v.flags & FL_ONGROUND)) {
@@ -198,45 +181,21 @@ void a_rocketjump() {
 	self->fb.rocketjumping = 1;
 	self->fb.botchose = 1;
 	self->s.v.impulse = 7;
-	self->fb.button0_ = 1;
-	self->fb.button2_ = 1;
+	self->fb.firing = true;
+	self->fb.jumping = true;
 }
 
 void CheckCombatJump() {
-	if (game_botjump) {
-		if (self->fb.frogbot) {
-			if (!self->s.v.waterlevel) {
-				if (self->fb.allowedMakeNoise) {
-					if ((int)self->s.v.flags & FL_ONGROUND) {
-						if (self->s.v.weapon != IT_LIGHTNING) {
-							if (look_object_ == enemy_) {
-								if (random() < 0.2) {
-									if (!self->fb.rocketjumping) {
-										self->fb.button2_ = 1;
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-}
-
-void BotInLava() {
-	if (streq(g_globalvars.mapname, "amphi2")) {
-		if (self->fb.frogbot) {
-			if (g_globalvars.time > self->fb.arrow_time) {
-				if (self->s.v.waterlevel == 1) {
-					vec3_t point = { self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] - 24 };
-					if (trap_pointcontents(point[0], point[1], point[2]) == CONTENT_LAVA) {
-						if ((int)self->s.v.flags & FL_ONGROUND) {
-							if (!enemy_shaft_attack()) {
+	// TODO: FIX THIS
+	if (self->isBot) {
+		if (!self->s.v.waterlevel) {
+			if (self->fb.allowedMakeNoise) {
+				if ((int)self->s.v.flags & FL_ONGROUND) {
+					if (self->s.v.weapon != IT_LIGHTNING) {
+						if (look_object_ == enemy_) {
+							if (random() < 0.2) {
 								if (!self->fb.rocketjumping) {
-									BestArrowForDirection();
-									VelocityForArrow();
-									self->fb.button2_ = 1;
+									self->fb.jumping = true;
 								}
 							}
 						}

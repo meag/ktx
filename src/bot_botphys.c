@@ -27,7 +27,7 @@ void obstruction() {
 			VectorCopy(self->s.v.velocity, hor_velocity);
 			hor_velocity[2] = 0;
 			if (hor_velocity[0] || hor_velocity[1] || hor_velocity[2]) {
-				if (self->fb.player) {
+				if (self->ct == ctPlayer && !self->isBot) {
 					VectorNormalize(hor_direction);
 					VectorScale(hor_direction, DotProduct(hor_direction, self->fb.oldvelocity), hor_velocity);
 					self->s.v.velocity[0] = hor_velocity[0];
@@ -59,15 +59,21 @@ void VelocityForArrow() {
 			hor_velocity[2] = 0;
 			hor_speed = vlen(hor_velocity);
 			if ((hor_speed > 100) || ((self->fb.path_state & AIR_ACCELERATION))) {
+				// hor_normal_vec = right angle to velocity
 				hor_normal_vec[0] = 0 - self->s.v.velocity[1];
 				hor_normal_vec[1] = self->s.v.velocity[0];
 				VectorNormalize(hor_normal_vec);
+
+				// rel_pos = horizontal difference to linked marker
 				VectorAdd(self->fb.linked_marker->s.v.absmin, self->fb.linked_marker->s.v.view_ofs, rel_pos);
 				VectorSubtract(rel_pos, self->s.v.origin, rel_pos);
 				rel_pos[2] = 0;
+
+				// ??? ... not sure why horizontal speed increases turning speed...
 				if (DotProduct(rel_pos, rel_pos) != 0) {
 					turning_speed = 114.59156 * hor_speed * DotProduct(rel_pos, hor_normal_vec) / DotProduct(rel_pos, rel_pos);
 				}
+
 				if (fabs(turning_speed) > 270) {
 					if (self->fb.path_state & AIR_ACCELERATION) {
 						if (turning_speed > 0) {
@@ -81,6 +87,7 @@ void VelocityForArrow() {
 						turning_speed = 0;
 					}
 				}
+
 				if (!((int)self->s.v.flags & FL_ONGROUND)) {
 					vec3_t temp;
 
@@ -220,7 +227,7 @@ void VelocityForArrow() {
 	}
 	VectorMA(self->s.v.velocity, accel_forward, dir_forward, self->s.v.velocity);
 }
-
+/*
 void DoFriction() {
 	if ((int)self->s.v.flags & FL_ONGROUND) {
 		VectorCopy(self->s.v.velocity, hor_velocity);
@@ -261,38 +268,32 @@ void ApplyFriction() {
 		}
 	}
 }
+*/
 
 void FrogbotPrePhysics1() {
-	g_globalvars.frametime = real_frametime;
+	// Set all players to non-solid so we can avoid rockets easier
 	if (hazard_time) {
-		self = first_client;
-		while (self) {
+		for (self = find_plr(world); self; self = find_plr(self)) {
 			self->fb.oldsolid = self->s.v.solid;
 			self->s.v.solid = SOLID_NOT;
-			self = self->fb.next;
 		}
 	}
-	self = first_client;
-	while (self) {
-		if (self->fb.frogbot) {
-			if (self->s.v.movetype == MOVETYPE_STEP) {
-				ApplyFriction();
-			}
-			if (self->s.v.takedamage) {
-				VectorCopy(self->s.v.velocity, oldvelocity_);
-				VelocityForArrow();
-				if (hazard_time) {
-					AvoidHazards();
-				}
+
+	// 
+	for (self = find_plr(world); self; self = find_plr(self)) {
+		if (self->isBot && self->s.v.takedamage) {
+			VectorCopy(self->s.v.velocity, oldvelocity_);
+			VelocityForArrow();
+			if (hazard_time) {
+				AvoidHazards();
 			}
 		}
-		self = self->fb.next;
 	}
+
+	// Re-instate client entity types
 	if (hazard_time) {
-		self = first_client;
-		while (self) {
+		for (self = find_plr(world); self; self = find_plr(self)) {
 			self->s.v.solid = self->fb.oldsolid;
-			self = self->fb.next;
 		}
 	}
 }
@@ -300,9 +301,11 @@ void FrogbotPrePhysics1() {
 void FrogbotPrePhysics2() {
 	g_globalvars.frametime = real_frametime;
 	no_bots_stuck = TRUE;
-	self = first_client;
-	while (self) {
-		if (!self->fb.player) {
+
+	for (self = find_plr(world); self; self = find_plr(world)) {
+		if (self->isBot) {
+		
+			// This tries to detect stuck bots, and fixes the situation by either jumping or committing suicide
 			vec3_t point = { self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] - 24 };
 			content1 = trap_pointcontents(point[0], point[1], point[2]);
 			if (content1 == CONTENT_EMPTY) {
@@ -320,7 +323,7 @@ void FrogbotPrePhysics2() {
 					self->s.v.impulse = CLIENTKILL;
 				}
 			}
-			else  {
+			else {
 				VectorSet(point, self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 4);
 				content2 = trap_pointcontents(point[0], point[1], point[2]);
 				if (content2 == CONTENT_EMPTY) {
@@ -340,8 +343,11 @@ void FrogbotPrePhysics2() {
 					}
 				}
 			}
+
 			if (self->s.v.takedamage) {
+
 				PlayerPreThink_apply();
+
 				if ((int)self->s.v.flags & FL_ONGROUND) {
 					if (self->s.v.velocity[2] < 0) {
 						self->fb.oldvelocity[2] = self->s.v.velocity[2] = 0;
@@ -354,13 +360,16 @@ void FrogbotPrePhysics2() {
 					}
 				}
 				else  {
-					self->fb.jump_flag = self->s.v.velocity[2];
+					self->jump_flag = self->s.v.velocity[2];
 					self->fb.fl_ontrain = FALSE;
 				}
+
 				if ((self->fb.oldwaterlevel >= 2) || ((int)self->s.v.flags & FL_WATERJUMP)) {
 					self->s.v.velocity[2] += (800 * g_globalvars.frametime);
 				}
+
 				VectorCopy(self->s.v.origin, self->s.v.oldorigin);
+
 				self->s.v.waterlevel = self->s.v.watertype = 0;
 			}
 			else  {
@@ -371,17 +380,9 @@ void FrogbotPrePhysics2() {
 				}
 			}
 		}
-		self = self->fb.next;
 	}
 	if (no_bots_stuck) {
 		unstick_time = 0;
-	}
-}
-
-void thud_touch() {
-	if ((int)self->s.v.flags & FL_ONGROUND) {
-		self->s.v.flags = self->s.v.flags - FL_ONGROUND;
-		self->fb.fl_thud = TRUE;
 	}
 }
 
@@ -390,10 +391,6 @@ void FrogbotPostPhysics1() {
 	self = first_client;
 	while (self) {
 		if (self->s.v.movetype == MOVETYPE_STEP) {
-			if (self->fb.fl_thud) {
-				self->s.v.flags = (int) self->s.v.flags | FL_ONGROUND;
-				self->fb.fl_thud = FALSE;
-			}
 			self->s.v.waterlevel = self->fb.oldwaterlevel;
 			self->s.v.watertype = self->fb.oldwatertype;
 			obstruction();
@@ -419,7 +416,7 @@ void FrogbotPostPhysics1() {
 					self->s.v.flags = oldflags;
 				}
 			}
-			if (self->fb.jump_flag) {
+			if (self->jump_flag) {
 				if ((int)self->s.v.flags & FL_ONGROUND) {
 					CheckLand();
 				}

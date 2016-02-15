@@ -26,20 +26,12 @@ void spawn_marker(vec3_t org) {
 	marker_->s.v.flags = FL_ITEM;
 	BecomeMarker(marker_);
 	marker_->s.v.origin[0] = rint(org[0]);
-	marker_->s.v.origin[0] = rint(org[0]);
-	marker_->s.v.origin[0] = rint(org[0]);
+	marker_->s.v.origin[1] = rint(org[1]);
+	marker_->s.v.origin[2] = rint(org[2]);
 	marker_->s.v.solid = SOLID_TRIGGER;
 	marker_->s.v.touch = (func_t) marker_touch;
 	VectorSet(marker_->s.v.view_ofs, 80, 80, 24);
 	setsize(marker_, -65, -65, -24, 65, 65, 32);
-}
-
-void set_marker(gedict_t* client, gedict_t* marker) {
-	client->fb.touch_distance = 0;
-	client->fb.touch_marker = marker;
-	client->fb.Z_ = marker->fb.Z_;
-	client->fb.touch_marker_time = g_globalvars.time + 5;
-	EnterZone(client->fb.Z_, client->s.v.team, client->fb.is_strong);
 }
 
 void check_marker() {
@@ -69,7 +61,7 @@ void check_marker() {
 
 void marker_touch() {
 	if (marker_time) {
-		if (other->fb.client_) {
+		if (other->ct == ctPlayer) {
 			check_marker();
 		}
 	}
@@ -97,6 +89,8 @@ gedict_t* LocateMarker(vec3_t org) {
 	closest_marker = world;
 	for (marker_ = world; marker_ = trap_findradius(world, org, 1000); ) {
 		if (marker_->fb.fl_marker) {
+			vec3_t marker_pos;
+
 			VectorAdd(marker_->s.v.absmin, marker_->s.v.view_ofs, marker_pos);
 			distance = VectorDistance(marker_pos, org);
 			traceline(org[0], org[1], org[2], marker_pos[0], marker_pos[1], marker_pos[2], TRUE, dropper);

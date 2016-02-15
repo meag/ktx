@@ -44,7 +44,7 @@ void map_ukooldm8() {
 	N(380, -784, -8);
 	N(199, -1050, -8);
 
-	LSQ();
+	AllMarkersLoaded();
 
 	SetGoal(1, 11);
 	SetGoal(17, 21);

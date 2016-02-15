@@ -28,7 +28,7 @@ void map_povdmm4() {
 	N(215, -585, -152);
 	N(166, 87, -152);
 
-	LSQ();
+	AllMarkersLoaded();
 
 	SetZone(2, 33);
 	SetZone(2, 32);
@@ -174,3 +174,13 @@ void map_povdmm4() {
 	SetMarkerPath(3, 1, 15);
 }
 
+void POVDMM4LookDoor() {
+	gedict_t* search_item;
+
+	for (search_item = world; search_item = trap_findradius(search_item, self->s.v.origin, 300); ) {
+		if (streq( search_item->s.v.classname, "door" )) {
+			door_open = ! (search_item->fb.state == STATE_BOTTOM);
+			return;
+		}
+	}
+}

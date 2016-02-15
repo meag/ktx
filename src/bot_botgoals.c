@@ -28,13 +28,12 @@ void EvalGoal() {
 	goal_entity->fb.desire();
 	goal_entity->fb.saved_goal_desire = goal_desire;
 	if (goal_desire > 0) {
+		// TODO: replace aerowalk dynamic_item (quad) with proper quad spawn
 		if (streq(g_globalvars.mapname, "aerowalk")) {
-			if (pre_game) {
-				if (!game_disable_powerups) {
-					if (streq(goal_entity->s.v.classname, "dynamic_item")) {
-						goal_entity->fb.saved_goal_desire = 0;
-						return;
-					}
+			if (! match_in_progress) {
+				if (streq(goal_entity->s.v.classname, "dynamic_item")) {
+					goal_entity->fb.saved_goal_desire = 0;
+					return;
 				}
 			}
 		}
@@ -48,7 +47,7 @@ void EvalGoal() {
 		}
 		if (g_globalvars.time < goal_entity->fb.touchPlayerTime) {
 			if (goal_entity->s.v.nextthink > 0) {
-				if (goal_entity->fb.touchPlayer->fb.realteam == realteam_) {
+				if ( SameTeam(goal_entity, self) ) {
 					if (goal_entity->fb.touchPlayer != self) {
 						goal_entity->fb.saved_goal_desire = 0;
 						return;
@@ -77,7 +76,7 @@ void EvalGoal() {
 			if (touch_marker_->fb.zones[0].task & DM6_DOOR) {
 				if (dm6_door->s.v.takedamage) {
 					if (enemy_ == look_object_) {
-						if (!self->fb.invincible_time) {
+						if (!self->invincible_time) {
 							if (enemy_->fb.firepower >= 50) {
 								goal_entity->fb.saved_goal_desire = 0;
 								return;
@@ -168,50 +167,18 @@ void EvalGoal2() {
 
 void UpdateGoal() {
 	int i = 0;
+	int items_ = self->s.v.items;
 
 	self->fb.goal_refresh_time = g_globalvars.time + 2 + random();
 	prediction_error_ = self->fb.prediction_error;
 	best_score = 0;
-	best_goal = world;
+	best_goal = 0;
 	enemy_ = &g_edicts[self->s.v.enemy];
 	enemy_touch_marker = enemy_->fb.touch_marker;
-	items_ = self->s.v.items;
 	enemy_desire = enemy_repel = 0;
-	self->fb.bot_evade = FALSE;
-	if (deathmatch <= 3 && !game_arena) {
-		if (numberofclients == 2) {
-			if (random() < 0.08) {
-				if ((self->s.v.origin[2] + 18) > (enemy_->s.v.absmin[2] + enemy_->s.v.view_ofs[2])) {
-					if ((int)self->s.v.items & IT_ROCKET_LAUNCHER) {
-						if (self->s.v.ammo_rockets > 4) {
-							if (!self->s.v.waterlevel) {
-								if ((self->s.v.health > 70) && (self->s.v.armorvalue > 100) && !enemy_visible) {
-									self->fb.bot_evade = TRUE;
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-		else if (numberofclients > 2) {
-			if (random() < 0.1) {
-				if ((self->s.v.origin[2] + 18) > (enemy_->s.v.absmin[2] + enemy_->s.v.view_ofs[2])) {
-					if (((int)self->s.v.items & IT_ROCKET_LAUNCHER) || ((int)self->s.v.items & IT_LIGHTNING)) {
-						if ((self->s.v.ammo_cells >= 20) || (self->s.v.ammo_rockets > 3)) {
-							if (!self->s.v.waterlevel) {
-								if ((self->s.v.health > 70) && (self->s.v.armorvalue > 90)) {
-									if (!((int)self->s.v.items & (IT_INVULNERABILITY | IT_INVISIBILITY | IT_QUAD))) {
-										self->fb.bot_evade = TRUE;
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+
+	BotEvadeLogic();
+
 	if (enemy_touch_marker) {
 		virtual_enemy = enemy_;
 		enemy_->fb.desire();
@@ -252,7 +219,7 @@ void UpdateGoal() {
 		}
 		goal_entity = ez_find(goal_entity, "dynamic_item");
 	}
-	if (teamplay && !game_arena) {
+	if (teamplay && !isRA()) {
 		search_entity = HelpTeammate();
 		if (search_entity != world) {
 			if (random() < 0.25) {

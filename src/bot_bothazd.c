@@ -99,7 +99,7 @@ void AvoidHazards() {
 						VectorNormalize(hor_normal_vec);
 						jumpspeed = new_velocity[2] + JUMPSPEED;
 						if ((jumpspeed * jumpspeed * 0.000625) >= rel_pos[2]) {
-							self->fb.button2_ = TRUE;
+							self->fb.jumping = true;
 							self->fb.path_state = (int)self->fb.path_state | WAIT_GROUND;
 							self->fb.ledge_backup_time = 0;
 							return;
@@ -260,7 +260,7 @@ void AvoidHazards() {
 					jump_velocity[2] += JUMPSPEED;
 					CanJumpOver();
 					if (do_jump) {
-						self->fb.button2_ = TRUE;
+						self->fb.jumping = true;
 						self->fb.path_state = (int)self->fb.path_state | DELIBERATE_AIR_WAIT_GROUND;
 						if (turning_speed) {
 							self->fb.path_state = (int)self->fb.path_state | AIR_ACCELERATION;
@@ -370,9 +370,7 @@ void AvoidEdge() {
 	VectorCopy(oldvelocity_, dir_forward);
 	dir_forward[2] = 0;
 	if (dir_forward[0] || dir_forward[1] || dir_forward[2]) {
-		if (game_lava_cheat) {
-			oldvelocity_[0] = oldvelocity_[1] = 0;
-		}
+		oldvelocity_[0] = oldvelocity_[1] = 0;  // lavacheat always enabled
 		VectorScale(dir_forward, -1, dir_move);
 		NewVelocityForArrow();
 		self->fb.arrow_time2 = self->fb.arrow_time;

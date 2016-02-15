@@ -15,7 +15,7 @@ float JumpInWater() {
 }
 
 void BotWaterJumpFix() {
-	if (self->fb.frogbot) {
+	if (self->isBot) {
 		self->fb.tread_water_count = self->fb.tread_water_count + 1;
 		if (self->fb.tread_water_count > 60) {
 			self->fb.tread_water_count = 0;
@@ -45,7 +45,7 @@ float BotSwimUp() {
 }
 
 float BotGoUpForAir() {
-	if (g_globalvars.time > (self->fb.air_finished - 2)) {
+	if (g_globalvars.time > (self->air_finished - 2)) {
 		traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2], self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 64, TRUE, self);
 		if (g_globalvars.trace_fraction == 1) {
 			return (self->fb.swim_arrow = UP);
@@ -61,7 +61,7 @@ float BotGoUpForAir() {
 			dir_move[2] = 0;
 			NewVelocityForArrow();
 		}
-		if (g_globalvars.time > self->fb.air_finished) {
+		if (g_globalvars.time > self->air_finished) {
 			traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2], self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 32, TRUE, self);
 			if (g_globalvars.trace_fraction != 1) {
 				return (self->fb.swim_arrow = UP);
@@ -72,7 +72,7 @@ float BotGoUpForAir() {
 }
 
 void FrogTreadWater() {
-	if (self->fb.frogbot) {
+	if (self->isBot) {
 		self->fb.tread_water_count = self->fb.tread_water_count + 1;
 		if (self->fb.tread_water_count > 75) {
 			self->fb.old_linked_marker = world;
@@ -109,7 +109,7 @@ void SwimAwayFromWall() {
 }
 
 void FrogWaterMove() {
-	if (self->fb.frogbot) {
+	if (self->isBot) {
 		if (self->s.v.waterlevel > 2) {
 			if (g_globalvars.time < self->fb.frogwatermove_time) {
 				return;
@@ -168,7 +168,7 @@ float BotShouldDischarge() {
 	if (look_object_ != enemy_) {
 		return FALSE;
 	}
-	if (self->fb.invincible_time > g_globalvars.time) {
+	if (self->invincible_time > g_globalvars.time) {
 		if (trap_pointcontents(PASSVEC3(enemy_->s.v.origin)) == CONTENT_WATER) {
 			return TRUE;
 		}
@@ -183,10 +183,10 @@ float BotShouldDischarge() {
 
 	for (p = world; p = trap_findradius(p, self->s.v.origin, 1000); ) {
 		if (trap_pointcontents(PASSVEC3(p->s.v.origin)) == CONTENT_WATER) {
-			if (p->fb.client_) {
+			if (p->ct == ctPlayer) {
 				if (p->s.v.takedamage) {
 					if (IsVisible(p)) {
-						if (p->fb.realteam != self->fb.realteam) {
+						if (! SameTeam(p, self)) {
 							n = n + 1;
 						}
 						else  {

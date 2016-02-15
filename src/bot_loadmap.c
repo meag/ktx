@@ -288,6 +288,9 @@ static void fb_spawn_spawnpoint(gedict_t* ent) {
 	adjust_view_ofs_z(ent);
 }
 
+// fixme: also in doors.c
+#define SECRET_OPEN_ONCE 1	// stays open
+
 static void fb_spawn_door(gedict_t* ent) {
 	AddToQue(ent);
 
@@ -348,7 +351,8 @@ void InvalidMap() {
 }
 
 void CreateItemMarkers() {
-	// Old frogbot method was to call during item spawns, we just catch up afterwards
+	// Old frogbot method was to call during item spawns, we just 
+	//    catch up afterwards once we know the map is valid
 	gedict_t* item;
 
 	for (item = world; item; item = nextent(item)) {

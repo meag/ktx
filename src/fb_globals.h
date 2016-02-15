@@ -5,49 +5,12 @@
 #ifndef TRUE
 #define TRUE 1
 #endif
-#ifndef FL_FLY
-#define FL_FLY 1
-#endif
-#ifndef FL_SWIM
-#define FL_SWIM 2
-#endif
-#ifndef FL_INWATER
-#define FL_INWATER 16
-#endif
-#ifndef FL_ITEM
-#define FL_ITEM 256
-#endif
-#ifndef FL_ONGROUND
-#define FL_ONGROUND 512
-#endif
-#ifndef FL_PARTIALGROUND
-#define FL_PARTIALGROUND 1024
-#endif
-#ifndef FL_WATERJUMP
-#define FL_WATERJUMP 2048
-#endif
-#ifndef FL_JUMPRELEASED
-#define FL_JUMPRELEASED 4096
-#endif
-#ifndef FL_BODYQUE
-#define FL_BODYQUE 262144
-#endif
 #ifndef FL_ONGROUND_PARTIALGROUND
 #define FL_ONGROUND_PARTIALGROUND 1536
 #endif
-#ifndef FL_NOT_JUMPRELEASED
-#define FL_NOT_JUMPRELEASED 16773119
-#endif
-#ifndef FL_NOT_ONGROUND
-#define FL_NOT_ONGROUND 16776703
-#endif
-extern float time1;
-extern float e_break;
-extern float counting_down;
-//extern float match_in_progress;
-extern float marker_time;
+extern qbool marker_time;
 extern float next_marker_time;
-extern float hazard_time;
+extern qbool hazard_time;
 extern float next_hazard_time;
 #ifndef START_SKILL
 #define START_SKILL 1
@@ -289,96 +252,6 @@ extern float next_hazard_time;
 #ifndef IMP_IMPULSE_0
 #define IMP_IMPULSE_0 255
 #endif
-#ifndef MOVETYPE_NONE
-#define MOVETYPE_NONE 0
-#endif
-#ifndef MOVETYPE_WALK
-#define MOVETYPE_WALK 3
-#endif
-#ifndef MOVETYPE_STEP
-#define MOVETYPE_STEP 4
-#endif
-#ifndef MOVETYPE_FLY
-#define MOVETYPE_FLY 5
-#endif
-#ifndef MOVETYPE_TOSS
-#define MOVETYPE_TOSS 6
-#endif
-#ifndef MOVETYPE_PUSH
-#define MOVETYPE_PUSH 7
-#endif
-#ifndef MOVETYPE_NOCLIP
-#define MOVETYPE_NOCLIP 8
-#endif
-#ifndef MOVETYPE_FLYMISSILE
-#define MOVETYPE_FLYMISSILE 9
-#endif
-#ifndef MOVETYPE_BOUNCE
-#define MOVETYPE_BOUNCE 10
-#endif
-#ifndef MOVETYPE_BOUNCEMISSILE
-#define MOVETYPE_BOUNCEMISSILE 11
-#endif
-#ifndef SOLID_NOT
-#define SOLID_NOT 0
-#endif
-#ifndef SOLID_TRIGGER
-#define SOLID_TRIGGER 1
-#endif
-#ifndef SOLID_BBOX
-#define SOLID_BBOX 2
-#endif
-#ifndef SOLID_SLIDEBOX
-#define SOLID_SLIDEBOX 3
-#endif
-#ifndef SOLID_BSP
-#define SOLID_BSP 4
-#endif
-#ifndef DEAD_NO
-#define DEAD_NO 0
-#endif
-#ifndef DEAD_DYING
-#define DEAD_DYING 1
-#endif
-#ifndef DEAD_DEAD
-#define DEAD_DEAD 2
-#endif
-#ifndef DEAD_RESPAWNABLE
-#define DEAD_RESPAWNABLE 3
-#endif
-#ifndef DAMAGE_NO
-#define DAMAGE_NO 0
-#endif
-#ifndef DAMAGE_YES
-#define DAMAGE_YES 1
-#endif
-#ifndef DAMAGE_AIM
-#define DAMAGE_AIM 2
-#endif
-#ifndef IT_AXE
-#define IT_AXE 4096
-#endif
-#ifndef IT_SHOTGUN
-#define IT_SHOTGUN 1
-#endif
-#ifndef IT_SUPER_SHOTGUN
-#define IT_SUPER_SHOTGUN 2
-#endif
-#ifndef IT_NAILGUN
-#define IT_NAILGUN 4
-#endif
-#ifndef IT_SUPER_NAILGUN
-#define IT_SUPER_NAILGUN 8
-#endif
-#ifndef IT_GRENADE_LAUNCHER
-#define IT_GRENADE_LAUNCHER 16
-#endif
-#ifndef IT_ROCKET_LAUNCHER
-#define IT_ROCKET_LAUNCHER 32
-#endif
-#ifndef IT_LIGHTNING
-#define IT_LIGHTNING 64
-#endif
 #ifndef IT_EITHER_NAILGUN
 #define IT_EITHER_NAILGUN 12
 #endif
@@ -386,70 +259,28 @@ extern float next_hazard_time;
 #define IT_NAILGUN_ROCKET 44
 #endif
 #ifndef IT_VELOCITY
-#define IT_VELOCITY 60
+#define IT_VELOCITY (IT_ROCKET_LAUNCHER | IT_GRENADE_LAUNCHER | IT_SUPER_NAILGUN | IT_NAILGUN)
 #endif
 #ifndef IT_CONTINUOUS
-#define IT_CONTINUOUS 76
+#define IT_CONTINUOUS (IT_LIGHTNING | IT_SUPER_NAILGUN | IT_NAILGUN)
 #endif
 #ifndef IT_AXE_SHOTGUN
-#define IT_AXE_SHOTGUN 4097
+#define IT_AXE_SHOTGUN (IT_AXE | IT_SHOTGUN)
 #endif
 #ifndef IT_ALL_BUT_GRENADE
-#define IT_ALL_BUT_GRENADE 4207
+#define IT_ALL_BUT_GRENADE (IT_AXE | IT_SHOTGUN | IT_SUPER_SHOTGUN | IT_NAILGUN | IT_SUPER_NAILGUN | IT_ROCKET_LAUNCHER | IT_LIGHTNING)
 #endif
 #ifndef IT_ALL
 #define IT_ALL 4223
 #endif
-#ifndef IT_SHELLS
-#define IT_SHELLS 256
-#endif
-#ifndef IT_NAILS
-#define IT_NAILS 512
-#endif
-#ifndef IT_ROCKETS
-#define IT_ROCKETS 1024
-#endif
-#ifndef IT_CELLS
-#define IT_CELLS 2048
-#endif
 #ifndef IT_NOT_AMMO
 #define IT_NOT_AMMO 16773375
 #endif
-#ifndef IT_ARMOR1
-#define IT_ARMOR1 8192
-#endif
-#ifndef IT_ARMOR2
-#define IT_ARMOR2 16384
-#endif
-#ifndef IT_ARMOR3
-#define IT_ARMOR3 32768
-#endif
 #ifndef IT_ARMOR
-#define IT_ARMOR 57344
-#endif
-#ifndef IT_SUPERHEALTH
-#define IT_SUPERHEALTH 65536
+#define IT_ARMOR (IT_ARMOR1 | IT_ARMOR2 | IT_ARMOR3)
 #endif
 #ifndef IT_NOT_ARMOR
 #define IT_NOT_ARMOR 16719871
-#endif
-#ifndef IT_KEY1
-#define IT_KEY1 131072
-#endif
-#ifndef IT_KEY2
-#define IT_KEY2 262144
-#endif
-#ifndef IT_INVISIBILITY
-#define IT_INVISIBILITY 524288
-#endif
-#ifndef IT_INVULNERABILITY
-#define IT_INVULNERABILITY 1048576
-#endif
-#ifndef IT_SUIT
-#define IT_SUIT 2097152
-#endif
-#ifndef IT_QUAD
-#define IT_QUAD 4194304
 #endif
 #ifndef IT_INVULNERABILITY_QUAD
 #define IT_INVULNERABILITY_QUAD 5242880
@@ -472,203 +303,14 @@ extern float next_hazard_time;
 #ifndef IT_NOT_QUAD
 #define IT_NOT_QUAD 12582911
 #endif
-#ifndef IT_SIGIL1
-#define IT_SIGIL1 268435456
-#endif
-#ifndef IT_SIGIL2
-#define IT_SIGIL2 536870912
-#endif
-#ifndef IT_SIGIL3
-#define IT_SIGIL3 1073741824
-#endif
-#ifndef IT_SIGIL4
-#define IT_SIGIL4 2147483648
-#endif
-#ifndef ITEM_RUNE1_FLAG
-#define ITEM_RUNE1_FLAG 1
-#endif
-#ifndef ITEM_RUNE2_FLAG
-#define ITEM_RUNE2_FLAG 2
-#endif
-#ifndef ITEM_RUNE3_FLAG
-#define ITEM_RUNE3_FLAG 4
-#endif
-#ifndef ITEM_RUNE4_FLAG
-#define ITEM_RUNE4_FLAG 8
-#endif
 #ifndef ITEM_RUNE_MASK
-#define ITEM_RUNE_MASK 15
-#endif
-#ifndef CONTENT_EMPTY
-#define CONTENT_EMPTY (-1)
-#endif
-#ifndef CONTENT_SOLID
-#define CONTENT_SOLID (-2)
-#endif
-#ifndef CONTENT_WATER
-#define CONTENT_WATER (-3)
-#endif
-#ifndef CONTENT_SLIME
-#define CONTENT_SLIME (-4)
-#endif
-#ifndef CONTENT_LAVA
-#define CONTENT_LAVA (-5)
-#endif
-#ifndef CONTENT_SKY
-#define CONTENT_SKY (-6)
-#endif
-#ifndef STATE_TOP
-#define STATE_TOP 0
-#endif
-#ifndef STATE_BOTTOM
-#define STATE_BOTTOM 1
-#endif
-#ifndef STATE_UP
-#define STATE_UP 2
-#endif
-#ifndef STATE_DOWN
-#define STATE_DOWN 3
-#endif
-#ifndef TE_BLOOD
-#define TE_BLOOD 12
-#endif
-#ifndef TE_LIGHTNINGBLOOD
-#define TE_LIGHTNINGBLOOD 13
-#endif
-#ifndef VEC_ORIGIN
-#define VEC_ORIGIN ('0 0 0')
-#endif
-#ifndef VEC_HULL2_MIN
-#define VEC_HULL2_MIN ('-32 -32 -24')
-#endif
-#ifndef VEC_HULL2_MAX
-#define VEC_HULL2_MAX ('32 32 64')
-#endif
-#ifndef SVC_SETVIEWPORT
-#define SVC_SETVIEWPORT 5
-#endif
-#ifndef MSG_PRINT
-#define MSG_PRINT 8
-#endif
-#ifndef MSG_STUFFCMD
-#define MSG_STUFFCMD 9
-#endif
-#ifndef MSG_UPDATENAME
-#define MSG_UPDATENAME 13
-#endif
-#ifndef MSG_UPDATEFRAGS
-#define MSG_UPDATEFRAGS 14
-#endif
-#ifndef MSG_UPDATECOLORS
-#define MSG_UPDATECOLORS 17
-#endif
-#ifndef SVC_TEMPENTITY
-#define SVC_TEMPENTITY 23
-#endif
-#ifndef SVC_CENTERPRINT
-#define SVC_CENTERPRINT 26
-#endif
-#ifndef SVC_KILLEDMONSTER
-#define SVC_KILLEDMONSTER 27
-#endif
-#ifndef SVC_FOUNDSECRET
-#define SVC_FOUNDSECRET 28
-#endif
-#ifndef SVC_INTERMISSION
-#define SVC_INTERMISSION 30
-#endif
-#ifndef SVC_CDTRACK
-#define SVC_CDTRACK 32
-#endif
-#ifndef SVC_SMALLKICK
-#define SVC_SMALLKICK 34
-#endif
-#ifndef SVC_BIGKICK
-#define SVC_BIGKICK 35
-#endif
-#ifndef SVC_UPDATEPING
-#define SVC_UPDATEPING 36
-#endif
-#ifndef SVC_UPDATETIME
-#define SVC_UPDATETIME 37
-#endif
-#ifndef SVC_MUZZLEFLASH
-#define SVC_MUZZLEFLASH 39
-#endif
-#ifndef SVC_UPDATEUSERINFO
-#define SVC_UPDATEUSERINFO 40
-#endif
-#ifndef SVC_PLAYERINFO
-#define SVC_PLAYERINFO 42
-#endif
-#ifndef SVC_SETINFO
-#define SVC_SETINFO 51
-#endif
-#ifndef TE_SPIKE
-#define TE_SPIKE 0
-#endif
-#ifndef TE_SUPERSPIKE
-#define TE_SUPERSPIKE 1
-#endif
-#ifndef TE_GUNSHOT
-#define TE_GUNSHOT 2
-#endif
-#ifndef TE_EXPLOSION
-#define TE_EXPLOSION 3
-#endif
-#ifndef TE_LIGHTNING2
-#define TE_LIGHTNING2 6
-#endif
-#ifndef TE_LAVASPLASH
-#define TE_LAVASPLASH 10
-#endif
-#ifndef TE_TELEPORT
-#define TE_TELEPORT 11
-#endif
-#ifndef CHAN_AUTO
-#define CHAN_AUTO 0
-#endif
-#ifndef CHAN_WEAPON
-#define CHAN_WEAPON 1
-#endif
-#ifndef CHAN_VOICE
-#define CHAN_VOICE 2
-#endif
-#ifndef CHAN_ITEM
-#define CHAN_ITEM 3
-#endif
-#ifndef CHAN_BODY
-#define CHAN_BODY 4
-#endif
-#ifndef CHAN_NO_PHS_ADD
-#define CHAN_NO_PHS_ADD 8
-#endif
-#ifndef ATTN_NONE
-#define ATTN_NONE 0
-#endif
-#ifndef ATTN_NORM
-#define ATTN_NORM 1
-#endif
-#ifndef ATTN_IDLE
-#define ATTN_IDLE 2
-#endif
-#ifndef ATTN_STATIC
-#define ATTN_STATIC 3
+#define ITEM_RUNE_MASK (CTF_RUNE_RES | CTF_RUNE_STR | CTF_RUNE_HST | CTF_RUNE_RGN)
 #endif
 #ifndef EF_MUZZLEFLASH
 #define EF_MUZZLEFLASH 2
 #endif
-#ifndef EF_DIMLIGHT
-#define EF_DIMLIGHT 8
-#endif
 #ifndef NOT_EF_DIMLIGHT
 #define NOT_EF_DIMLIGHT 16777207
-#endif
-#ifndef EF_BLUE
-#define EF_BLUE 64
-#endif
-#ifndef EF_RED
-#define EF_RED 128
 #endif
 #ifndef EF_DIMLIGHT_BLUE
 #define EF_DIMLIGHT_BLUE 72
@@ -682,33 +324,6 @@ extern float next_hazard_time;
 #ifndef NOT_EF_RED
 #define NOT_EF_RED 16777087
 #endif
-#ifndef MSG_BROADCAST
-#define MSG_BROADCAST 0
-#endif
-#ifndef MSG_ONE
-#define MSG_ONE 1
-#endif
-#ifndef MSG_ALL
-#define MSG_ALL 2
-#endif
-#ifndef PRINT_LOW
-#define PRINT_LOW 0
-#endif
-#ifndef PRINT_MEDIUM
-#define PRINT_MEDIUM 1
-#endif
-#ifndef PRINT_HIGH
-#define PRINT_HIGH 2
-#endif
-#ifndef MSG_MULTICAST
-#define MSG_MULTICAST 4
-#endif
-#ifndef MULTICAST_PHS
-#define MULTICAST_PHS 1
-#endif
-#ifndef MULTICAST_PVS
-#define MULTICAST_PVS 2
-#endif
 #ifndef MAX_SKILL
 #define MAX_SKILL 20
 #endif
@@ -718,222 +333,10 @@ extern float next_hazard_time;
 #ifndef MAX_DEATHMATCH
 #define MAX_DEATHMATCH 6
 #endif
-#ifndef enter
-#define enter 10
-#endif
-#ifndef space
-#define space 32
-#endif
-#ifndef quote
-#define quote 34
-#endif
-#ifndef minus
-#define minus 45
-#endif
-#ifndef _0
-#define _0 48
-#endif
-#ifndef _1
-#define _1 49
-#endif
-#ifndef _2
-#define _2 50
-#endif
-#ifndef _3
-#define _3 51
-#endif
-#ifndef _4
-#define _4 52
-#endif
-#ifndef _5
-#define _5 53
-#endif
-#ifndef _6
-#define _6 54
-#endif
-#ifndef _7
-#define _7 55
-#endif
-#ifndef _8
-#define _8 56
-#endif
-#ifndef _9
-#define _9 57
-#endif
-#ifndef colon
-#define colon 58
-#endif
-#ifndef _A
-#define _A 65
-#endif
-#ifndef _B
-#define _B 66
-#endif
-#ifndef _C
-#define _C 67
-#endif
-#ifndef _D
-#define _D 68
-#endif
-#ifndef _E
-#define _E 69
-#endif
-#ifndef _F
-#define _F 70
-#endif
-#ifndef _G
-#define _G 71
-#endif
-#ifndef _H
-#define _H 72
-#endif
-#ifndef _I
-#define _I 73
-#endif
-#ifndef _J
-#define _J 74
-#endif
-#ifndef _K
-#define _K 75
-#endif
-#ifndef _L
-#define _L 76
-#endif
-#ifndef _M
-#define _M 77
-#endif
-#ifndef _N
-#define _N 78
-#endif
-#ifndef _O
-#define _O 79
-#endif
-#ifndef _P
-#define _P 80
-#endif
-#ifndef _Q
-#define _Q 81
-#endif
-#ifndef _R
-#define _R 82
-#endif
-#ifndef _S
-#define _S 83
-#endif
-#ifndef _T
-#define _T 84
-#endif
-#ifndef _U
-#define _U 85
-#endif
-#ifndef _V
-#define _V 86
-#endif
-#ifndef _W
-#define _W 87
-#endif
-#ifndef _X
-#define _X 88
-#endif
-#ifndef _Y
-#define _Y 89
-#endif
-#ifndef _Z
-#define _Z 90
-#endif
-#ifndef _a
-#define _a 97
-#endif
-#ifndef _b
-#define _b 98
-#endif
-#ifndef _c
-#define _c 99
-#endif
-#ifndef _d
-#define _d 100
-#endif
-#ifndef _e
-#define _e 101
-#endif
-#ifndef _f
-#define _f 102
-#endif
-#ifndef _g
-#define _g 103
-#endif
-#ifndef _h
-#define _h 104
-#endif
-#ifndef _i
-#define _i 105
-#endif
-#ifndef _j
-#define _j 106
-#endif
-#ifndef _k
-#define _k 107
-#endif
-#ifndef _l
-#define _l 108
-#endif
-#ifndef _m
-#define _m 109
-#endif
-#ifndef _n
-#define _n 110
-#endif
-#ifndef _o
-#define _o 111
-#endif
-#ifndef _p
-#define _p 112
-#endif
-#ifndef _q
-#define _q 113
-#endif
-#ifndef _r
-#define _r 114
-#endif
-#ifndef _s
-#define _s 115
-#endif
-#ifndef _t
-#define _t 116
-#endif
-#ifndef _u
-#define _u 117
-#endif
-#ifndef _v
-#define _v 118
-#endif
-#ifndef _w
-#define _w 119
-#endif
-#ifndef _x
-#define _x 120
-#endif
-#ifndef _y
-#define _y 121
-#endif
-#ifndef _z
-#define _z 122
-#endif
-#ifndef tilde
-#define tilde 126
-#endif
-#ifndef backspace
-#define backspace 127
-#endif
 #ifndef CLIENTKILL
 #define CLIENTKILL 11
 #endif
-extern float gameover;
-extern gedict_t* activator;
 extern gedict_t* attacker;
-extern float old_skill;
-extern float skill_;
-extern float temp1;
 extern char* str;
 extern float next_teamplay;
 extern float next_deathmatch;
@@ -955,7 +358,6 @@ extern float team_index;
 #endif
 extern float modelindex_head;
 extern gedict_t* runespawn;
-extern float realteam_;
 extern float current_team;
 extern float current_frogbot;
 extern float axhitme;
@@ -965,23 +367,20 @@ extern float healthplay;
 extern float armorplay;
 extern int gamemode;
 extern int new_gamemode;
-extern float game_disable_powerups;
-extern float game_enable_runes;
-extern float game_not_rune_rj;
 extern float game_rl_pref;
 extern float game_lg_pref;
-extern float game_not_match;
-extern float game_disable_autoreport;
-extern float game_disable_dropweap;
 extern float game_disable_autosteams;
 extern float game_disable_botchat;
 extern float game_lava_cheat;
-extern float game_show_rules;
 extern float game_hardestjump_disabled;
 #ifndef game_fastnail
 #define game_fastnail 0
 #endif
-extern float game_qizmo;
+
+#define FB_PREFER_ROCKET_LAUNCHER 1
+#define FB_PREFER_LIGHTNING_GUN   2
+#define FB_PREFER_
+
 #ifndef GAME_ENABLE_POWERUPS
 #define GAME_ENABLE_POWERUPS 1
 #endif
@@ -997,9 +396,6 @@ extern float game_qizmo;
 #ifndef GAME_RL_PREF
 #define GAME_RL_PREF 128
 #endif
-#ifndef GAME_LAVA_CHEAT
-#define GAME_LAVA_CHEAT 256
-#endif
 #ifndef GAME_ENABLE_DROPWEAP
 #define GAME_ENABLE_DROPWEAP 512
 #endif
@@ -1008,15 +404,6 @@ extern float game_qizmo;
 #endif
 #ifndef GAME_ENABLE_AUTOSTEAMS
 #define GAME_ENABLE_AUTOSTEAMS 2048
-#endif
-#ifndef GAME_ENABLE_BOTCHAT
-#define GAME_ENABLE_BOTCHAT 4096
-#endif
-#ifndef GAME_HIDE_RULES
-#define GAME_HIDE_RULES 8192
-#endif
-#ifndef GAME_LG_PREF
-#define GAME_LG_PREF 524288
 #endif
 float random();
 float vlen(vec3_t v);
@@ -1262,8 +649,6 @@ extern gedict_t* load_position;
 extern float goal_number;
 extern gedict_t* test_goal;
 extern float same_zone;
-extern float Z1_path_success;
-extern float Z8_path_success;
 extern gedict_t* zone_stack_head;
 
 extern gedict_t* markers[NUMBER_MARKERS];
@@ -1271,7 +656,6 @@ extern gedict_t* zone_head[NUMBER_ZONES];
 extern gedict_t* zone_tail[NUMBER_ZONES];
 extern int subzone_indexes[NUMBER_ZONES];
 
-extern float S_index;
 extern float path_normal;
 extern float leave;
 extern gedict_t* from_marker;
@@ -1279,7 +663,7 @@ extern gedict_t* middle_marker;
 extern gedict_t* next_marker;
 extern gedict_t* to_marker;
 extern gedict_t* look_marker;
-extern gedict_t* test_marker;
+//extern gedict_t* test_marker;
 extern gedict_t* prev_marker;
 extern float two_teams;
 extern float first_team;
@@ -1290,7 +674,7 @@ extern gedict_t* goal_entity;
 extern float goal_refresh_time_;
 extern float weapon_refresh_time_;
 extern float toughness_;
-extern int items_;
+//extern int items_;
 extern float weapon_;
 extern float am;
 extern float attackbonus;
@@ -1309,14 +693,11 @@ extern float real_frametime;
 extern float sv_accelerate;
 extern float sv_maxfriction;
 extern float sv_accelerate_frametime;
-//extern float timelimit;
-//extern float fraglimit;
 extern float sv_maxspeed;
 extern float sv_maxwaterspeed;
 extern float half_sv_maxspeed;
 extern float inv_sv_maxspeed;
 extern float sv_maxstrafespeed;
-extern float quad_factor;
 extern float sv_friction;
 extern float sv_friction_frametime;
 extern float inv_sv_friction_frametime;
@@ -1374,7 +755,7 @@ extern vec3_t last_clear_point;
 extern vec3_t last_clear_velocity;
 extern float jumpspeed;
 extern vec3_t dir_move;
-extern float path_score;
+//extern float path_score;
 extern float total_goal_time;
 extern gedict_t* goal_marker2;
 extern vec3_t self_dir;
@@ -1423,7 +804,6 @@ extern float hit_radius;
 extern float risk_factor;
 extern float risk_strength;
 extern vec3_t rocket_origin;
-extern float splash_damage;
 extern float shaft_available;
 extern vec3_t enemy_angles;
 extern float avoid_rockets;
@@ -1460,7 +840,7 @@ extern float score_count;
 extern vec3_t item_pos;
 extern gedict_t* closest_marker;
 extern float shortest_distance;
-extern vec3_t marker_pos;
+//extern vec3_t marker_pos;
 extern gedict_t* marker_;
 extern gedict_t* marker2;
 extern float zone_time;
@@ -1508,9 +888,9 @@ extern float min_first;
 extern float min_second;
 extern vec3_t start;
 extern vec3_t end;
-extern int description;
+//extern int description;
 extern float goal_time;
-extern float path_time;
+//extern float path_time;
 extern float component_speed;
 extern float do_jump;
 extern float dm;
@@ -1553,14 +933,10 @@ extern gedict_t* first_frogbot;
 extern gedict_t* frogbot_spawned;
 extern float use_ammo;
 extern int available_weapons;
-extern float pre_game;
 extern float start_time;
 extern float real_time;
 extern float time_left;
 extern float minutes_left;
-extern int spawnbit0_;
-extern int spawnbit1_;
-extern float registered;
 extern float check_parm_time;
 #ifndef SPAWN_SIZE
 #define SPAWN_SIZE 1
@@ -1578,9 +954,6 @@ extern float beQuiet;
 #ifndef PREF_FLASH
 #define PREF_FLASH 1
 #endif
-extern float w_switch;
-extern float b_switch;
-extern float max_dead_time;
 extern float runaway_time;
 extern float runaway_time_temp;
 extern float runaway_score;
@@ -1597,50 +970,10 @@ extern gedict_t* best_away_marker;
 extern gedict_t* search_entity;
 extern float RA_time;
 extern float enemy_time_squared;
-extern float humanDamageMultiplier;
 extern float i;
 extern float j;
-extern float lg_mode;
-#ifndef LG_FRACTIONAL
-#define LG_FRACTIONAL 1
-#endif
-#ifndef LG_HALF_FRACTIONAL
-#define LG_HALF_FRACTIONAL 2
-#endif
-#ifndef LG_DAMAGE_MOMENTUM
-#define LG_DAMAGE_MOMENTUM 64
-#endif
-#ifndef LG_DAMAGE_ENHANCED
-#define LG_DAMAGE_ENHANCED 128
-#endif
-#ifndef LG_DAMAGE_MODEL_FLAGS
-#define LG_DAMAGE_MODEL_FLAGS 63
-#endif
-extern float povTraining;
-#ifndef POV_NOTRAINING
-#define POV_NOTRAINING 0
-#endif
-#ifndef POV_HIGHSPAWNS_STD
-#define POV_HIGHSPAWNS_STD 1
-#endif
-#ifndef POV_HIGHSPAWNS_LEVEL1
-#define POV_HIGHSPAWNS_LEVEL1 2
-#endif
-#ifndef POV_HIGHSPAWNS_LEVEL2
-#define POV_HIGHSPAWNS_LEVEL2 3
-#endif
-#ifndef POV_HIGHSPAWNS_LEVEL3
-#define POV_HIGHSPAWNS_LEVEL3 4
-#endif
-#ifndef POV_HIGHSPAWNS_LEVEL4
-#define POV_HIGHSPAWNS_LEVEL4 5
-#endif
 float IsVisible(gedict_t* ent);
 gedict_t* spawn_apply();
-extern gedict_t* search_item;
-extern gedict_t* q_gamer;
-extern gedict_t* p_gamer;
-extern gedict_t* i_gamer;
 #ifndef IT_ROCKET_LIGHTNING
 #define IT_ROCKET_LIGHTNING 96
 #endif
@@ -1653,90 +986,18 @@ extern gedict_t* i_gamer;
 extern float intermission_getting_closer;
 extern float total_entity_count;
 float ExistsPath();
-float RocketSafe();
 float BotShouldDischarge();
 float WaterCombat();
 float boomstick_only();
-#ifndef TEAM_COLOR1
-#define TEAM_COLOR1 5
-#endif
-#ifndef TEAM_COLOR2
-#define TEAM_COLOR2 14
-#endif
-#ifndef TEAM_COLOR3
-#define TEAM_COLOR3 1
-#endif
-#ifndef TEAM_COLOR4
-#define TEAM_COLOR4 2
-#endif
-#ifndef TEAM_COLOR5
-#define TEAM_COLOR5 3
-#endif
-#ifndef TEAM_COLOR6
-#define TEAM_COLOR6 4
-#endif
-#ifndef TEAM_COLOR7
-#define TEAM_COLOR7 6
-#endif
-#ifndef TEAM_COLOR8
-#define TEAM_COLOR8 7
-#endif
-#ifndef TEAM_COLOR9
-#define TEAM_COLOR9 8
-#endif
-#ifndef TEAM_COLOR10
-#define TEAM_COLOR10 9
-#endif
-#ifndef TEAM_COLOR11
-#define TEAM_COLOR11 10
-#endif
-#ifndef TEAM_COLOR12
-#define TEAM_COLOR12 11
-#endif
-#ifndef TEAM_COLOR13
-#define TEAM_COLOR13 12
-#endif
-#ifndef TEAM_COLOR14
-#define TEAM_COLOR14 13
-#endif
-extern float last_say_q;
-extern float last_say_p;
-extern float last_say_i;
-extern float game_arena;
-//extern float k_scores1;
-//extern float k_scores2;
-extern float k_standby;
-extern float load_delay_time;
+
 extern float ar_time;
-extern float sudden_death;
-extern float break_match;
-extern float timelimit_user;
-extern float line_one;
-extern float line_two;
-extern float line_three;
-extern float line_four;
-#ifndef open_bracket
-#define open_bracket 40
-#endif
-#ifndef close_bracket
-#define close_bracket 41
-#endif
 #ifndef MSG_HIGH
 #define MSG_HIGH 3
 #endif
-extern float overtime_begun;
-extern float overtime_stats;
-extern float k_vbreak;
-extern float dist_sfl;
 extern float lock;
 extern float duel_mode;
 extern float team_mode;
-//extern float no_lg;
-extern float k_shutdown;
 extern float a_rep;
-extern float dm_pline;
-extern float t1_pline;
-extern float t2_pline;
 extern float door_open;
 extern char* string_null;
 char* GetTeamName(float g);
@@ -1780,7 +1041,6 @@ extern float loadbot_time;
 extern float loadingbots;
 extern float check_loadingbots;
 extern float game_drop;
-extern float game_botjump;
 extern float game_damage;
 extern float game_raspawn;
 #ifndef GAME_DROP
@@ -2129,7 +1389,6 @@ float check_cvar();
 float loadbot_time_();
 float utilFloatToLong(float n);
 float T_Damage2();
-float lowest_userid();
 float a_item();
 float TeamArmorDam();
 gedict_t* LocateMarker(vec3_t org);
@@ -2180,25 +1439,7 @@ vec_t* VelocityForDamage();
 #endif
 float door_target();
 float EntitiesTouching(gedict_t* e1, gedict_t* e2);
-#ifndef SECRET_OPEN_ONCE
-#define SECRET_OPEN_ONCE 1
-#endif
-#ifndef SECRET_1ST_LEFT
-#define SECRET_1ST_LEFT 2
-#endif
-#ifndef SECRET_1ST_DOWN
-#define SECRET_1ST_DOWN 4
-#endif
-#ifndef SECRET_NO_SHOOT
-#define SECRET_NO_SHOOT 8
-#endif
-#ifndef SECRET_YES_SHOOT
-#define SECRET_YES_SHOOT 16
-#endif
 float secret_target();
-#ifndef SPAWNFLAG_NOTOUCH
-#define SPAWNFLAG_NOTOUCH 1
-#endif
 #ifndef SILENT
 #define SILENT 2
 #endif
@@ -2211,17 +1452,10 @@ float secret_target();
 #ifndef START_OFF
 #define START_OFF 1
 #endif
-#ifndef SPAWNFLAG_SUPERSPIKE
-#define SPAWNFLAG_SUPERSPIKE 1
-#endif
-#ifndef SPAWNFLAG_LASER
-#define SPAWNFLAG_LASER 2
-#endif
 gedict_t* EntityAt(gedict_t* start_entity, float index_);
 float near_teammate(gedict_t* me);
 float right_direction();
 float able_rj();
-float a_evalpath();
 float checkboven();
 float checkground();
 float JumpInWater();
@@ -2231,8 +1465,6 @@ gedict_t* identify_teammate_(gedict_t* me);
 float anglemod(float v);
 float visible_teammate(gedict_t* me);
 gedict_t* HelpTeammate();
-float rndval();
-float ShotForLuck(vec3_t object);
 float BotCanReachMarker();
 float BotSwimDown();
 float BotSwimUp();
@@ -2430,7 +1662,6 @@ void PlayerDeathThink();
 void CheckLand();
 
 // match.qc
-void GameSettings();
 void DoCountDown();
 void NextLevel();
 
@@ -2462,7 +1693,6 @@ void AttackRespawns();
 void SetFireButton();
 
 // marker_util.qc
-void set_marker(gedict_t* client, gedict_t* marker);
 void Visible_infront();
 void AssignVirtualGoal_apply(gedict_t* marker_);
 void adjust_view_ofs_z(gedict_t* ent);
@@ -2476,9 +1706,6 @@ void BestEnemy();
 void CheckCombatJump();
 void BotInLava();
 
-// arena.qc (move to botweap.qc)
-void a_attackfix();
-
 // botgoal.qc
 void UpdateGoal();
 
@@ -2487,7 +1714,7 @@ void frogbot_marker_touch();
 
 // marker_load.qc
 void N(float x, float y, float z);
-void LSQ();
+void AllMarkersLoaded();
 
 void SetZone(int zone_number, int marker_number);
 void SetMarkerFlag(int marker_number, int flags);
@@ -2521,3 +1748,5 @@ void map_ztndm4();
 void map_ztndm5();
 
 // 
+void BotEvadeLogic();
+qbool SameTeam(gedict_t* p1, gedict_t* p2);

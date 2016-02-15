@@ -203,6 +203,7 @@ void AdjustZone(gedict_t* zoneHead, float teamNumber, float strong, float adjust
 		return;
 	}
 	zoneHead->fb.total_players = zoneHead->fb.total_players + adjust;
+	/*
 	if (teamNumber == 1) {
 		zoneHead->fb.team1_zone_players = zoneHead->fb.team1_zone_players + adjust;
 		if (strong) {
@@ -280,7 +281,7 @@ void AdjustZone(gedict_t* zoneHead, float teamNumber, float strong, float adjust
 		if (strong) {
 			zoneHead->fb.team13_zone_strong_players = zoneHead->fb.team13_zone_strong_players + adjust;
 		}
-	}
+	}*/
 }
 
 void LeaveZone(int zoneNumber, float teamNumber, float strong) {

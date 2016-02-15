@@ -2,19 +2,11 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
-float time1 = 0;
-float e_break = 0;
-float counting_down = 0;
-//float match_in_progress = 0;
-float marker_time = 0;
+qbool marker_time = false;
 float next_marker_time = 0;
-float hazard_time = 0;
+qbool hazard_time = false;
 float next_hazard_time = 0;
-float gameover = 0;
-gedict_t* activator = 0;
 gedict_t* attacker = 0;
-float old_skill = 0;
-float skill_ = 0;
 float temp1 = 0;
 char* str = 0;
 float next_teamplay = 0;
@@ -22,7 +14,6 @@ float next_deathmatch = 0;
 float team_index = 0;
 float modelindex_head = 0;
 gedict_t* runespawn = 0;
-float realteam_ = 0;
 float current_team = 0;
 float current_frogbot = 0;
 float axhitme = 0;
@@ -32,20 +23,12 @@ float healthplay = 0;
 float armorplay = 0;
 int gamemode = 0;
 int new_gamemode = 0;
-float game_disable_powerups = 0;
-float game_enable_runes = 0;
-float game_not_rune_rj = 0;
 float game_rl_pref = 0;
 float game_lg_pref = 0;
-float game_not_match = 0;
-float game_disable_autoreport = 0;
-float game_disable_dropweap = 0;
 float game_disable_autosteams = 0;
 float game_disable_botchat = 0;
 float game_lava_cheat = 0;
-float game_show_rules = 0;
 float game_hardestjump_disabled = 0;
-float game_qizmo = 0;
 float msg_level = 0;
 gedict_t* firstperson = 0;
 float scoreboardsize = 0;
@@ -422,8 +405,6 @@ gedict_t* m300 = 0;
 float goal_number = 0;
 gedict_t* test_goal = 0;
 float same_zone = 0;
-float Z1_path_success = 0;
-float Z8_path_success = 0;
 gedict_t* zone_stack_head = 0;
 
 gedict_t* markers[NUMBER_MARKERS] = { 0 };
@@ -431,7 +412,6 @@ gedict_t* zone_head[NUMBER_ZONES] = { 0 };
 gedict_t* zone_tail[NUMBER_ZONES] = { 0 };
 int subzone_indexes[NUMBER_ZONES];
 
-float S_index = 0;
 float path_normal = 0;
 float leave = 0;
 gedict_t* from_marker = 0;
@@ -450,7 +430,7 @@ gedict_t* goal_entity = 0;
 float goal_refresh_time_ = 0;
 float weapon_refresh_time_ = 0;
 float toughness_ = 0;
-int items_ = 0;
+//int items_ = 0;
 float weapon_ = 0;
 float am = 0;
 float attackbonus = 0;
@@ -474,7 +454,6 @@ float sv_maxwaterspeed = 0;
 float half_sv_maxspeed = 0;
 float inv_sv_maxspeed = 0;
 float sv_maxstrafespeed = 0;
-float quad_factor = 0;
 float sv_friction = 0;
 float sv_friction_frametime = 0;
 float inv_sv_friction_frametime = 0;
@@ -581,7 +560,6 @@ float hit_radius = 0;
 float risk_factor = 0;
 float risk_strength = 0;
 vec3_t rocket_origin = { 0 };
-float splash_damage = 0;
 float shaft_available = 0;
 vec3_t enemy_angles = { 0 };
 float avoid_rockets = 0;
@@ -705,14 +683,10 @@ gedict_t* first_frogbot = 0;
 gedict_t* frogbot_spawned = 0;
 float use_ammo = 0;
 int available_weapons = 0;                      // bitmask of weapons on the current map
-float pre_game = 0;
 float start_time = 0;
 float real_time = 0;
 float time_left = 0;
 float minutes_left = 0;
-int spawnbit0_ = 0;
-int spawnbit1_ = 0;
-float registered = 0;
 float check_parm_time = 0;
 float unstick_time = 0;
 float no_bots_stuck = 0;
@@ -724,9 +698,6 @@ vec3_t last_clear_angle = { 0 };
 vec3_t velocity_hor_angle = { 0 };
 float predict_spot = 0;
 float beQuiet = 0;
-float w_switch = 0;
-float b_switch = 0;
-float max_dead_time = 0;
 float runaway_time = 0;
 float runaway_time_temp = 0;
 float runaway_score = 0;
@@ -743,46 +714,15 @@ gedict_t* best_away_marker = 0;
 gedict_t* search_entity = 0;
 float RA_time = 0;
 float enemy_time_squared = 0;
-float humanDamageMultiplier = 0;
 float i = 0;
 float j = 0;
-float lg_mode = 0;
-float povTraining = 0;
-gedict_t* search_item = 0;
-gedict_t* q_gamer = 0;
-gedict_t* p_gamer = 0;
-gedict_t* i_gamer = 0;
 float intermission_getting_closer = 0;
 float total_entity_count = 0;
-float last_say_q = 0;
-float last_say_p = 0;
-float last_say_i = 0;
-float game_arena = 0;
-//float k_scores1 = 0;
-//float k_scores2 = 0;
-float k_standby = 0;
-float load_delay_time = 0;
 float ar_time = 0;
-float sudden_death = 0;
-float break_match = 0;
-float timelimit_user = 0;
-float line_one = 0;
-float line_two = 0;
-float line_three = 0;
-float line_four = 0;
-float overtime_begun = 0;
-float overtime_stats = 0;
-float k_vbreak = 0;
-float dist_sfl = 0;
 float lock = 0;
 float duel_mode = 0;
 float team_mode = 0;
-//float no_lg = 0;
-float k_shutdown = 0;
 float a_rep = 0;
-float dm_pline = 0;
-float t1_pline = 0;
-float t2_pline = 0;
 float door_open = 0;
 char* string_null = 0;
 float pingupdate = 0;
@@ -808,7 +748,6 @@ float loadbot_time = 0;
 float loadingbots = 0;
 float check_loadingbots = 0;
 float game_drop = 0;
-float game_botjump = 0;
 float game_damage = 0;
 float game_raspawn = 0;
 float teams = 0;
@@ -829,13 +768,11 @@ float updatestuff = 0;
 float a_sounds = 0;
 char* a_spawn = 0;
 
-qbool fb_lg_disabled()
-{
+qbool fb_lg_disabled() {
 	return (qbool) ((int)cvar("k_disallow_weapons") & IT_LIGHTNING) != 0;
 }
 
-float random()
-{
+float random() {
 	return g_random();
 }
 
@@ -901,12 +838,6 @@ void remove_self() {
 }
 
 // match.qc
-void GameSettings() {
-	pre_game = FALSE;
-	if (deathmatch != 4)
-		use_ammo = TRUE;
-}
-
 void NewItems() {
 	// Replace...
 }
@@ -920,7 +851,7 @@ void CopyBot(gedict_t* start, gedict_t* f) {
 }
 
 float enemy_shaft_attack() {
-	return ((enemy_->s.v.weapon == IT_LIGHTNING) && (self->fb.enemy_dist < 630) && (g_globalvars.time < enemy_->fb.attack_finished));
+	return ((enemy_->s.v.weapon == IT_LIGHTNING) && (self->fb.enemy_dist < 630) && (g_globalvars.time < enemy_->attack_finished));
 }
 
 void PlayerPreThink_apply() {
@@ -928,10 +859,6 @@ void PlayerPreThink_apply() {
 }
 
 void PlayerPostThink_apply() {
-	// remove
-}
-
-void a_attackfix() {
 	// remove
 }
 
@@ -946,55 +873,13 @@ void StartItems() {
 	}
 }
 
-// defs.qc
-char* GetTeamName(float g) {
-	char buffer[1024] = { 0 };
-
-	if (g == TEAM_COLOR1) {
-		return infokey(world, "team4", buffer, sizeof(buffer));
-	}
-	else if (g == TEAM_COLOR2) {
-		return infokey(world, "team13", buffer, sizeof(buffer));
-	}
-	else if (g == TEAM_COLOR3) {
-		return infokey(world, "team0", buffer, sizeof(buffer));
-	}
-	else if (g == TEAM_COLOR4) {
-		return infokey(world, "team1", buffer, sizeof(buffer));
-	}
-	else if (g == TEAM_COLOR5) {
-		return infokey(world, "team2", buffer, sizeof(buffer));
-	}
-	else if (g == TEAM_COLOR6) {
-		return infokey(world, "team3", buffer, sizeof(buffer));
-	}
-	else if (g == TEAM_COLOR7) {
-		return infokey(world, "team5", buffer, sizeof(buffer));
-	}
-	else if (g == TEAM_COLOR8) {
-		return infokey(world, "team6", buffer, sizeof(buffer));
-	}
-	else if (g == TEAM_COLOR9) {
-		return infokey(world, "team7", buffer, sizeof(buffer));
-	}
-	else if (g == TEAM_COLOR10) {
-		return infokey(world, "team8", buffer, sizeof(buffer));
-	}
-	else if (g == TEAM_COLOR11) {
-		return infokey(world, "team9", buffer, sizeof(buffer));
-	}
-	else if (g == TEAM_COLOR12) {
-		return infokey(world, "team10", buffer, sizeof(buffer));
-	}
-	else if (g == TEAM_COLOR13) {
-		return infokey(world, "team11", buffer, sizeof(buffer));
-	}
-	else  {
-		return infokey(world, "team12", buffer, sizeof(buffer));
-	}
-}
-
 qbool bots_enabled() {
 	return true;	// FIXME: make a variable
 }
 
+qbool SameTeam(gedict_t* p1, gedict_t* p2) {
+	if (! teamplay)
+		return false;
+
+	return (qbool) streq( ezinfokey(p1, "team"), ezinfokey(p2, "team") );
+}

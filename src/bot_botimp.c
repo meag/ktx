@@ -5,18 +5,16 @@
 
 void SetSkill();
 void LoadTemp1();
-void localsave(float frogbot_pos, float index_, float value);
 void AddBot();
 
 void SetAttribs() {
 	float smartness;
+	int skill_ = self->fb.bot_skill;
+
 	smartness = 10;
-	skill_ = self->fb.bot_skill;
-	if (game_show_rules) {
-		bprint_fb(2, "skill �");
-		bprint_g(2, skill_);
-		bprint_fb(2, "�\\");
-	}
+	bprint_fb(2, "skill &cf00");
+	bprint_g(2, skill_);
+	bprint_fb(2, "&r\n");
 	if (skill_ > 10) {
 		self->fb.fast_aim = (skill_ - 10) * 0.1;
 		skill_ = 10;
@@ -42,25 +40,12 @@ void CalculatePhysicsVariables() {
 }
 
 void SetGame() {
-	game_disable_powerups = (!(gamemode & GAME_ENABLE_POWERUPS));
-	game_enable_runes = gamemode & GAME_ENABLE_RUNES;
-	game_not_rune_rj = (!(gamemode & GAME_RUNE_RJ));
-	game_rl_pref = gamemode & GAME_RL_PREF;
-	game_lg_pref = gamemode & GAME_LG_PREF;
-	game_not_match = (!(gamemode & GAME_MATCH));
-	game_lava_cheat = gamemode & GAME_LAVA_CHEAT;
-	game_show_rules = (!(gamemode & GAME_HIDE_RULES));
-	game_disable_autoreport = (!(gamemode & GAME_ENABLE_AUTOREPORT));
-	game_disable_dropweap = (!(gamemode & GAME_ENABLE_DROPWEAP));
+	//game_rl_pref = gamemode & GAME_RL_PREF;
+	//game_lg_pref = gamemode & GAME_LG_PREF;
 	game_disable_autosteams = (!(gamemode & GAME_ENABLE_AUTOSTEAMS));
-	game_disable_botchat = (!(gamemode & GAME_ENABLE_BOTCHAT));
-	game_qizmo = false;
-	//game_qizmo = (stof(infokey(world, "proxy")));
-	//a_gamemode();
 }
 
 void InitParameters() {
-	float ds;
 	char buffer[1024] = { 0 };
 
 	first_ent = nextent(world);
@@ -77,32 +62,11 @@ void InitParameters() {
 	NewItems();
 	InitBodyQue();
 
-	infokey(world, "temp1", buffer, sizeof(buffer));
-	temp1 = atoi(buffer);
-
-	infokey(world, "humanDamage", buffer, sizeof(buffer));
-	humanDamageMultiplier = atof(buffer);
-	if (humanDamageMultiplier) {
-		humanDamageMultiplier = humanDamageMultiplier / 100;
-		humanDamageMultiplier = humanDamageMultiplier - 1;
-		if (humanDamageMultiplier <= -1 || humanDamageMultiplier >= 4) {
-			humanDamageMultiplier = 0;
-		}
-	}
-	else  {
-		humanDamageMultiplier = 0;
-	}
-	lg_mode = atof(infokey(world, "lgmode", buffer, sizeof(buffer)));
-	povTraining = atof(infokey(world, "povdmm4tmode", buffer, sizeof(buffer)));
-	if (strneq(g_globalvars.mapname, "povdmm4")) {
-		povTraining = 0;
-	}
 	deathmatch = cvar("deathmatch");
 	if (maxplayers > 24) {
 		maxplayers = 24;
 	}
 	//nextmap = g_globalvars.mapname;
-	pre_game = TRUE;
 	gamemode = cvar("samelevel");
 	SetGame();
 	teamplay = cvar("teamplay");
@@ -130,22 +94,6 @@ void InitParameters() {
 	}
 
 	next_teamplay = teamplay;
-	if (!temp1) {
-		ds = atof(infokey(world, "d_skill", buffer, sizeof(buffer)));
-		if (ds) {
-			skill = ds;
-		}
-		else  {
-			skill = 10;
-		}
-		localcmd("\\");
-		localsave(0, 1, 0);
-		localsave(1, 1, 1);
-	}
-	else  {
-		LoadTemp1();
-	}
-	SetSkill();
 	sv_accelerate = cvar("sv_accelerate");
 	sv_friction = cvar("sv_friction");
 	numberofbots = -1;
@@ -154,104 +102,23 @@ void InitParameters() {
 		cvar_set("deathmatch", "1");
 	}
 	next_deathmatch = deathmatch;
-	if (game_not_match) {
-		GameSettings();
-		max_dead_time = 1000000;
-	}
-	else  {
-		max_dead_time = 5;
-	}
-	if (deathmatch <= 3) {
-		available_weapons = IT_AXE_SHOTGUN;
-	}
-	else  {
-		if (deathmatch == 4) {
-			available_weapons = IT_ALL_BUT_GRENADE;
-		}
-		else  {
-			available_weapons = IT_ALL;
-		}
-	}
-	if (deathmatch != 4) {
-		quad_factor = 4;
-	}
-	else  {
-		quad_factor = 8;
-	}
+	use_ammo = (deathmatch != 4);
+
+	available_weapons = deathmatch <= 3 ? IT_AXE_SHOTGUN : (deathmatch == 4 ? IT_ALL_BUT_GRENADE : IT_ALL);
 	leave = (deathmatch != 1);
 
 	CalculatePhysicsVariables();
 }
 
-void SaveTemp1() {
-	localcmd("localinfo temp1 %f\n", skill+1);
-}
-
 void SetSkill() {
-	bprint_fb(2, "\\skill\\ changed to \\");
-	bprint_ftos(2, skill);
-	bprint_fb(2, "\\\\");
-	first_ent->fb.bot_skill = skill;
-	SaveTemp1();
-}
-
-void LoadTemp1() {
-	skill = temp1 - 1;
-}
-
-void localsave(float frogbot_pos, float index_, float value) {
-	localcmd("localinfo %f %f\n", frogbot_pos * 2 + index_, value);
+	bprint_fb(2, va("%s changed to %s\n", "botskill", dig3(cvar("k_bot_skill"))));
 }
 
 void localload(float frogbot_pos) {
 	char buffer[1024] = { 0 };
 	
 	str = va("%f", frogbot_pos * 2 + frogbot_load_stage);
-	registered = atof(infokey(world, str, buffer, sizeof(buffer)));
-}
-
-void SaveFrogbot() {
-	localsave(numberofbots, 1, 2 + self->fb.color_ + self->fb.teamcolor * 256 + self->fb.bot_skill * 65536);
-	localsave(numberofbots, 2, self->fb.botnumber);
-	localsave(numberofbots + 1, 1, 1);
-}
-
-void LoadFrogbot() {
-	self = postphysics;
-	if (frogbot_load_stage) {
-		if (numberofbots == -1) {
-			first_ent->fb.admin_code = self->fb.admin_code = registered;
-			numberofbots = 0;
-			if (invalid_map) {
-				load_frogbots = FALSE;
-				return;
-			}
-		}
-		else  {
-			if (frogbot_load_stage == 1) {
-				if (registered == 1) {
-					load_frogbots = FALSE;
-					return;
-				}
-				registered = registered - 2;
-				self->fb.color_ = (int)registered & 255;
-				self->fb.teamcolor = (int)floor(registered / 256) & 255;
-				self->fb.bot_skill = (int)floor(registered / 65536) & 255;
-			}
-			else if (frogbot_load_stage == 2) {
-				self->fb.botnumber = registered;
-			}
-			self->fb.old_bot = TRUE;
-			if (frogbot_load_stage <= NUMBER_LOAD_STAGE) {
-				frogbot_load_stage = frogbot_load_stage + 1;
-				localload(numberofbots + 1);
-				return;
-			}
-			AddBot();
-		}
-	}
-	frogbot_load_stage = 1;
-	localload(numberofbots + 1);
+	//registered = atof(infokey(world, str, buffer, sizeof(buffer)));
 }
 
 void CheckParameters() {
@@ -294,87 +161,6 @@ void HCFrogbot(float color, float numb) {
 	self->fb.botnumber = numb;
 }
 
-float BeenSpawned(gedict_t* client, float value) {
-	if (value < 48) {
-		spawnbit0_ = 1;
-		spawnbit1_ = 0;
-		while (value > 0) {
-			spawnbit0_ = spawnbit0_ * 2;
-			value = value - 1;
-		}
-		if (spawnbit0_ >= 16777216) {
-			spawnbit1_ = spawnbit0_ / 16777216;
-			spawnbit0_ = 0;
-		}
-		if (client->fb.spawnbit0 & spawnbit0_) {
-			return TRUE;
-		}
-		if (client->fb.spawnbit1 & spawnbit1_) {
-			return TRUE;
-		}
-		client->fb.spawnbit0 = client->fb.spawnbit0 | spawnbit0_;
-		client->fb.spawnbit1 = client->fb.spawnbit1 | spawnbit1_;
-		client->fb.number_spawnbits = client->fb.number_spawnbits + 1;
-	}
-	return FALSE;
-}
-
-void SpawnHardBot() {
-	do
- {
-		rnd = random();
-		rnd = floor(rnd * NUMBERHARDBOTS);
-	} while (BeenSpawned(other, rnd + other->fb.number_bots));
-	if (rnd == 0) {
-		HCFrogbot(45, 1);
-	}
-	else if (rnd == 1) {
-		HCFrogbot(59, 2);
-	}
-	else if (rnd == 2) {
-		HCFrogbot(19, 3);
-	}
-	else if (rnd == 3) {
-		HCFrogbot(196, 4);
-	}
-	else if (rnd == 4) {
-		HCFrogbot(33, 5);
-	}
-	else if (rnd == 5) {
-		HCFrogbot(203, 6);
-	}
-	else if (rnd == 6) {
-		HCFrogbot(43, 7);
-	}
-	else if (rnd == 7) {
-		HCFrogbot(205, 8);
-	}
-	else if (rnd == 8) {
-		HCFrogbot(60, 9);
-	}
-	else if (rnd == 9) {
-		HCFrogbot(160, 10);
-	}
-	else if (rnd == 10) {
-		HCFrogbot(168, 11);
-	}
-	else if (rnd == 11) {
-		HCFrogbot(212, 12);
-	}
-	else if (rnd == 12) {
-		HCFrogbot(70, 13);
-	}
-	else if (rnd == 13) {
-		HCFrogbot(4, 14);
-	}
-	else if (rnd == 14) {
-		HCFrogbot(75, 15);
-	}
-	else  {
-		HCFrogbot(13, 16);
-	}
-}
-
 char* SetTeamNetName() {
 	float playersOnThisTeam,
 	      playersOnOtherTeams,
@@ -385,7 +171,7 @@ char* SetTeamNetName() {
 	playersOnOtherTeams = 0;
 	search_entity = first_client;
 	while (search_entity) {
-		if (!search_entity->fb.frogbot) {
+		if (!search_entity->isBot) {
 			if (search_entity->s.v.team == self->s.v.team) {
 				playersOnThisTeam = playersOnThisTeam + 1;
 			}
@@ -483,239 +269,6 @@ char* SetNetName() {
 	return names[(int)bound(0, self->fb.botnumber - 1, sizeof(names) / sizeof(names[0]) - 1)];
 }
 
-float SpawnBot() {
-	do {
-		if (self->fb.number_spawnbits >= self->fb.number_bots) {
-			return FALSE;
-		}
-		rnd = random();
-		rnd = floor(rnd * self->fb.number_bots);
-	} while (BeenSpawned(self, rnd));
-	g_globalvars.msg_entity = NUM_FOR_EDICT(self);
-	stuffcmd(self, "bot %f\n", rnd + 1);
-	return TRUE;
-}
-
-float AddRandomBot() {
-	if (self->fb.number_bots < 0) {
-		if (self->fb.number_bots == -1) {
-			self->fb.number_bots = 0 - g_globalvars.time;
-		}
-		else if (self->fb.number_bots != (0 - g_globalvars.time)) {
-			self->fb.number_bots = 0;
-		}
-		if (self->fb.number_bots) {
-			g_globalvars.msg_entity = NUM_FOR_EDICT(self);
-			stuffcmd(self, "wait;addbot\n");
-			return TRUE;
-		}
-	}
-	return (SpawnBot());
-}
-
-void AddBot() {
-	float t1,
-	      t2,
-	      color;
-	if (self->fb.player) {
-		if (load_frogbots) {
-			return;
-		}
-		if (invalid_map) {
-			G_sprint(self, 2, "Bots have not been configured for this map\n");
-			impulse_ = 0;
-			return;
-		}
-	}
-
-	//trap_AddBot(name, bottomcolor, topcolor, skin)
-	if (markers_loaded) {
-		char buffer[1024] = { 0 };
-
-		if ((numberofclients >= atof(infokey(world, "maxclients", buffer, sizeof(buffer)))) || (numberofbots == 16)) {
-			G_sprint(self, 2, "Server is full.\n");
-		}
-		else  {
-			if (!self->fb.botnumber) {
-				if (AddRandomBot()) {
-					return;
-				}
-			}
-			else if (BotExists()) {
-				CopyBot(self, world);
-				if (AddRandomBot()) {
-					return;
-				}
-			}
-			other = self;
-			numberofbots = numberofbots + 1;
-			localcmd("localinfo scratch2 %f\n", numberofbots);
-			self = frogbot_spawned = EntityAt(first_frogbot, maxplayers - numberofbots);
-			self->s.v.flags = 0;
-			self->fb.frogbot = TRUE;
-			self->s.v.classname = "frogbot";
-			self->fb.stringname = "gamer";
-			self->s.v.waterlevel = 0;
-			self->s.v.watertype = 0;
-			self->s.v.frags = 0;
-			self->s.v.deadflag = 0;
-			self->fb.arrow = 0;
-			self->fb.button0_ = 0;
-			self->fb.jump_flag = 0;
-			self->s.v.effects = 0;
-			self->fb.color_ = other->fb.color_;
-			self->fb.teamcolor = other->fb.teamcolor;
-			if (game_arena) {
-				other->fb.teamcolor = 0;
-			}
-			self->fb.bot_skill = skill;
-			CopyBot(self, other);
-			CopyBot(other, world);
-			scoreboardsize = scoreboardsize + 1;
-			if (!self->fb.botnumber) {
-				do {
-					SpawnHardBot();
-				} while (BotExists());
-			}
-			if (other->fb.player) {
-				SaveFrogbot();
-			}
-			if (teamplay && !game_disable_autosteams) {
-				t1 = 0;
-				t2 = 0;
-				search_entity = first_client;
-				while (search_entity) {
-					if (search_entity != self) {
-						if (search_entity->fb.realteam == TEAM_COLOR1) {
-							t1 = t1 + 1;
-						}
-						else if (search_entity->fb.realteam == TEAM_COLOR2) {
-							t2 = t2 + 1;
-						}
-					}
-					search_entity = search_entity->fb.next;
-				}
-				if ((t1 < t2) || ((t1 == t2) && (random() < 0.5))) {
-					color = TEAM_COLOR1;
-				}
-				else  {
-					color = TEAM_COLOR2;
-				}
-				self->fb.teamcolor = (color - 1) * 17;
-				self->fb.color_ = self->fb.teamcolor;
-				self->s.v.team = color;
-			}
-			else  {
-				if (teamplay) {
-					self->fb.color_ = self->fb.teamcolor;
-				}
-				self->s.v.team = (self->fb.color_ & 15) + 1;
-			}
-			// UpdateFrags(self);
-			if (teamplay) {
-				self->s.v.netname = SetTeamNetName();
-			}
-			else  {
-				self->s.v.netname = SetNetName();
-			}
-			//SetColorName(MSG_ALL, self);	// network manipulation not required...
-			ClientConnect_apply();
-			SetAttribs();
-			((fb_void_func_t)g_globalvars.PutClientInServer)();
-			self->fb.old_bot = other->fb.old_bot;
-			VectorCopy(self->s.v.origin, self->s.v.oldorigin);
-			if (!game_not_match && !game_arena) {
-				self->fb.ready = 0;
-				//PlayerReady();
-			}
-			self = other;
-		}
-	}
-}
-
-void AddBots() {
-	min_second = maxplayers - scoreboardsize + 1;
-	if (impulse_ > min_second) {
-		impulse_ = min_second;
-	}
-	while (impulse_ > 0) {
-		impulse_ = impulse_ - 1;
-		AddBot();
-	}
-}
-
-void ClearSpawnBits() {
-	test_enemy = ez_find(world, "player");
-	while (test_enemy) {
-		test_enemy->fb.spawnbit0 = test_enemy->fb.spawnbit1 = test_enemy->fb.number_spawnbits = 0;
-		test_enemy = ez_find(test_enemy, "player");
-	}
-}
-
-float RemoveBot(float remove_name) {
-	if (numberofbots) {
-		if (load_frogbots) {
-			return 0;
-		}
-		if (g_globalvars.time >= frogbot_removetime) {
-			frogbot_removetime = g_globalvars.time + 0.1;
-			ClearSpawnBits();
-			removebot_self = self;
-			self = frogbot_spawned;
-			scoreboardsize = scoreboardsize - 1;
-			if (self->fb.client_) {
-				((fb_void_func_t) g_globalvars.ClientDisconnect)();
-			}
-			self->s.v.nextthink = 0;
-			self->s.v.netname = "";
-			if (remove_name) {
-				//ClearName(MSG_ALL, self);
-			}
-			localsave(numberofbots, 1, 1);
-			numberofbots = numberofbots - 1;
-			localcmd("localinfo scratch2 %f\n", numberofbots);
-			frogbot_spawned = nextent(frogbot_spawned);
-			self = removebot_self;
-		}
-	}
-	return numberofbots;
-}
-
-void AutoRemoveBot() {
-	if (RemoveBot(TRUE)) {
-		self->s.v.nextthink = g_globalvars.time + 0.1;
-	}
-	else  {
-		remove_self();
-	}
-}
-
-void RemoveAllBots() {
-	test_enemy = spawn();
-	test_enemy->s.v.think = (func_t) AutoRemoveBot;
-	test_enemy->s.v.nextthink = 0.001;
-}
-
-void ToggleFlash() {
-	if (self->fb.preferences & PREF_FLASH) {
-		G_sprint(self, 2, "flashs off\n");
-		self->fb.preferences = self->fb.preferences - PREF_FLASH;
-	}
-	else  {
-		G_sprint(self, 2, "flashs on\n");
-		self->fb.preferences = self->fb.preferences | PREF_FLASH;
-	}
-}
-
-void ToggleFramerate() {
-	if (self->fb.print_framerate) {
-		self->fb.print_framerate = FALSE;
-	}
-	else  {
-		self->fb.print_framerate = TRUE;
-	}
-}
-
 void ToggleGameMode(int value, char* s) {
 	new_gamemode = cvar("samelevel");
 	if (new_gamemode & value) {
@@ -732,7 +285,7 @@ void ToggleGameMode(int value, char* s) {
 }
 
 void ToggleGameModeNow(int value, char* s) {
-	new_gamemode = cvar("samelevel");
+	int new_gamemode = cvar("k_bots_settings");
 	if (gamemode & value) {
 		gamemode = gamemode - value;
 		new_gamemode = new_gamemode - (new_gamemode & value);
@@ -745,7 +298,7 @@ void ToggleGameModeNow(int value, char* s) {
 		bprint_fb(2, s);
 		bprint_fb(2, " enabled\\");
 	}
-	cvar_fset("samelevel", new_gamemode);
+	cvar_fset("k_bots_settings", new_gamemode);
 	SetGame();
 }
 
@@ -773,14 +326,12 @@ void PrintRules() {
 	print_boolean(GAME_ENABLE_RUNES, "����........ ");
 	print_boolean(GAME_RUNE_RJ, "�������..... ");
 	print_boolean(GAME_MATCH, "�����....... ");
-	print_boolean(GAME_LAVA_CHEAT, "���������... ");
 	print_boolean(GAME_RL_PREF, "�������..... ");
 	print_boolean(GAME_LG_PREF, "�������..... ");
 	print_boolean(GAME_HIDE_RULES, "����........ ");
 	print_boolean(GAME_ENABLE_AUTOREPORT, "����������.. ");
 	print_boolean(GAME_ENABLE_DROPWEAP, "��������.... ");
 	print_boolean(GAME_ENABLE_AUTOSTEAMS, "����������.. ");
-	print_boolean(GAME_ENABLE_BOTCHAT, "�������..... ");
 	a_boolean();
 	sprint_fb(self, 2, "\\");
 	if (sv_accelerate != 10) {
@@ -794,12 +345,3 @@ void PrintRules() {
 		sprint_fb(self, 2, "\\");
 	}*/
 }
-/*
-void AddBotError() {
-	sprint_fb(self, 2, "There is no support of external bots!\n");
-	self->s.v.spawnflags = self->s.v.impulse = self->fb.lines = 0;
-	self->fb.input_time = g_globalvars.time + 2;
-	self->fb.spawnbit0 = self->fb.spawnbit1 = self->fb.number_spawnbits = 0;
-	CopyBot(self, world);
-}
-*/

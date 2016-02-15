@@ -53,7 +53,7 @@ void map_ztndm2() {
 	N(431, 720, 536);
 	N(-90, 680, 440);
 
-	LSQ();
+	AllMarkersLoaded();
 
 	SetGoal(1, 5);
 	SetGoal(10, 24);

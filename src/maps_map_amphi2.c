@@ -71,7 +71,7 @@ void map_amphi2() {
 	N(-275, 752, -360);
 	N(752, 261, -360);
 
-	LSQ();
+	AllMarkersLoaded();
 
 	SetZone(9, 71);
 	SetZone(8, 70);
@@ -320,5 +320,27 @@ void map_amphi2() {
 	SetMarkerPathFlags(36, 2, ROCKET_JUMP);
 	SetMarkerPathFlags(25, 2, ROCKET_JUMP);
 	SetMarkerPathFlags(22, 1, ROCKET_JUMP);
+}
+
+void AMPHI2BotInLava() {
+	// TODO: rewrite... essentially if in lava and enemy isn't shafting, jump to target instead of walk
+	if ( self->isBot && streq(g_globalvars.mapname, "amphi2") ) {
+		if (g_globalvars.time > self->fb.arrow_time) {
+			if (self->s.v.waterlevel == 1) {
+				vec3_t point = { self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] - 24 };
+				if (trap_pointcontents(point[0], point[1], point[2]) == CONTENT_LAVA) {
+					if ((int)self->s.v.flags & FL_ONGROUND) {
+						if (!enemy_shaft_attack()) {
+							if (!self->fb.rocketjumping) {
+								BestArrowForDirection();
+								VelocityForArrow();
+								self->fb.jumping = true;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 }
 

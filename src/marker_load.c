@@ -8,6 +8,7 @@ static int marker_index = 0;
 void AddToQue(gedict_t* ent) {
 	markers[marker_index] = ent;
 	ent->fb.index = marker_index++;
+
 	ent->fb.zone_marker = Z_marker_error;
 	ent->fb.sub_arrival_time = S_time_error;
 	ent->fb.sub_path_marker = S_path_marker_error;
@@ -25,7 +26,7 @@ void N(float x, float y, float z) {
 	AddToQue(marker_);
 }
 
-void LSQ() {
+void AllMarkersLoaded() {
 	self = world;
 	load_frogbots = invalid_map = FALSE;
 	no_change = TRUE;

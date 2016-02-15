@@ -86,7 +86,7 @@ void map_ztndm3() {
 	N(-144, 496, 24);
 	N(-370, 504, 296);
 
-	LSQ();
+	AllMarkersLoaded();
 
 	SetZone(9, 132);
 	SetZone(2, 131);

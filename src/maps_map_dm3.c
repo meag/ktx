@@ -239,7 +239,7 @@ void map_dm3() {
 	N(668, 141, 56);
 	N(1135, 1010, -296);
 
-	LSQ();
+	AllMarkersLoaded();
 
 	SetZone(16, 299);
 	SetZone(5, 298);
@@ -1894,3 +1894,33 @@ void map_dm3() {
 	SetMarkerPathFlags(4, 3, ROCKET_JUMP);
 }
 
+void DM3CampLogic() {
+	if (numberofclients > 1) {
+		if (teamplay && deathmatch <= 3) {
+			if ((int)self->s.v.items & (IT_ROCKET_LAUNCHER | IT_LIGHTNING) && !self->fb.bot_evade) {
+				if ((self->s.v.health > 60) && (self->s.v.armorvalue > 80)) {
+					if ((self->s.v.ammo_cells > 15) || (self->s.v.ammo_rockets > 3)) {
+						search_entity = ez_find(world, "item_artifact_super_damage");
+						if (search_entity != world) {
+							if (random() < 0.5) {
+								if (search_entity->s.v.origin[2] <= self->s.v.origin[2] + 18) {
+									vec3_t diff;
+									VectorSubtract(search_entity->s.v.origin, self->s.v.origin, diff);
+									if (vlen(diff) < 200) {
+										if (random() < 0.9) {
+											self->fb.camp_state |= CAMPBOT;
+											linked_marker_ = touch_marker_;
+										}
+									}
+									else  {
+										self->fb.camp_state = self->fb.camp_state - (self->fb.camp_state & CAMPBOT);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}

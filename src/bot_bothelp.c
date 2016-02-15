@@ -49,9 +49,8 @@ gedict_t* identify_teammate_(gedict_t* me) {
 	float currclose;
 
 	closeness = -1;
-	p = find(world, FOFS(fb.stringname), "gamer");
-	while (p && p != world) {
-		if (me->fb.realteam == p->fb.realteam) {
+	for (p = find_plr(world); p; p = find_plr(p)) {
+		if (SameTeam(me, p)) {
 			VectorSubtract(p->s.v.origin, me->s.v.origin, diff);
 			VectorNormalize(diff);
 			normalize(me->s.v.angles, point);
@@ -69,36 +68,25 @@ gedict_t* identify_teammate_(gedict_t* me) {
 				}
 			}
 		}
-		p = find(p, FOFS(fb.stringname), "gamer");
 	}
 	if (g != world) {
 		return g;
 	}
 	return world;
 }
-/*
-float anglemod(float v) {
-	while (v >= 360) {
-		v = v - 360;
-	}
-	while (v < 0) {
-		v = v + 360;
-	}
-	return v;
-}
-*/
+
 float visible_teammate(gedict_t* me) {
 	float ang,
 	      curang;
 	gedict_t* p;
 
-	if (!teamplay || (teamplay && (healthplay == TEAM_TOTAL_HEALTH_PROTECT))) {
+	if (teamplay == 0 || teamplay == 1 || teamplay == 5) {
 		return 0;
 	}
-	p = find(world, FOFS(fb.stringname), "gamer");
-	while (p && p != world) {
+
+	for (p = find_plr(world); p; p = find_plr(world)) {
 		if (p != me) {
-			if (me->fb.realteam == p->fb.realteam) {
+			if (SameTeam(me, p)) {
 				if (VisibleEntity(p)) {
 					vec3_t diff;
 					VectorSubtract(p->s.v.origin, me->s.v.origin, diff);
@@ -110,7 +98,6 @@ float visible_teammate(gedict_t* me) {
 				}
 			}
 		}
-		p = find(p, FOFS(fb.stringname), "gamer");
 	}
 	return 0;
 }
@@ -118,9 +105,11 @@ float visible_teammate(gedict_t* me) {
 float near_teammate(gedict_t* me) {
 	gedict_t* p;
 
-	if (!teamplay || (teamplay && (healthplay == TEAM_TOTAL_HEALTH_PROTECT))) {
+	// if the bot can't kill them, then don't worry about it
+	if (teamplay != 2) {
 		return 0;
 	}
+
 	p = identify_teammate_(me);
 	return ((VectorDistance(p->s.v.origin, me->s.v.origin)) < 140);
 }
@@ -150,8 +139,8 @@ gedict_t* HelpTeammate() {
 	if (goalent->s.v.goalentity == NUM_FOR_EDICT(self)) {
 		return world;
 	}
-	if ((goalent->fb.client_) && (goalent != self)) {
-		if (goalent->fb.realteam == self->fb.realteam) {
+	if ((goalent->ct == ctPlayer) && (goalent != self)) {
+		if (SameTeam(goalent, self)) {
 			if ((goalent->s.v.health < 30) && !((int)goalent->s.v.items & IT_INVULNERABILITY) && (goalent->s.v.waterlevel == 0)) {
 				if (((int)self->s.v.items & (IT_ROCKET_LAUNCHER | IT_LIGHTNING)) && (self->s.v.health > 65)) {
 					if ((self->s.v.ammo_rockets > 2) || (self->s.v.ammo_cells > 10)) {
@@ -174,8 +163,8 @@ gedict_t* HelpTeammate() {
 	best_dist1 = 99999999;
 	best_dist2 = 99999999;
 	for (head = world; head = trap_findradius(head, self->s.v.origin, bdist); ) {
-		if (head->fb.client_) {
-			if (head->fb.realteam == self->fb.realteam) {
+		if (head->ct == ctPlayer) {
+			if (SameTeam(head, self)) {
 				if (head != self) {
 					d = VectorDistance(head->s.v.origin, self->s.v.origin);
 					if (NUM_FOR_EDICT(self) != head->s.v.goalentity) {
@@ -191,7 +180,7 @@ gedict_t* HelpTeammate() {
 							}
 						}
 					}
-					if (head->fb.realteam == self->fb.realteam) {
+					if (SameTeam(head, self)) {
 						if (NUM_FOR_EDICT(self) != head->s.v.goalentity) {
 							if (d < best_dist2) {
 								if (VisibleEntity(head) && !((int)head->s.v.items & IT_INVULNERABILITY) && (head->s.v.health < 30) && (head->s.v.armorvalue < 20) && (head->s.v.waterlevel == 0)) {

@@ -3,16 +3,33 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
-float rndval() {
-	if (pre_game || arenastate != A_PLAYING) {
-		return 0.3;
+static qbool RocketSafe() {
+	float splash_damage = 80 - (0.25 * self->fb.enemy_dist);
+	if (splash_damage <= 0 || (teamplay != 1 && teamplay != 5)) {
+		return true;
 	}
-	else  {
-		return 1;
+
+	if (self->super_damage_finished > g_globalvars.time) {
+		splash_damage = splash_damage * (deathmatch != 4 ? 4 : 8);
+		if (self->ctf_flag & ITEM_RUNE_MASK) {
+			if (self->ctf_flag & CTF_RUNE_STR) {
+				splash_damage = splash_damage * 2;
+			}
+			else if (self->ctf_flag & CTF_RUNE_RES) {
+				splash_damage = splash_damage * 0.5;
+			}
+		}
 	}
+
+	return (self->fb.total_damage > splash_damage);
 }
 
+// When duelling, try and spawn frag
 void AttackRespawns() {
+	if (isRA() || numberofclients != 2) {
+		return;
+	}
+
 	if (enemy_->s.v.health < 1) {
 		if (ar_time > g_globalvars.time) {
 			if (self->fb.bot_skill >= 15) {
@@ -43,7 +60,7 @@ void AttackRespawns() {
 												ang2 = vectoyaw(diff);
 												ang1 = anglemod(self->s.v.angles[1] - ang2);
 												if (ang1 < 20 || ang1 > 340) {
-													self->fb.button0_ = TRUE;
+													self->fb.firing = true;
 												}
 												return;
 											}
@@ -59,7 +76,7 @@ void AttackRespawns() {
 	}
 }
 
-void CheckNewWeapon() {
+static void CheckNewWeapon() {
 	if (self->s.v.weapon != desired_weapon) {
 		if (self->fb.lines) {
 			return;
@@ -92,26 +109,26 @@ void CheckNewWeapon() {
 	}
 }
 
-float ShotForLuck(vec3_t object) {
+static qbool ShotForLuck(vec3_t object) {
 	trap_makevectors(self->s.v.v_angle);
 	traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2], object[0], object[1], object[2], TRUE, self);
 	return (g_globalvars.trace_fraction == 1);
 }
 
 void SetFireButton() {
-	if (pre_game) {
-		if (!counting_down) {
-			if ((enemy_ != attacker) || ((g_globalvars.time + random()) < enemy_->fb.attack_finished)) {
-				self->fb.button0_ = FALSE;
+	if (match_in_progress != 2) {
+		if (! match_in_progress) {
+			if ((enemy_ != attacker) || ((g_globalvars.time + random()) < enemy_->attack_finished)) {
+				self->fb.firing = false;
 				return;
 			}
 		}
 		else  {
-			self->fb.button0_ = FALSE;
+			self->fb.firing = false;
 			return;
 		}
 	}
-	if (self->fb.button0_) {
+	if (self->fb.firing) {
 		if (look_object_ == enemy_) {
 			if (random() < 0.666667) {
 				if (!self->s.v.impulse) {
@@ -120,20 +137,20 @@ void SetFireButton() {
 			}
 		}
 		if (!self->fb.rocketjumping) {
-			self->fb.button0_ = FALSE;
+			self->fb.firing = false;
 		}
 	}
 	else  {
-		if (g_globalvars.time < self->fb.attack_finished) {
+		if (g_globalvars.time < self->attack_finished) {
 			return;
 		}
 	}
 	if (self->s.v.impulse) {
 		return;
 	}
-	if (look_object_->fb.realteam != self->fb.realteam) {
+	if (! SameTeam(look_object_, self)) {
 		if (self->fb.path_state & DM6_DOOR) {
-			items_ = self->s.v.items;
+			int items_ = (int) self->s.v.items;
 			if (self->s.v.ammo_shells) {
 				desired_weapon = IT_SHOTGUN;
 			}
@@ -148,13 +165,13 @@ void SetFireButton() {
 			}
 			CheckNewWeapon();
 			if (self->s.v.weapon == desired_weapon) {
-				self->fb.button0_ = TRUE;
+				self->fb.firing = true;
 			}
 		}
 		if (self->fb.state & HURT_SELF) {
 			if (self->s.v.weapon == IT_ROCKET_LAUNCHER) {
 				if (self->fb.real_pitch == 78.75) {
-					self->fb.button0_ = TRUE;
+					self->fb.firing = true;
 					self->fb.state = self->fb.state & NOT_HURT_SELF;
 				}
 			}
@@ -172,11 +189,12 @@ void SetFireButton() {
 				}
 				else  {
 					if (g_globalvars.trace_ent != NUM_FOR_EDICT(look_object_)) {
-						if (g_edicts[g_globalvars.trace_ent].fb.client_) {
-							if (self->fb.realteam != g_edicts[g_globalvars.trace_ent].fb.realteam) {
+						gedict_t* traced = &g_edicts[g_globalvars.trace_ent];
+						if (traced->ct == ctPlayer) {
+							if (!SameTeam(traced, self)) {
 								if (!((int)self->s.v.flags & FL_WATERJUMP)) {
 									self->s.v.enemy = g_globalvars.trace_ent;
-									enemy_ = &g_edicts[g_globalvars.trace_ent];
+									enemy_ = traced;
 									LookEnemy();
 								}
 							}
@@ -189,7 +207,7 @@ void SetFireButton() {
 										if ((int)self->s.v.flags & FL_ONGROUND) {
 											traceline(origin_[0], origin_[1], origin_[2] + 32, origin_[0] + rel_pos[0], origin_[1] + rel_pos[1], origin_[2] + rel_pos[2] + 32 , FALSE, self);
 											if (g_globalvars.trace_fraction == 1) {
-												self->fb.button2_ = TRUE;
+												self->fb.jumping = true;
 											}
 										}
 									}
@@ -208,12 +226,12 @@ void SetFireButton() {
 				risk = random();
 				risk = risk * risk;
 				if ((int)self->s.v.items & IT_QUAD) {
-					if (healthplay != TEAM_TOTAL_HEALTH_PROTECT) {
+					if (teamplay != 1 && teamplay != 5) {
 						if (!((int)self->s.v.items & IT_INVULNERABILITY)) {
 							if ((self->s.v.weapon == IT_ROCKET_LAUNCHER) || (self->s.v.weapon == IT_GRENADE_LAUNCHER)) {
 								if (self->fb.look_object == enemy_) {
 									if (self->fb.enemy_dist <= 250) {
-										items_ = self->s.v.items;
+										int items_ = (int) self->s.v.items;
 										if ((items_ & IT_LIGHTNING) && (self->s.v.ammo_cells)) {
 											desired_weapon = IT_LIGHTNING;
 										}
@@ -231,7 +249,7 @@ void SetFireButton() {
 										}
 										CheckNewWeapon();
 										if (self->s.v.weapon == desired_weapon) {
-											self->fb.button0_ = TRUE;
+											self->fb.firing = true;
 										}
 									}
 								}
@@ -247,13 +265,12 @@ void SetFireButton() {
 					traceline(rocket_origin[0], rocket_origin[1], rocket_origin[2], rocket_origin[0] + (g_globalvars.v_forward[0] * 600), rocket_origin[1] + (g_globalvars.v_forward[1] * 600), rocket_origin[2] + (g_globalvars.v_forward[2] * 600), FALSE, self);
 					VectorCopy(g_globalvars.trace_endpos, rocket_endpos);
 					risk_strength = g_globalvars.trace_fraction;
-					realteam_ = self->fb.realteam;
 					test_enemy = first_client;
 					while (test_enemy) {
 						if (test_enemy->s.v.takedamage) {
 							if (test_enemy == enemy_) {
 								predict_dist = 1000000;
-								if (look_object_->fb.client_) {
+								if (look_object_->ct == ctPlayer) {
 									if (look_object_ == enemy_) {
 										VectorCopy(self->fb.predict_origin, testplace);
 										predict_dist = VectorDistance(testplace, rocket_endpos);
@@ -279,27 +296,23 @@ void SetFireButton() {
 							if (predict_dist <= (hit_radius / (1 - risk))) {
 								traceline(rocket_endpos[0], rocket_endpos[1], rocket_endpos[2], testplace[0], testplace[1], testplace[2], TRUE, self);
 								if (g_globalvars.trace_fraction == 1) {
-									if (test_enemy->fb.realteam != realteam_) {
+									if ( ! SameTeam(test_enemy, self)) {
 										risk_factor = risk_factor / risk_strength;
 										if (look_object_ == enemy_) {
-											self->fb.button0_ = TRUE;
+											self->fb.firing = true;
 										}
 										else if (predict_dist <= (80 / (1.2 - risk))) {
-											self->fb.button0_ = TRUE;
+											self->fb.firing = true;
 										}
 										else  {
 											if ((int)self->s.v.items & IT_ROCKET_LAUNCHER) {
 												if (!self->fb.lines) {
 													if (look_object_) {
+														float dist_sfl = ((int)self->s.v.items & IT_QUAD) ? 300.0f : 250.0f;
+
 														VectorAdd(self->fb.look_object->s.v.absmin, self->fb.look_object->s.v.view_ofs, testplace);
 														VectorSubtract(testplace, self->s.v.origin, rel_pos);
 														rel_dist = vlen(rel_pos);
-														if ((int)self->s.v.items & IT_QUAD) {
-															dist_sfl = 300;
-														}
-														else  {
-															dist_sfl = 250;
-														}
 														if (self->s.v.ammo_rockets > 3) {
 															if (!visible_teammate(self)) {
 																if (!self->fb.rocketjumping) {
@@ -319,7 +332,7 @@ void SetFireButton() {
 																					self->fb.state = self->fb.state | SHOT_FOR_LUCK;
 																					self->fb.botchose = 1;
 																					self->s.v.impulse = 7;
-																					self->fb.button0_ = TRUE;
+																					self->fb.firing = true;
 																				}
 																				else  {
 																					self->fb.state = self->fb.state - (self->fb.state & SHOT_FOR_LUCK);
@@ -343,7 +356,7 @@ void SetFireButton() {
 																		if (self->fb.arrow == BACK) {
 																			self->fb.botchose = 1;
 																			self->s.v.impulse = 6;
-																			self->fb.button0_ = TRUE;
+																			self->fb.firing = true;
 																		}
 																	}
 																}
@@ -389,44 +402,20 @@ void SetFireButton() {
 				if (angle_error[1] > min_angle_error) {
 					return;
 				}
-				self->fb.button0_ = TRUE;
+				self->fb.firing = true;
 			}
 		}
 	}
-}
-
-float RocketSafe() {
-	splash_damage = 80 - (0.25 * self->fb.enemy_dist);
-	if (splash_damage <= 0) {
-		return TRUE;
-	}
-	if (healthplay == TEAM_TOTAL_HEALTH_PROTECT) {
-		return TRUE;
-	}
-	if (self->fb.super_damage_finished > g_globalvars.time) {
-		splash_damage = splash_damage * quad_factor;
-		if (self->fb.player_flag & ITEM_RUNE_MASK) {
-			if (self->fb.player_flag & ITEM_RUNE2_FLAG) {
-				splash_damage = splash_damage * 2;
-			}
-			else if (self->fb.player_flag & ITEM_RUNE1_FLAG) {
-				splash_damage = splash_damage * 0.5;
-			}
-		}
-	}
-	if (self->fb.total_damage > splash_damage) {
-		return TRUE;
-	}
-	return FALSE;
 }
 
 void DesiredWeapon() {
+	int items_ = self->s.v.items;
+
 	avoid_rockets = FALSE;
-	items_ = self->s.v.items;
 	if ((int)self->s.v.items & IT_QUAD) {
 		if (teamplay && (healthplay != TEAM_TOTAL_HEALTH_PROTECT)) {
 			search_entity = identify_teammate_(self);
-			if (!search_entity->fb.invincible_time) {
+			if (!search_entity->invincible_time) {
 				if (VisibleEntity(search_entity)) {
 					if (enemy_visible) {
 						if (VectorDistance(search_entity->s.v.origin, enemy_->s.v.origin) < 150) {
@@ -578,7 +567,7 @@ void SelectWeapon() {
 		if ((int)self->s.v.items & IT_ROCKET_LAUNCHER) {
 			if (self->s.v.ammo_rockets) {
 				if (self->s.v.health >= 50) {
-					if (self->fb.super_damage_finished <= g_globalvars.time) {
+					if (self->super_damage_finished <= g_globalvars.time) {
 						if (self->s.v.weapon != IT_ROCKET_LAUNCHER) {
 							self->fb.botchose = 1;
 							self->s.v.impulse = 7;
@@ -602,10 +591,11 @@ void DelayUpdateWeapons() {
 }
 
 void UpdateWeapons() {
+	int items_ = (int) self->s.v.items;
+
 	self->fb.weapon_refresh_time = 1000000;
 	if (deathmatch != 4) {
 		attackbonus = 0;
-		items_ = self->s.v.items;
 		if (items_ & IT_ROCKET_LAUNCHER) {
 			firepower_ = self->s.v.ammo_rockets * 8;
 			if (self->s.v.ammo_rockets) {
@@ -728,25 +718,22 @@ void UpdateWeapons() {
 		if (firepower_ > 100) {
 			firepower_ = 100;
 		}
-		if (boomstick_only()) {
-			self->fb.desire_backpack = self->fb.desire_supershotgun;
-		}
-		if (self->fb.super_damage_finished > g_globalvars.time) {
+		if (self->super_damage_finished > g_globalvars.time) {
 			firepower_ = firepower_ * 4;
 		}
-		if (self->fb.player_flag & ITEM_RUNE2_FLAG) {
+		if (self->ctf_flag & CTF_RUNE_STR) {
 			firepower_ = firepower_ * 2;
 		}
 		self->fb.firepower = firepower_;
 	}
 	else  {
-		if (self->fb.super_damage_finished > g_globalvars.time) {
+		if (self->super_damage_finished > g_globalvars.time) {
 			self->fb.firepower = 800;
 		}
 		else  {
 			self->fb.firepower = 100;
 		}
-		if (self->fb.player_flag & ITEM_RUNE2_FLAG) {
+		if (self->ctf_flag & CTF_RUNE_STR) {
 			self->fb.firepower = self->fb.firepower * 2;
 		}
 	}

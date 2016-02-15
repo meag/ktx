@@ -51,7 +51,7 @@ void map_aerowalk() {
 	N(-69, -261, 248);
 	N(-86, 99, 248);
 	N(-321, 346, 248);
-	LSQ();
+	AllMarkersLoaded();
 	SetZone(5, 96);
 	SetZone(5, 95);
 	SetZone(2, 94);

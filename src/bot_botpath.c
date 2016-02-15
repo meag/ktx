@@ -3,80 +3,108 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
-void EvalPath() {
-	vec3_t temp;
-
-	if (streq(test_marker->s.v.classname, "door")) {
-		if (test_marker->fb.state != STATE_BOTTOM) {
-			return;
+static void BotWaitLogic(gedict_t* touch_marker_) {
+	// if we're not looking at a player
+	if (!look_object_->ct == ctPlayer) {
+		vec3_t linkedPos, lookPos;
+		VectorAdd(linked_marker_->s.v.absmin, linked_marker_->s.v.view_ofs, linkedPos);
+		VectorAdd(look_object_->s.v.absmin, look_object_->s.v.view_ofs, lookPos);
+		traceline(linkedPos[0], linkedPos[1], linkedPos[2] + 32, lookPos[0], lookPos[1], lookPos[2] + 32, TRUE, self);
+		if (g_globalvars.trace_fraction != 1) {
+			linked_marker_ = touch_marker_;
+			new_path_state = 0;
 		}
-	}
-	if (a_evalpath()) {
-		return;
-	}
-	if (!path_normal) {
-		if (!(description & REVERSIBLE)) {
-			return;
-		}
-	}
-	if (test_marker == dm6_door) {
-		if (!dm6_door->s.v.takedamage) {
-			return;
-		}
-	}
-	VectorAdd(test_marker->s.v.absmin, test_marker->s.v.view_ofs, marker_pos);
-	if (description & DM6_DOOR) {
-		if (dm6_door->s.v.origin[0] > -64) {
-			return;
-		}
-	}
-	if (description & ROCKET_JUMP) {
-		if (!self->fb.willRocketJumpThisTic) {
-			return;
-		}
-	}
-
-	VectorSubtract(marker_pos, origin_, temp);
-	VectorNormalize(temp);
-	same_dir = DotProduct(self_dir, temp);
-	path_score = same_dir + random();
-	if (g_globalvars.time < test_marker->fb.arrow_time) {
-		avoid = TRUE;
 	}
 	else  {
-		avoid = FALSE;
-		if (rocket_alert) {
-			vec3_t temp;
-			VectorSubtract(marker_pos, rocket_endpos, temp);
-			if (vlen(temp) < 200) {
-				traceline(rocket_endpos[0], rocket_endpos[1], rocket_endpos[2], marker_pos[0], marker_pos[1], marker_pos[2], TRUE, self);
-				if (g_globalvars.trace_fraction == 1) {
-					avoid = TRUE;
-				}
+		// stop waiting
+		self->fb.state = self->fb.state - (self->fb.state & WAIT);
+	}
+}
+
+typedef struct fb_path_eval_s {
+	gedict_t* touch_marker;
+	gedict_t* test_marker;
+	qbool rocket_alert;
+	int description;
+	float path_time;
+	qbool path_normal;
+} fb_path_eval_t;
+
+static qbool DetectIncomingRocket(vec3_t marker_pos) {
+	// if the path location is too close to an incoming rocket, 
+	if (rocket_alert && VectorDistance(marker_pos, rocket_endpos) < 200) {
+		traceline(rocket_endpos[0], rocket_endpos[1], rocket_endpos[2], marker_pos[0], marker_pos[1], marker_pos[2], TRUE, self);
+		return (g_globalvars.trace_fraction == 1);
+	}
+
+	return false;
+}
+
+static void EvalPath(fb_path_eval_t* eval) {
+	vec3_t direction_to_marker;
+	vec3_t marker_position;
+	float path_score;
+	
+	// don't try and pass through closed doors
+	if (streq(eval->test_marker->s.v.classname, "door")) {
+		if (eval->test_marker->fb.state != STATE_BOTTOM) {
+			return;
+		}
+	}
+
+	// if it's a rocket jump, calculate path time (TODO: fix this for horizontal rocket jumps, also precalculate)
+	if (eval->description & ROCKET_JUMP && self->fb.willRocketJumpThisTic) {
+		VectorAdd(eval->touch_marker->s.v.absmin, eval->touch_marker->s.v.view_ofs, m_pos);
+		VectorAdd(eval->test_marker->s.v.absmin, eval->test_marker->s.v.view_ofs, m_P_pos);
+		eval->path_time = ((VectorDistance(m_P_pos, m_pos) / sv_maxspeed));
+	}
+
+	//
+	if (!eval->path_normal && !(eval->description & REVERSIBLE)) {
+		return;
+	}
+
+	// don't 
+	if (eval->test_marker == dm6_door && !dm6_door->s.v.takedamage) {
+		return;
+	}
+
+	// don't try and pass through dm6 door when fully closed
+	if (eval->description & DM6_DOOR && dm6_door->s.v.origin[0] > -64) {
+		return;
+	}
+
+	if (eval->description & ROCKET_JUMP && !self->fb.willRocketJumpThisTic) {
+		return;
+	}
+
+	VectorAdd(eval->test_marker->s.v.absmin, eval->test_marker->s.v.view_ofs, marker_position);
+	VectorSubtract(marker_position, self->s.v.origin, direction_to_marker);
+	VectorNormalize(direction_to_marker);
+
+	same_dir = DotProduct(self_dir, marker_position);
+	path_score = same_dir + random();
+	avoid = (g_globalvars.time < eval->test_marker->fb.arrow_time) || DetectIncomingRocket(marker_position);
+
+	// If we'd pickup an item as we travel, negatively impact score
+	if (beQuiet && eval->test_marker->fb.pickup && !eval->test_marker->s.v.nextthink) {
+		if (eval->test_marker != goalentity_marker) {
+			if (eval->test_marker->fb.pickup()) {
+				path_score = path_score - 2.5;
 			}
 		}
 	}
-	if (beQuiet) {
-		if (test_marker->fb.pickup) {
-			if (!test_marker->s.v.nextthink) {
-				if (test_marker != goalentity_marker) {
-					if (test_marker->fb.pickup()) {
-						path_score = path_score - 2.5;
-					}
-				}
-			}
-		}
-	}
+
 	if (avoid) {
 		path_score = path_score - 2.5;
 	}
 	else  {
 		if (goalentity_marker) {
-			from_marker = test_marker;
+			from_marker = eval->test_marker;
 			path_normal = self->fb.path_normal_;
 			goalentity_marker->fb.zone_marker();
 			goalentity_marker->fb.sub_arrival_time();
-			total_goal_time = path_time + traveltime;
+			total_goal_time = eval->path_time + traveltime;
 			if (total_goal_time > goal_late_time) {
 				if (traveltime < current_goal_time) {
 					path_score = path_score + lookahead_time_ - total_goal_time;
@@ -89,8 +117,8 @@ void EvalPath() {
 	}
 	if (path_score > best_score) {
 		best_score = path_score;
-		linked_marker_ = test_marker;
-		new_path_state = description;
+		linked_marker_ = eval->test_marker;
+		new_path_state = eval->description;
 	}
 }
 
@@ -221,7 +249,7 @@ void frogbot_marker_touch() {
 			}
 		}
 	}
-	if (duel_mode) {
+	if (isDuel()) {
 		if (enemy_->s.v.weapon == IT_GRENADE_LAUNCHER) {
 			if (enemy_->s.v.ammo_rockets > 6) {
 				if ((self->s.v.origin[2] + 18) < (enemy_->s.v.absmin[2] + enemy_->s.v.view_ofs[2])) {
@@ -248,11 +276,12 @@ void frogbot_marker_touch() {
 			}
 		}
 	}
+
 	best_score = -1000000;
 	normalize(self->s.v.velocity, self_dir);
 	rocket_alert = FALSE;
 	if ((int)enemy_->s.v.items & IT_ROCKET_LAUNCHER && !((int)self->s.v.items & IT_INVULNERABILITY)) {
-		if (enemy_->fb.attack_finished <= g_globalvars.time + 0.2) {
+		if (enemy_->attack_finished <= g_globalvars.time + 0.2) {
 			if (enemy_->s.v.ammo_rockets) {
 				if (random() < 0.5) {
 					VectorCopy(enemy_->s.v.origin, src);
@@ -268,17 +297,9 @@ void frogbot_marker_touch() {
 			}
 		}
 	}
-	if (look_object_ == enemy_) {
-		beQuiet = FALSE;
-	}
-	else  {
-		if (enemy_) {
-			beQuiet = !self->fb.allowedMakeNoise;
-		}
-		else  {
-			beQuiet = FALSE;
-		}
-	}
+
+	beQuiet = (look_object_ != enemy_ && enemy_ && !self->fb.allowedMakeNoise);
+
 	if (goalentity_marker) {
 		from_marker = touch_marker_;
 		path_normal = self->fb.path_normal_;
@@ -292,23 +313,38 @@ void frogbot_marker_touch() {
 		else  {
 			goal_late_time = (self->fb.goal_respawn_time - (random() * 10)) - g_globalvars.time;
 		}
-		test_marker = touch_marker_;
-		if (test_marker) {
-			description = 0;
-			path_time = 0;
-			EvalPath();
+		
+		if (touch_marker_) {
+			fb_path_eval_t eval = { 0 };
+
+			eval.description = 0;
+			eval.path_normal = self->fb.path_normal_;
+			eval.path_time = 0;
+			eval.rocket_alert = rocket_alert;
+			eval.test_marker = touch_marker_;
+			eval.touch_marker = touch_marker_;
+			
+			EvalPath(&eval);
 		}
 	}
 
+	// Evaluate all paths from the newly touched marker
 	{ 
 		int i = 0;
 
 		for (i = 0; i < sizeof(touch_marker_->fb.paths) / sizeof(touch_marker_->fb.paths[0]); ++i) {
-			test_marker = touch_marker_->fb.paths[i].next_marker;
+			gedict_t* test_marker = touch_marker_->fb.paths[i].next_marker;
 			if (test_marker && test_marker != world) {
-				description = touch_marker_->fb.paths[i].flags;
-				path_time = touch_marker_->fb.paths[i].time;
-				EvalPath();
+				fb_path_eval_t eval = { 0 };
+
+				eval.description = touch_marker_->fb.paths[i].flags;
+				eval.path_normal = self->fb.path_normal_;
+				eval.path_time = touch_marker_->fb.paths[i].time;
+				eval.rocket_alert = rocket_alert;
+				eval.test_marker = test_marker;
+				eval.touch_marker = touch_marker_;
+
+				EvalPath(&eval);
 			}
 		}
 	}
@@ -339,102 +375,17 @@ void frogbot_marker_touch() {
 	}
 
 	if (self->fb.state & WAIT) {
-		if (!look_object_->fb.client_) {
-			//traceline(linked_marker_->s.v.absmin + linked_marker_->s.v.view_ofs + '0 0 32', look_object_->s.v.absmin + look_object_->s.v.view_ofs + '0 0 32', TRUE, self);
-			vec3_t linkedPos, lookPos;
-			VectorAdd(linked_marker_->s.v.absmin, linked_marker_->s.v.view_ofs, linkedPos);
-			VectorAdd(look_object_->s.v.absmin, look_object_->s.v.view_ofs, lookPos);
-			traceline(linkedPos[0], linkedPos[1], linkedPos[2] + 32, lookPos[0], lookPos[1], lookPos[2] + 32, TRUE, self);
-			if (g_globalvars.trace_fraction != 1) {
-				linked_marker_ = touch_marker_;
-				new_path_state = 0;
-			}
-		}
-		else  {
-			self->fb.state = self->fb.state - (self->fb.state & WAIT);
-		}
+		BotWaitLogic(touch_marker_);
 	}
 
 	if (streq(g_globalvars.mapname, "dm3")) {
-		if (numberofclients > 1) {
-			if (teamplay && deathmatch <= 3) {
-				if ((int)self->s.v.items & (IT_ROCKET_LAUNCHER | IT_LIGHTNING) && !self->fb.bot_evade) {
-					if ((self->s.v.health > 60) && (self->s.v.armorvalue > 80)) {
-						if ((self->s.v.ammo_cells > 15) || (self->s.v.ammo_rockets > 3)) {
-							search_entity = ez_find(world, "item_artifact_super_damage");
-							if (search_entity != world) {
-								if (random() < 0.5) {
-									if (search_entity->s.v.origin[2] <= self->s.v.origin[2] + 18) {
-										vec3_t diff;
-										VectorSubtract(search_entity->s.v.origin, self->s.v.origin, diff);
-										if (vlen(diff) < 200) {
-											if (random() < 0.9) {
-												self->fb.camp_state |= CAMPBOT;
-												linked_marker_ = touch_marker_;
-											}
-										}
-										else  {
-											self->fb.camp_state = self->fb.camp_state - (self->fb.camp_state & CAMPBOT);
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
+		DM3CampLogic();
 	}
 	else if (streq(g_globalvars.mapname, "dm4")) {
-		if (duel_mode) {
-			if ((int)self->s.v.items & (IT_ROCKET_LAUNCHER | IT_LIGHTNING) && !self->fb.bot_evade) {
-				if ((self->s.v.health > 50) && (self->s.v.armorvalue > 30)) {
-					if ((self->s.v.ammo_cells > 15) || (self->s.v.ammo_rockets > 3)) {
-						if (random() < 0.985) {
-							vec3_t above_lg = { 448, -176, 60 };
-							vec3_t on_quad_stairs = { 280, -330, 60 };
-
-							if ((enemy_->s.v.origin[0] < 700) && (VectorDistance(above_lg, self->s.v.origin) < 200)) {
-								self->fb.camp_state |= CAMPBOT;
-								linked_marker_ = touch_marker_;
-							}
-							else if ((enemy_->s.v.origin[0] >= 700) && (VectorDistance(on_quad_stairs, self->s.v.origin) < 200)) {
-								self->fb.camp_state |= CAMPBOT;
-								linked_marker_ = touch_marker_;
-							}
-							else  {
-								self->fb.camp_state &= ~CAMPBOT;
-							}
-						}
-					}
-				}
-			}
-		}
+		DM4CampLogic();
 	}
 	else if (streq(g_globalvars.mapname, "dm6")) {
-		// Camp the red armor...
-		if (numberofclients > 1) {
-			if ((int)self->s.v.items & (IT_ROCKET_LAUNCHER | IT_LIGHTNING) && !self->fb.bot_evade) {
-				if ((self->s.v.health > 80) && (self->s.v.armorvalue > 100)) {
-					if ((self->s.v.ammo_cells > 15) || (self->s.v.ammo_rockets > 3)) {
-						search_entity = ez_find(world, "item_armorInv");
-						if (search_entity != world) {
-							if (search_entity->s.v.origin[2] <= self->s.v.origin[2] + 18) {
-								if (VectorDistance(search_entity->s.v.origin, self->s.v.origin) < 200) {
-									if (random() < 0.9) {
-										self->fb.camp_state = self->fb.camp_state | CAMPBOT;
-										linked_marker_ = touch_marker_;
-									}
-								}
-								else  {
-									self->fb.camp_state = self->fb.camp_state - (self->fb.camp_state & CAMPBOT);
-								}
-							}
-						}
-					}
-				}
-			}
-		}
+		DM6CampLogic();
 	}
 	self->fb.linked_marker = linked_marker_;
 	self->fb.path_state = new_path_state;
@@ -477,7 +428,7 @@ void frogbot_marker_touch() {
 		look_object_ = self->fb.linked_marker;
 		self->fb.look_object = look_object_;
 		if (random() < 0.003) {
-			self->fb.button2_ = TRUE;
+			self->fb.jumping = true;
 		}
 		return;
 	}
@@ -487,7 +438,7 @@ void frogbot_marker_touch() {
 		self->fb.look_object = look_object_;
 		return;
 	}
-	if (look_object_->fb.client_) {
+	if (look_object_->ct == ctPlayer) {
 		return;
 	}
 	if ((self->s.v.waterlevel == 2) || (self->s.v.waterlevel == 1)) {

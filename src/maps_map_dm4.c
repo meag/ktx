@@ -65,7 +65,7 @@ void map_dm4() {
 	N(286, -376, -296);
 	N(163, -40, -296);
 
-	LSQ();
+	AllMarkersLoaded();
 
 	SetZone(2, 114);
 	SetZone(2, 113);
@@ -615,3 +615,29 @@ void map_dm4() {
 	SetMarkerPathFlags(14, 5, ROCKET_JUMP);
 }
 
+void DM4CampLogic() {
+	if (duel_mode) {
+		if ((int)self->s.v.items & (IT_ROCKET_LAUNCHER | IT_LIGHTNING) && !self->fb.bot_evade) {
+			if ((self->s.v.health > 50) && (self->s.v.armorvalue > 30)) {
+				if ((self->s.v.ammo_cells > 15) || (self->s.v.ammo_rockets > 3)) {
+					if (random() < 0.985) {
+						vec3_t above_lg = { 448, -176, 60 };
+						vec3_t on_quad_stairs = { 280, -330, 60 };
+
+						if ((enemy_->s.v.origin[0] < 700) && (VectorDistance(above_lg, self->s.v.origin) < 200)) {
+							self->fb.camp_state |= CAMPBOT;
+							linked_marker_ = touch_marker_;
+						}
+						else if ((enemy_->s.v.origin[0] >= 700) && (VectorDistance(on_quad_stairs, self->s.v.origin) < 200)) {
+							self->fb.camp_state |= CAMPBOT;
+							linked_marker_ = touch_marker_;
+						}
+						else  {
+							self->fb.camp_state &= ~CAMPBOT;
+						}
+					}
+				}
+			}
+		}
+	}
+}

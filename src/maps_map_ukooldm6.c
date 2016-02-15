@@ -59,7 +59,7 @@ void map_ukooldm6() {
 	N(795, 942, 40);
 	N(701, 958, 8);
 
-	LSQ();
+	AllMarkersLoaded();
 
 	SetGoal(1, 1);
 	SetGoal(10, 25);

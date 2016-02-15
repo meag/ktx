@@ -351,133 +351,94 @@ typedef struct fb_entvars_s {
 	fb_path_t paths[NUMBER_PATHS];
 	int path_state;
 
-	char* wad;
-	char* map;
-	float worldtype;
-	char* killtarget;
-	float light_lev;
-	float style;
-	float count;
-	vec3_t mangle;
-	float speed;
+	float oldsolid;                      // temp storage of ->s.v.solid, all clients are set to not solid when detecting hazards
+
 	float wait;
-	float delay;
-	float dmg;
-	float lip;
-	float height;
-	char* mdl;
-	float client_;
-	float player;
-	float frogbot;
-	float fl_thud;
-	float fl_ontrain;
-	float ready;
-	float p_break;
-	float teamflag;
-	float oldwaterlevel;
-	float oldwatertype;
-	float realteam;
-	float score_pos;
-	float deaths;
-	float efficiency;
-	float healamount;
-	float healtype;
-	float ammo_shells;
-	float ammo_nails;
-	float ammo_rockets;
-	float ammo_cells;
+	float fl_ontrain;                    // FIXME: never set (used for frogbot train movement)
+	float teamflag;                      // FIXME: think this is used to add a teamflag to a goal entity, so it isn't hoarded by bots?
+	float oldwaterlevel;                 // used to detect FL_WATERJUMP waterjump...  may not be required?  server will set...
+	float oldwatertype;                  // FIXME: may no longer be required?  server will set, this is in MOVETYPE_STEP code...
+
+	// these determine the strength of each player
 	float total_armor;
-	func_t th_pain;
-	func_t th_die;
-	float walkframe;
-	float attack_finished;
-	float pain_finished;
-	float invincible_finished;
-	float invisible_finished;
-	float super_damage_finished;
-	float radsuit_finished;
-	float invincible_time;
-	float invincible_sound;
-	float invisible_time;
-	float invisible_sound;
-	float super_time;
-	float super_sound;
-	float regeneration_sound;
-	float haste_sound;
-	float rad_time;
-	float fly_sound;
-	float jump_flag;
-	float swim_flag;
-	float air_finished;
-	float bubble_count;
-	int player_flag;
-	float regen_time;
-	float t_length;
-	float t_width;
-	vec3_t dest;
-	char* noise4;
-	float aflag;
-	func_t think1;
-	vec3_t finaldest;
-	vec3_t finalangle;
-	int state;
-	int camp_state;
-	vec3_t pos1;
-	vec3_t pos2;
-	struct gedict_s* clink;
-	float pflags;
+	float total_damage;
+	float firepower;
+
+	// these determine the desire for items for each player 
+	//   (not just for bots ... bot's desire can take enemy's desire into consideration)
+	float desire_armor1;
+	float desire_armor2;
+	float desire_armorInv;
+	float desire_health0;
+	float desire_health2;
+	float desire_supershotgun;
+	float desire_nailgun;
+	float desire_supernailgun;
+	float desire_grenadelauncher;
+	float desire_rocketlauncher;
+	float desire_lightning;
+	float desire_rockets;
+	float desire_cells;
+	float desire_nails;
+	float desire_shells;
+
+	int state;                              // WAIT | RUNAWAY | NOTARGET_ENEMY | HELP_TEAMMATE | STATE_BOTTOM (doors)
+	int camp_state;                         // CAMPBOT
 	float arrow;
 	float wasinwater;
 	float swim_arrow;
-	float button0_;
-	float button2_;
-	float arrow_time;
+	float arrow_time;                       // If set in future, bots will avoid this path
 	float arrow_time2;
 	float enemy_time;
 	float linked_marker_time;
 	float touch_marker_time;
 	float enemy_dist;
 	float index;
-	float print_framerate;
+
 	vec3_t oldvelocity;
 	vec3_t obstruction_normal;
 	vec3_t velocity_normal;
+
 	struct gedict_s* marker_link;           // linked list, this points to next marker
-	float fl_marker;                        // 
+	float fl_marker;                        // true if the current item is considered a marker
 	struct gedict_s* previous;
 	struct gedict_s* next;
 	struct gedict_s* next_load;
-	float oldsolid;
+	
+	// FIXME: predominantly set in client.qc
 	float real_pitch;
 	float real_yaw;
+
+	// FIXME: these set in client.qc, not currently set
 	float pitchspeed;
 	float yawspeed;
 	float pitchaccel;
 	float yawaccel;
+
+	// Once locked on to a target, how fast does the bot track them as they move? (bots only)
 	float track_pitchspeed;
 	float track_yawspeed;
+
 	float _highermarker;
 
-	int T;
 	struct gedict_s* near_teleport;
 	struct gedict_s* linked_marker;
 	struct gedict_s* old_linked_marker;
 	struct gedict_s* look_object;
-	//struct gedict_s* friend;
-	float frogbot_nextthink;
-	float fire_nextthink;
+	float frogbot_nextthink;                  // when to next run periodic movement logic for this human/bot
+	float fire_nextthink;                     // when to next run periodic firing logic for this bot
 
-	float G_;
+	int T;                                    // flags for this individual marker
+	int G_;                                   // assigned goal number for this marker
+	int Z_;                                   // assigned zone for this marker
+	int S_;                                   // subzone for this marker
+
 	struct gedict_s* virtual_goal;
 
-	float Z1_height_equal_time;
-	float Z8_height_equal_time;
-	int Z_;
 	struct gedict_s* zone_stack_next;
 	struct gedict_s* Z_head;
 	struct gedict_s* Z_next;
 
-	float S_;
 	float path_normal_;
 	fb_void_func_t zone_marker;
 	fb_void_func_t sub_arrival_time;
@@ -496,31 +457,16 @@ typedef struct fb_entvars_s {
 	float goal_respawn_time;
 	float goal_refresh_time;
 	float weapon_refresh_time;
-	float total_damage;
-	float firepower;
-	float desire_armor1;
-	float desire_armor2;
-	float desire_armorInv;
-	float desire_health0;
-	float desire_health2;
-	float desire_supershotgun;
-	float desire_nailgun;
-	float desire_supernailgun;
-	float desire_grenadelauncher;
-	float desire_rocketlauncher;
-	float desire_lightning;
-	float desire_rockets;
-	float desire_cells;
-	float desire_nails;
-	float desire_shells;
+
 	struct gedict_s* touch_marker;
 	float touch_distance;
 	int color_;
 	float teamcolor;
-	float bot_skill;
-	float admin_code;
 	float lines;
 	float input_time;
+
+	// These settings dictate the 'skill' of the bot
+	int bot_skill;
 	float fast_aim;
 	float dodge_amount;
 	float lookahead_time;
@@ -529,88 +475,41 @@ typedef struct fb_entvars_s {
 	float stop_turn_speed;
 	float accuracy;
 	float firing_reflex;
+
+	// These control the bot's next command
+	qbool firing;                         // does the bot want to attack this frame?
+	qbool jumping;                        // does the bot want to jump this frame?
+
 	vec3_t virtual_mins;
 	vec3_t virtual_maxs;
 	vec3_t dir_move_;
 	float ledge_backup_time;
 	float hit_z;
-	float number_bots;
-	float dmgtime;
-	float k_msgcount;
-	float skin0;
-	float skin1;
-	float skin2;
-	int spawnbit0;
-	int spawnbit1;
-	int number_spawnbits;
+
 	struct gedict_s* movetarget;
-	vec3_t v_forward_;
-	vec3_t v_right_;
+
+	// TODO: stored directions for missile
+	vec3_t missile_forward;
+	vec3_t missile_right;
+
 	struct gedict_s* touchPlayer;
 	float touchPlayerTime;
 	float tread_water_count;
 	vec3_t predict_origin;
-	float predict_success;
 	float predict_shoot;
-	float allowedMakeNoise;
-	int preferences;
-	float dead_time;
-	float desire_backpack;
-	float lastwepfired;
-	float willRocketJumpThisTic;
-	float team1_zone_players;
-	float team1_zone_strong_players;
-	float team2_zone_players;
-	float team2_zone_strong_players;
-	float team3_zone_players;
-	float team3_zone_strong_players;
-	float team4_zone_players;
-	float team4_zone_strong_players;
-	float team5_zone_players;
-	float team5_zone_strong_players;
-	float team6_zone_players;
-	float team6_zone_strong_players;
-	float team7_zone_players;
-	float team7_zone_strong_players;
-	float team8_zone_players;
-	float team8_zone_strong_players;
-	float team9_zone_players;
-	float team9_zone_strong_players;
-	float team10_zone_players;
-	float team10_zone_strong_players;
-	float team11_zone_players;
-	float team11_zone_strong_players;
-	float team12_zone_players;
-	float team12_zone_strong_players;
-	float team13_zone_players;
-	float team13_zone_strong_players;
+
+	// frogbot logic (move out of entity)
+	float allowedMakeNoise;                     // if false, paths involving picking up an item are penalised
+	float willRocketJumpThisTic;                // will consider rocket jumping this frame?
+
+	// meag extensions
 	float is_strong;
-	float total_players;
-	float kf_speed;
-	float s_sg;
-	float s_ssg;
-	float s_lg;
-	float h_sg;
-	float h_ssg;
-	float h_rl;
-	float h_lg;
-	float s_RA;
-	float s_YA;
-	float s_GA;
-	float s_QUAD;
-	float s_PENT;
-	float s_RING;
-	float s_dmg;
-	float t_dmg;
-	float k_vote;
-	float k_flag;
-	float t_health;
-	float t_armortype;
-	float t_armorvalue;
-	float chat_time;
-	float reporteditems;
-	float friendly;
-	float bot_evade;
+
+	// meag: zone summary
+	float total_players;                        
+	
+	qbool bot_evade;                            // 
+	
 	float help_teammate_time;
 	float frogwatermove_time;
 	float kick;
@@ -623,43 +522,9 @@ typedef struct fb_entvars_s {
 	float up_finished;
 	float botnumber;
 	float old_bot;
-	char* stringname;
-	float entertime;
-	float ping;
-	float ping_;
-	float packetloss;
-	float packetloss_;
-	float itemstarted;
 	float botchose;
-	float aggressive;
-	float invisible;
-	float trackprint_time;
-	float tracking;
-	float printmotd;
-	float connected;
-	float scoreboard;
 	float rocketjumping;
-	float userid;
-	float alias1time;
-	float alias2time;
-	float alias3time;
-	float alias4time;
-	float damfrags;
-	float players;
-	float wins;
-	float teamnumber;
-	float shirt1;
-	float shirt2;
-	float shirt3;
-	float shirtcolor;
-	float shirtcolor_;
-	float pantscolor;
-	float pantscolor_;
-	float botpantscolor;
-	float nextthink2;
-	float gravity;
-	float a_button0;
-	float a_button2;
+
 	vec3_t oldangles;
 	struct gedict_s* chasing;
 	func_t think2;

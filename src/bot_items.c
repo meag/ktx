@@ -27,8 +27,8 @@ void goal_armor2() {
 	}
 	else {
 		qbool low_armor = (qbool) (self->fb.total_armor <= 100 && self->s.v.health >= 50);
-		qbool has_rl = (qbool) ((items_ & IT_ROCKET_LAUNCHER) && self->s.v.ammo_rockets);
-		qbool has_quad = (qbool) (self->fb.super_damage_finished <= g_globalvars.time);
+		qbool has_rl = (qbool) (((int)self->s.v.items & IT_ROCKET_LAUNCHER) && self->s.v.ammo_rockets);
+		qbool has_quad = (qbool) (self->super_damage_finished <= g_globalvars.time);
 
 		if (low_armor && has_rl && has_quad) {
 			goal_desire = virtual_enemy->fb.desire_armor2;
@@ -43,8 +43,8 @@ void goal_armorInv() {
 		goal_desire = (self->fb.desire_armorInv + virtual_enemy->fb.desire_armorInv);
 	}
 	else {
-		qbool has_rl = (qbool) ((items_ & IT_ROCKET_LAUNCHER) && (self->s.v.ammo_rockets));
-		qbool has_quad = (qbool) (self->fb.super_damage_finished <= g_globalvars.time);
+		qbool has_rl = (qbool) (((int)self->s.v.items & IT_ROCKET_LAUNCHER) && (self->s.v.ammo_rockets));
+		qbool has_quad = (qbool) (self->super_damage_finished <= g_globalvars.time);
 		qbool ok_health = (qbool) (self->s.v.health >= 50);
 		
 		if (has_rl && has_quad && ok_health) {
@@ -61,7 +61,7 @@ void goal_supershotgun1() {
 }
 
 void goal_supershotgun2() {
-	if (items_ & IT_SUPER_SHOTGUN) {
+	if ((int)self->s.v.items & IT_SUPER_SHOTGUN) {
 		goal_desire = 0;
 	}
 	else {
@@ -74,7 +74,7 @@ void goal_nailgun1() {
 }
 
 void goal_nailgun2() {
-	if (items_ & IT_NAILGUN) {
+	if ((int)self->s.v.items & IT_NAILGUN) {
 		goal_desire = 0;
 	}
 	else {
@@ -87,7 +87,7 @@ void goal_supernailgun1() {
 }
 
 void goal_supernailgun2() {
-	if (items_ & IT_SUPER_NAILGUN) {
+	if ((int)self->s.v.items & IT_SUPER_NAILGUN) {
 		goal_desire = 0;
 	}
 	else {
@@ -100,7 +100,7 @@ void goal_grenadelauncher1() {
 }
 
 void goal_grenadelauncher2() {
-	if (items_ & IT_GRENADE_LAUNCHER) {
+	if ((int)self->s.v.items & IT_GRENADE_LAUNCHER) {
 		goal_desire = 0;
 	}
 	else {
@@ -113,7 +113,7 @@ void goal_rocketlauncher1() {
 }
 
 void goal_rocketlauncher2() {
-	if (items_ & IT_ROCKET_LAUNCHER) {
+	if ((int)self->s.v.items & IT_ROCKET_LAUNCHER) {
 		goal_desire = 0;
 	}
 	else {
@@ -127,7 +127,7 @@ void goal_lightning1() {
 
 // dmm3: if we have it then ignore
 void goal_lightning2() {
-	if (items_ & IT_LIGHTNING) {
+	if ((int)self->s.v.items & IT_LIGHTNING) {
 		goal_desire = 0;
 	}
 	else {

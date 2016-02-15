@@ -3,6 +3,7 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
+// TODO: Call this every time the player's statistics change (item pickups etc)
 void UpdateTotalDamage(gedict_t* client) {
 	client->fb.total_armor = client->s.v.armortype * client->s.v.armorvalue;
 	min_first = client->s.v.health / (1 - client->s.v.armortype);
@@ -13,6 +14,7 @@ void UpdateTotalDamage(gedict_t* client) {
 	else  {
 		client->fb.total_damage = min_second;
 	}
+
 	if (client->fb.total_armor == 160) {
 		client->fb.desire_armor1 = client->fb.desire_armor2 = client->fb.desire_armorInv = 0;
 	}
@@ -96,7 +98,8 @@ void UpdateTotalDamage(gedict_t* client) {
 	else  {
 		client->fb.desire_health0 = client->fb.desire_health2 = 0;
 	}
-	if ((int)client->fb.player_flag & ITEM_RUNE1_FLAG) {
+
+	if ((int)client->ctf_flag & CTF_RUNE_RES) {
 		client->fb.total_damage = client->fb.total_damage * 2;
 	}
 }

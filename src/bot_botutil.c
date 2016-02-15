@@ -62,8 +62,8 @@ void BestArrowForDirection() {
 
 void Visible_360() {
 	if (visible_object->s.v.takedamage) {
-		if (g_globalvars.time < visible_object->fb.invisible_finished) {
-			if (g_globalvars.time >= visible_object->fb.attack_finished) {
+		if (g_globalvars.time < visible_object->invisible_finished) {
+			if (g_globalvars.time >= visible_object->attack_finished) {
 				enemy_visible = FALSE;
 				return;
 			}
@@ -79,8 +79,8 @@ void Visible_360() {
 
 void Visible_infront() {
 	if (visible_object->s.v.takedamage) {
-		if (g_globalvars.time < visible_object->fb.invisible_finished) {
-			if (g_globalvars.time >= visible_object->fb.attack_finished) {
+		if (g_globalvars.time < visible_object->invisible_finished) {
+			if (g_globalvars.time >= visible_object->attack_finished) {
 				enemy_visible = FALSE;
 				return;
 			}

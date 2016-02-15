@@ -66,7 +66,22 @@ void FrogbotsRemovebot() {
 void BotStartFrame(int time) {
 	int i = 0;
 
+	marker_time = (time >= next_marker_time);
+	if (marker_time) {
+		next_marker_time = next_marker_time + 0.1;
+		if (next_marker_time <= time)
+			next_marker_time = time + 0.1;
+	}
+
+	hazard_time = (time >= next_hazard_time);
+	if (hazard_time) {
+		next_hazard_time = next_hazard_time + 0.025;
+		if (next_hazard_time <= time)
+			next_hazard_time = time + 0.025;
+	}
+
 	for (i = 0; i < sizeof(bots) / sizeof(bots[0]); ++i) {
+		// meag testing...
 		//bots[i].command.angles[0] = (int)(bots[i].command.angles[0] + 1) % 360;
 		bots[i].command.velocity[0] = 320;
 		bots[i].command.msec = 13;

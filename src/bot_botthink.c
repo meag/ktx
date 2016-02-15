@@ -3,375 +3,500 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
-void LookDoor() {
-	for (search_item = world; search_item = trap_findradius(search_item, self->s.v.origin, 300); ) {
-		if (streq( search_item->s.v.classname, "door" )) {
-			if (search_item->fb.state == STATE_BOTTOM) {
-				door_open = 0;
+void POVDMM4LookDoor();
+void AMPHI2BotInLava();
+
+// Sets a client's last marker
+void SetMarker(gedict_t* client, gedict_t* marker) {
+	client->fb.touch_distance = 0;
+	client->fb.touch_marker = marker;
+	client->fb.Z_ = marker->fb.Z_;
+	client->fb.touch_marker_time = g_globalvars.time + 5;
+	EnterZone(client->fb.Z_, client->s.v.team, client->fb.is_strong);
+}
+
+void SetNextThinkTime(gedict_t* ent) {
+	ent->fb.frogbot_nextthink = ent->fb.frogbot_nextthink + 0.15 + (0.015 * random());
+	if (ent->fb.frogbot_nextthink <= g_globalvars.time) {
+		ent->fb.frogbot_nextthink = g_globalvars.time + 0.16;
+	}
+}
+
+void AvoidLookObjectsMissile() {
+	// TODO: this is why bot is good at avoiding grenades unless you spam them round corner...  need to set movetarget when missile is fired...
+	/*
+	if (look_object_->fb.movetarget->s.v.owner == NUM_FOR_EDICT(look_object_)) {
+		dodge_missile = look_object_->fb.movetarget;
+	}*/
+}
+
+void LookingAtEnemyLogic() {
+	visible_object = look_object_;
+	Visible_360();
+	if (enemy_visible) {
+		if (look_object_ == enemy_) {
+			self->fb.enemy_dist = VectorDistance(look_object_->s.v.origin, origin_);
+		}
+		else  {
+			if (g_globalvars.time >= self->fb.enemy_time) {
+				ClearLookObject(self);
+				look_object_ = world;
+			}
+		}
+	}
+	else  {
+		ClearLookObject(self);
+		look_object_ = world;
+	}
+}
+
+void NewlyPickedEnemyLogic() {
+	visible_object = enemy_;
+	if (goalentity_ == enemy_) {
+		Visible_360();
+		if (enemy_visible) {
+			LookEnemy();
+		}
+		else  {
+			if (g_globalvars.time >= self->fb.enemy_time) {
+				BestEnemy();
+				if (enemy_ != goalentity_) {
+					self->fb.goal_refresh_time = 0;
+				}
+			}
+		}
+	}
+	else  {
+		Visible_infront();
+		if (enemy_visible) {
+			LookEnemy();
+		}
+		else  {
+			if (g_globalvars.time >= self->fb.enemy_time) {
+				BestEnemy();
+			}
+		}
+	}
+}
+
+void TargetEnemyLogic() {
+	if (!(self->fb.state & NOTARGET_ENEMY)) {
+		if (look_object_->ct == ctPlayer) {
+			AvoidLookObjectsMissile();
+
+			LookingAtEnemyLogic();
+		}
+		else if (enemy_) {
+			NewlyPickedEnemyLogic();
+		}
+		else  {
+			BestEnemy();
+		}
+	}
+}
+
+void BotDodgeMovement() {
+	if (dodge_factor) {
+		if (dodge_factor < 0) {
+			dodge_factor = dodge_factor + 1;
+		}
+		else  {
+			dodge_factor = dodge_factor - 1;
+		}
+		trap_makevectors(self->s.v.v_angle);
+		VectorMA(dir_move, random() * self->fb.dodge_amount * dodge_factor, g_globalvars.v_right, dir_move);
+	}
+}
+
+void BotOnGroundMovement() {
+	if ((int)self->s.v.flags & FL_ONGROUND) {
+		if (!(self->fb.path_state & NO_DODGE)) {
+			vec3_t temp;
+
+			dodge_factor = 0;
+			if (dodge_missile) {
+				if (g_edicts[dodge_missile->s.v.owner].ct == ctPlayer) {
+					VectorSubtract(origin_, dodge_missile->s.v.origin, rel_pos);
+					if (DotProduct(rel_pos, dodge_missile->fb.missile_forward) > 0.7071067) {
+						normalize(rel_pos, temp);
+						dodge_factor = DotProduct(temp, dodge_missile->fb.missile_right);
+					}
+				}
+				else  {
+					dodge_missile = world;
+				}
+			}
+			if (look_object_->ct == ctPlayer) {
+				if (!dodge_factor) {
+					VectorSubtract(origin_, look_object_->s.v.origin, rel_pos);
+					trap_makevectors(look_object_->s.v.v_angle);
+					if (DotProduct(rel_pos, g_globalvars.v_forward) > 0) {
+						normalize(rel_pos, temp);
+						dodge_factor = DotProduct(temp, g_globalvars.v_right);
+					}
+				}
+			}
+
+			BotDodgeMovement();
+		}
+	}
+}
+
+void BotMoveTowardsLinkedMarker() {
+	vec3_t temp;
+	VectorAdd(linked_marker_->s.v.absmin, linked_marker_->s.v.view_ofs, temp);
+	VectorSubtract(temp, origin_, temp);
+	normalize(temp, dir_move);
+	if (linked_marker_ == touch_marker_) {
+		if (goalentity_ == touch_marker_) {
+			if (touch_marker_->s.v.nextthink) {
+				VectorClear(dir_move);
+			}
+		}
+		else {
+			VectorClear(dir_move);
+		}
+	}
+}
+
+void BotTouchMarkerLogic() {
+	TargetEnemyLogic();
+
+	if (g_globalvars.time >= self->fb.goal_refresh_time) {
+		UpdateGoal();
+	}
+
+	if (g_globalvars.time >= self->fb.linked_marker_time) {
+		self->fb.old_linked_marker = world;
+	}
+
+	if (self->fb.old_linked_marker != touch_marker_) {
+		frogbot_marker_touch();
+	}
+
+	if (g_globalvars.time < self->fb.arrow_time) {
+		if (g_globalvars.time < self->fb.arrow_time2) {
+			if (random() < 0.5) {
+				linked_marker_ = self->fb.old_linked_marker = self->fb.linked_marker = touch_marker_;
+				self->fb.path_state = 0;
+				self->fb.linked_marker_time = g_globalvars.time + 0.3;
+			}
+		}
+	}
+	else  {
+		BotMoveTowardsLinkedMarker();
+
+		BotOnGroundMovement();
+
+		// If we're not in water, cannot have vertical direction (think of markers heading up stairs)
+		if (self->s.v.waterlevel <= 1) {
+			dir_move[2] = 0;
+		}
+
+		BestArrowForDirection();
+
+		VectorCopy(dir_move, self->fb.dir_move_);
+		self->fb.arrow = best_arrow;
+	}
+
+	SelectWeapon();
+}
+
+void HumanTouchMarkerLogic() {
+	enemy_ = &g_edicts[self->s.v.enemy];
+	touch_marker_ = self->fb.touch_marker;
+	lookahead_time_ = self->fb.lookahead_time;
+	VectorCopy(self->s.v.origin, origin_);
+	goalentity_ = &g_edicts[self->s.v.goalentity];
+	if (g_globalvars.time >= self->fb.enemy_time) {
+		BestEnemy();
+	}
+}
+
+void PeriodicAllClientLogic() {
+	SetNextThinkTime(self);
+
+	if (g_globalvars.time >= self->fb.weapon_refresh_time) {
+		UpdateWeapons();
+	}
+
+	if (g_globalvars.time >= self->fb.touch_marker_time) {
+		SetMarker(self, LocateMarker(self->s.v.origin));
+	}
+
+	if (self->fb.touch_marker) {
+		if (self->fb.state & AWARE_SURROUNDINGS) {
+			enemy_ = &g_edicts[self->s.v.enemy];
+			look_object_ = self->fb.look_object;
+			touch_marker_ = self->fb.touch_marker;
+			lookahead_time_ = self->fb.lookahead_time;
+			linked_marker_ = self->fb.linked_marker;
+
+			VectorCopy(self->s.v.origin, origin_);
+			goalentity_ = &g_edicts[self->s.v.goalentity];
+			if (self->isBot) {
+				BotTouchMarkerLogic();
 			}
 			else  {
-				door_open = 1;
+				HumanTouchMarkerLogic();
 			}
-			return;
+		}
+		else  {
+			self->fb.goal_refresh_time = 0;
+			if (self->isBot) {
+				self->fb.old_linked_marker = world;
+				self->fb.state = self->fb.state | AWARE_SURROUNDINGS;
+			}
+			else  {
+				if (markers_loaded) {
+					self->fb.state = self->fb.state | AWARE_SURROUNDINGS;
+				}
+			}
+		}
+	}
+
+	// Fixme: these are bot-only, move to PeriodicBotLogic()?
+	CheckCombatJump();
+	AMPHI2BotInLava();
+}
+
+static void BotStopFiring() {
+	if (!((int)self->s.v.weapon & IT_CONTINUOUS)) {
+		if (!self->fb.rocketjumping) {
+			self->fb.firing = false;
+		}
+	}
+}
+
+static void PredictEnemyLocationInFuture(gedict_t* enemy, float rel_time) {
+	vec3_t testplace;
+
+	enemy_->fb.oldsolid = enemy_->s.v.solid;
+	enemy_->s.v.solid = SOLID_NOT;
+	fallheight = enemy_->s.v.origin[2] - 56 + enemy_->s.v.velocity[2] * rel_time;
+	VectorMA(enemy_->s.v.origin, rel_time, enemy_->s.v.velocity, testplace);
+	testplace[2] += 36;
+
+	PredictSpot();
+
+	if (predict_spot) {
+		VectorCopy(dropper->s.v.origin, self->fb.predict_origin);
+	}
+	else  {
+		VectorSubtract(self->fb.predict_origin, enemy_->s.v.origin, dir_forward);
+		dir_forward[2] = 0;
+		if ((vlen(dir_forward) > half_sv_maxspeed) || (DotProduct(dir_forward, enemy_->s.v.velocity) <= 0)) {
+			VectorCopy(testplace, self->fb.predict_origin);
+		}
+	}
+	enemy_->s.v.solid = enemy_->fb.oldsolid;
+}
+
+static void BotsFireAtWorldLogic() {
+	VectorAdd(look_object_->s.v.absmin, look_object_->s.v.view_ofs, rel_pos);
+	VectorSubtract(rel_pos, origin_, rel_pos);
+	rel_dist = vlen(rel_pos);
+	if (self->fb.path_state & DM6_DOOR) {
+		if (dm6_door->s.v.takedamage) {
+			rel_pos[2] = rel_pos[2] - 38;
+		}
+		else  {
+			self->fb.path_state = self->fb.path_state - DM6_DOOR;
+			self->fb.state = self->fb.state & NOT_NOTARGET_ENEMY;
+		}
+	}
+	else  {
+		if (rel_dist < 160) {
+			rel_pos2[0] = rel_pos[0];
+			rel_pos2[1] = rel_pos[1];
+			VectorNormalize(rel_pos2);
+			VectorScale(rel_pos2, 160, rel_pos2);
+			rel_pos[0] = rel_pos2[0];
+			rel_pos[1] = rel_pos2[1];
+			rel_dist = 160;
+		}
+	}
+}
+
+static void BotsFireAtPlayerLogic() {
+	VectorSubtract(look_object_->s.v.origin, origin_, rel_pos);
+	rel_dist = vlen(rel_pos);
+
+	// If (not a hitscan weapon)
+	if ((int)self->s.v.weapon & IT_VELOCITY) {
+		if ((int)self->s.v.weapon & IT_GRENADE_LAUNCHER) {
+			rel_time = rel_dist / 600;
+		}
+		else  {
+			rel_time = rel_dist / 1000;
+			if ((int)self->ctf_flag & CTF_RUNE_HST) {
+				if ((int)self->s.v.weapon & IT_EITHER_NAILGUN) {
+					rel_time = rel_time * 0.5;
+				}
+			}
+		}
+
+		rel_time = min(rel_time, 0.5);
+
+		if (enemy_) {
+			PredictEnemyLocationInFuture(enemy_, rel_time);
+
+			if (look_object_ == enemy_) {
+				VectorSubtract(self->fb.predict_origin, self->s.v.origin, rel_pos);
+			}
+		}
+	}
+}
+
+static void BotsFireLogic() {
+	if (g_globalvars.time >= self->fb.fire_nextthink) {
+		self->fb.fire_nextthink = self->fb.fire_nextthink + (self->fb.firing_reflex * (0.95 + (0.1 * random())));
+		if (self->fb.fire_nextthink <= g_globalvars.time) {
+			self->fb.fire_nextthink = g_globalvars.time + (self->fb.firing_reflex * (0.95 + (0.1 * random())));
+		}
+
+		look_object_ = self->fb.look_object;
+		enemy_ = &g_edicts[self->s.v.enemy];
+		if (look_object_) {
+			VectorCopy(self->s.v.origin, origin_);
+			if (look_object_->ct == ctPlayer) {
+				BotsFireAtPlayerLogic();
+			}
+			else  {
+				BotsFireAtWorldLogic();
+			}
+
+			// Aim lower over longer distances?  (FIXME)
+			if (self->s.v.weapon == IT_ROCKET_LAUNCHER && rel_dist > 96) {
+				traceline(origin_[0], origin_[1], origin_[2] + 16, origin_[0] + rel_pos[0], origin_[1] + rel_pos[1], origin_[2] + rel_pos[2] - 22, TRUE, self);
+				if (g_globalvars.trace_fraction == 1) {
+					rel_pos[2] = rel_pos[2] - 38;
+				}
+			}
+
+			normalize(rel_pos, rel_dir);
+			VectorCopy(rel_hor_dir, rel_pos);
+			rel_hor_dir[2] = 0;
+			normalize(rel_hor_dir, rel_hor_dir);
+			hor_component = DotProduct(rel_dir, rel_hor_dir);
+			mouse_vel = 57.29578 / rel_dist;
+			VectorScale(rel_hor_dir, rel_dir[2], pitch_tangent);
+			pitch_tangent[2] = 0 - hor_component;
+			VectorScale(pitch_tangent, mouse_vel, pitch_tangent);
+			yaw_tangent[0] = 0 - rel_hor_dir[1];
+			yaw_tangent[1] = rel_hor_dir[0];
+			yaw_tangent[2] = 0;
+			VectorScale(yaw_tangent, mouse_vel, yaw_tangent);
+			{
+				vec3_t vdiff;
+				VectorSubtract(look_object_->s.v.velocity, self->s.v.velocity, vdiff);
+
+				self->fb.track_pitchspeed = DotProduct(vdiff, pitch_tangent);
+				self->fb.track_yawspeed = DotProduct(vdiff, yaw_tangent);
+			}
+			vectoangles(rel_pos, desired_angle);
+			if (desired_angle[0] > 180) {
+				desired_angle[0] = 360 - desired_angle[0];
+			}
+			else  {
+				desired_angle[0] = 0 - desired_angle[0];
+			}
+			desired_angle[0] = (rint(desired_angle[0] / 1.40625));
+			desired_angle[1] = (rint(desired_angle[1] / 1.40625));
+			VectorScale(desired_angle, 1.40625, desired_angle);
+			if (self->fb.state & HURT_SELF) {
+				desired_angle[0] = 180;
+			}
+			VectorSubtract(desired_angle, self->s.v.v_angle, angle_error);
+			angle_error[0] = angle_error[0] - (1 - self->fb.fast_aim) * (self->fb.pitchspeed * self->fb.firing_reflex);
+			angle_error[1] = angle_error[1] - (1 - self->fb.fast_aim) * (self->fb.yawspeed * self->fb.firing_reflex);
+			if (angle_error[1] >= 180) {
+				angle_error[1] = angle_error[1] - 360;
+			}
+			else if (angle_error[1] < -180) {
+				angle_error[1] = angle_error[1] + 360;
+			}
+
+			//
+			self->fb.track_pitchspeed = self->fb.track_pitchspeed + self->fb.fast_aim * angle_error[0] / self->fb.firing_reflex;
+			self->fb.track_yawspeed = self->fb.track_yawspeed + self->fb.fast_aim * angle_error[1] / self->fb.firing_reflex;
+			self->fb.pitchaccel = (1 - self->fb.fast_aim) * angle_error[0] / self->fb.firing_reflex;
+			self->fb.yawaccel = (1 - self->fb.fast_aim) * angle_error[1] / self->fb.firing_reflex;
+
+			if (self->fb.pitchaccel > 0) {
+				self->fb.pitchaccel = self->fb.pitchaccel + 5400;
+			}
+			else if (self->fb.pitchaccel < 0) {
+				self->fb.pitchaccel = self->fb.pitchaccel - 5400;
+			}
+			if (self->fb.yawaccel > 0) {
+				self->fb.yawaccel = self->fb.yawaccel + 5400;
+			}
+			else if (self->fb.yawaccel < 0) {
+				self->fb.yawaccel = self->fb.yawaccel - 5400;
+			}
+			if (!self->fb.rocketjumping) {
+				SetFireButton();
+			}
 		}
 	}
 }
 
 void ThinkTime() {
-	self->fb.button2_ = FALSE;
-	if (g_globalvars.time >= self->fb.frogbot_nextthink) {
-		self->fb.frogbot_nextthink = self->fb.frogbot_nextthink + 0.15 + (0.015 * random());
-		if (self->fb.frogbot_nextthink <= g_globalvars.time) {
-			self->fb.frogbot_nextthink = g_globalvars.time + 0.16;
-		}
-		if (g_globalvars.time >= self->fb.weapon_refresh_time) {
-			UpdateWeapons();
-		}
-		self->fb.willRocketJumpThisTic = able_rj();
-		if (g_globalvars.time >= self->fb.touch_marker_time) {
-			marker_ = LocateMarker(self->s.v.origin);
-			set_marker(self, marker_);
-		}
-		if (self->fb.touch_marker) {
-			if (self->fb.state & AWARE_SURROUNDINGS) {
-				enemy_ = &g_edicts[self->s.v.enemy];
-				look_object_ = self->fb.look_object;
-				realteam_ = self->fb.realteam;
-				touch_marker_ = self->fb.touch_marker;
-				lookahead_time_ = self->fb.lookahead_time;
-				linked_marker_ = self->fb.linked_marker;
-				VectorCopy(self->s.v.origin, origin_);
-				goalentity_ = &g_edicts[self->s.v.goalentity];
-				if (self->fb.frogbot) {
-					if (!(self->fb.state & NOTARGET_ENEMY)) {
-						if (look_object_->fb.client_) {
-							if (look_object_->fb.movetarget->s.v.owner == NUM_FOR_EDICT(look_object_)) {
-								dodge_missile = look_object_->fb.movetarget;
-							}
-							visible_object = look_object_;
-							Visible_360();
-							if (enemy_visible) {
-								if (look_object_ == enemy_) {
-									self->fb.enemy_dist = VectorDistance(look_object_->s.v.origin, origin_);
-								}
-								else  {
-									if (g_globalvars.time >= self->fb.enemy_time) {
-										ClearLookObject(self);
-										look_object_ = world;
-									}
-								}
-							}
-							else  {
-								ClearLookObject(self);
-								look_object_ = world;
-							}
-						}
-						else if (enemy_) {
-							visible_object = enemy_;
-							if (goalentity_ == enemy_) {
-								Visible_360();
-								if (enemy_visible) {
-									LookEnemy();
-								}
-								else  {
-									if (g_globalvars.time >= self->fb.enemy_time) {
-										BestEnemy();
-										if (enemy_ != goalentity_) {
-											self->fb.goal_refresh_time = 0;
-										}
-									}
-								}
-							}
-							else  {
-								Visible_infront();
-								if (enemy_visible) {
-									LookEnemy();
-								}
-								else  {
-									if (g_globalvars.time >= self->fb.enemy_time) {
-										BestEnemy();
-									}
-								}
-							}
-						}
-						else  {
-							BestEnemy();
-						}
-					}
-					if (g_globalvars.time >= self->fb.goal_refresh_time) {
-						UpdateGoal();
-					}
-					if (g_globalvars.time >= self->fb.linked_marker_time) {
-						self->fb.old_linked_marker = world;
-					}
-					if (self->fb.old_linked_marker != touch_marker_) {
-						frogbot_marker_touch();
-					}
-					if (g_globalvars.time < self->fb.arrow_time) {
-						if (g_globalvars.time < self->fb.arrow_time2) {
-							if (random() < 0.5) {
-								linked_marker_ = self->fb.old_linked_marker = self->fb.linked_marker = touch_marker_;
-								self->fb.path_state = 0;
-								self->fb.linked_marker_time = g_globalvars.time + 0.3;
-							}
-						}
-					}
-					else  {
-						vec3_t temp;
-						VectorAdd(linked_marker_->s.v.absmin, linked_marker_->s.v.view_ofs, temp);
-						VectorSubtract(temp, origin_, temp);
-						normalize(temp, dir_move);
-						if (linked_marker_ == touch_marker_) {
-							if (goalentity_ == touch_marker_) {
-								if (touch_marker_->s.v.nextthink) {
-									VectorClear(dir_move);
-								}
-							}
-							else {
-								VectorClear(dir_move);
-							}
-						}
-						if ((int)self->s.v.flags & FL_ONGROUND) {
-							if (!(self->fb.path_state & NO_DODGE)) {
-								dodge_factor = 0;
-								if (dodge_missile) {
-									if (g_edicts[dodge_missile->s.v.owner].fb.client_) {
-										VectorSubtract(origin_, dodge_missile->s.v.origin, rel_pos);
-										if (DotProduct(rel_pos, dodge_missile->fb.v_forward_) > 0.7071067) {
-											normalize(rel_pos, temp);
-											dodge_factor = DotProduct(temp, dodge_missile->fb.v_right_);
-										}
-									}
-									else  {
-										dodge_missile = world;
-									}
-								}
-								if (look_object_->fb.client_) {
-									if (!dodge_factor) {
-										VectorSubtract(origin_, look_object_->s.v.origin, rel_pos);
-										trap_makevectors(look_object_->s.v.v_angle);
-										if (DotProduct(rel_pos, g_globalvars.v_forward) > 0) {
-											normalize(rel_pos, temp);
-											dodge_factor = DotProduct(temp, g_globalvars.v_right);
-										}
-									}
-								}
-								if (dodge_factor) {
-									if (dodge_factor < 0) {
-										dodge_factor = dodge_factor + 1;
-									}
-									else  {
-										dodge_factor = dodge_factor - 1;
-									}
-									trap_makevectors(self->s.v.v_angle);
-									VectorMA(dir_move, random() * self->fb.dodge_amount * dodge_factor, g_globalvars.v_right, dir_move);
-								}
-							}
-						}
-						if (self->s.v.waterlevel <= 1) {
-							dir_move[2] = 0;
-						}
-						BestArrowForDirection();
-						VectorCopy(dir_move, self->fb.dir_move_);
-						self->fb.arrow = best_arrow;
-					}
-					SelectWeapon();
-				}
-				else  {
-					enemy_ = &g_edicts[self->s.v.enemy];
-					realteam_ = self->fb.realteam;
-					touch_marker_ = self->fb.touch_marker;
-					lookahead_time_ = self->fb.lookahead_time;
-					VectorCopy(self->s.v.origin, origin_);
-					goalentity_ = &g_edicts[self->s.v.goalentity];
-					if (g_globalvars.time >= self->fb.enemy_time) {
-						BestEnemy();
-					}
-				}
-			}
-			else  {
-				self->fb.goal_refresh_time = 0;
-				if (self->fb.frogbot) {
-					self->fb.old_linked_marker = world;
-					self->fb.state = self->fb.state | AWARE_SURROUNDINGS;
-				}
-				else  {
-					if (markers_loaded) {
-						self->fb.state = self->fb.state | AWARE_SURROUNDINGS;
-					}
-				}
-			}
-		}
-		CheckCombatJump();
-		BotInLava();
-	}
-	if (self->fb.frogbot) {
-		if (!((int)self->s.v.weapon & IT_CONTINUOUS)) {
-			if (!self->fb.rocketjumping) {
-				self->fb.button0_ = FALSE;
-			}
-		}
-		if (!game_arena) {
-			if (numberofclients == 2) {
-				AttackRespawns();
-			}
-		}
-		if (streq(g_globalvars.mapname, "povdmm4")) {
-			LookDoor();
-		}
-		if (g_globalvars.time >= self->fb.fire_nextthink) {
-			self->fb.fire_nextthink = self->fb.fire_nextthink + (self->fb.firing_reflex * (0.95 + (0.1 * random())));
-			if (self->fb.fire_nextthink <= g_globalvars.time) {
-				self->fb.fire_nextthink = g_globalvars.time + (self->fb.firing_reflex * (0.95 + (0.1 * random())));
-			}
-			look_object_ = self->fb.look_object;
-			enemy_ = &g_edicts[self->s.v.enemy];
-			a_attackfix();
-			if (look_object_) {
-				VectorCopy(self->s.v.origin, origin_);
-				if (look_object_->fb.client_) {
-					VectorSubtract(look_object_->s.v.origin, origin_, rel_pos);
-					rel_dist = vlen(rel_pos);
-					if ((int)self->s.v.weapon & IT_VELOCITY) {
-						if ((int)self->s.v.weapon & IT_GRENADE_LAUNCHER) {
-							rel_time = rel_dist / 600;
-						}
-						else  {
-							rel_time = rel_dist / 1000;
-							if ((int)self->fb.player_flag & ITEM_RUNE3_FLAG) {
-								if ((int)self->s.v.weapon & IT_EITHER_NAILGUN) {
-									rel_time = rel_time * 0.5;
-								}
-							}
-						}
-						if (rel_time > 0.5) {
-							rel_time = 0.5;
-						}
-						if (enemy_) {
-							enemy_->fb.oldsolid = enemy_->s.v.solid;
-							enemy_->s.v.solid = SOLID_NOT;
-							fallheight = enemy_->s.v.origin[2] - 56 + enemy_->s.v.velocity[2] * rel_time;
-							VectorMA(enemy_->s.v.origin, rel_time, enemy_->s.v.velocity, testplace);
-							testplace[2] += 36;
-							PredictSpot();
-							if (predict_spot) {
-								VectorCopy(dropper->s.v.origin, self->fb.predict_origin);
-								self->fb.predict_success = TRUE;
-							}
-							else  {
-								VectorSubtract(self->fb.predict_origin, enemy_->s.v.origin, dir_forward);
-								dir_forward[2] = 0;
-								if ((vlen(dir_forward) > half_sv_maxspeed) || (DotProduct(dir_forward, enemy_->s.v.velocity) <= 0)) {
-									VectorCopy(testplace, self->fb.predict_origin);
-									self->fb.predict_success = FALSE;
-								}
-								else  {
-									self->fb.predict_success = TRUE;
-								}
-							}
-							enemy_->s.v.solid = enemy_->fb.oldsolid;
-							if (look_object_ == enemy_) {
-								VectorSubtract(self->fb.predict_origin, self->s.v.origin, rel_pos);
-							}
-						}
-					}
-				}
-				else  {
-					VectorAdd(look_object_->s.v.absmin, look_object_->s.v.view_ofs, rel_pos);
-					VectorSubtract(rel_pos, origin_, rel_pos);
-					rel_dist = vlen(rel_pos);
-					if (self->fb.path_state & DM6_DOOR) {
-						if (dm6_door->s.v.takedamage) {
-							rel_pos[2] = rel_pos[2] - 38;
-						}
-						else  {
-							self->fb.path_state = self->fb.path_state - DM6_DOOR;
-							self->fb.state = self->fb.state & NOT_NOTARGET_ENEMY;
-						}
-					}
-					else  {
-						if (rel_dist < 160) {
-							rel_pos2[0] = rel_pos[0];
-							rel_pos2[1] = rel_pos[1];
-							VectorNormalize(rel_pos2);
-							VectorScale(rel_pos2, 160, rel_pos2);
-							rel_pos[0] = rel_pos2[0];
-							rel_pos[1] = rel_pos2[1];
-							rel_dist = 160;
-						}
-					}
-				}
-				if (self->s.v.weapon == IT_ROCKET_LAUNCHER) {
-					if (rel_dist > 96) {
-						traceline(origin_[0], origin_[1], origin_[2] + 16, origin_[0] + rel_pos[0], origin_[1] + rel_pos[1], origin_[2] + rel_pos[2] - 22, TRUE, self);
-						if (g_globalvars.trace_fraction == 1) {
-							rel_pos[2] = rel_pos[2] - 38;
-						}
-					}
-				}
-				normalize(rel_pos, rel_dir);
-				VectorCopy(rel_hor_dir, rel_pos);
-				rel_hor_dir[2] = 0;
-				normalize(rel_hor_dir, rel_hor_dir);
-				hor_component = DotProduct(rel_dir, rel_hor_dir);
-				mouse_vel = 57.29578 / rel_dist;
-				VectorScale(rel_hor_dir, rel_dir[2], pitch_tangent);
-				pitch_tangent[2] = 0 - hor_component;
-				VectorScale(pitch_tangent, mouse_vel, pitch_tangent);
-				yaw_tangent[0] = 0 - rel_hor_dir[1];
-				yaw_tangent[1] = rel_hor_dir[0];
-				yaw_tangent[2] = 0;
-				VectorScale(yaw_tangent, mouse_vel, yaw_tangent);
-				{
-					vec3_t vdiff;
-					VectorSubtract(look_object_->s.v.velocity, self->s.v.velocity, vdiff);
+	self->fb.jumping = false;
 
-					self->fb.track_pitchspeed = DotProduct(vdiff, pitch_tangent);
-					self->fb.track_yawspeed = DotProduct(vdiff, yaw_tangent);
+	// Logic that gets called for every player
+	if (g_globalvars.time >= self->fb.frogbot_nextthink) {
+		PeriodicAllClientLogic();
+	}
+
+	// Logic that gets called every frame for every frogbot
+	if (self->isBot) {
+		self->fb.willRocketJumpThisTic = able_rj();
+
+		BotStopFiring();
+
+		AttackRespawns();
+
+		// FIXME: This is called for every bot, rather than for every frame (or ideally, when the doors open/close)
+		if (streq(g_globalvars.mapname, "povdmm4")) {
+			POVDMM4LookDoor();
+		}
+
+		BotsFireLogic();
+	}
+}
+
+void BotEvadeLogic() {
+	self->fb.bot_evade = (qbool) false;
+	if (deathmatch <= 3 && !isRA()) {
+		if (numberofclients == 2) {
+			if (random() < 0.08) {
+				if ((self->s.v.origin[2] + 18) > (enemy_->s.v.absmin[2] + enemy_->s.v.view_ofs[2])) {
+					if ((int)self->s.v.items & IT_ROCKET_LAUNCHER) {
+						if (self->s.v.ammo_rockets > 4) {
+							if (!self->s.v.waterlevel) {
+								self->fb.bot_evade = (qbool) (self->s.v.health > 70) && (self->s.v.armorvalue > 100) && !enemy_visible;
+							}
+						}
+					}
 				}
-				vectoangles(rel_pos, desired_angle);
-				if (desired_angle[0] > 180) {
-					desired_angle[0] = 360 - desired_angle[0];
-				}
-				else  {
-					desired_angle[0] = 0 - desired_angle[0];
-				}
-				desired_angle[0] = (rint(desired_angle[0] / 1.40625));
-				desired_angle[1] = (rint(desired_angle[1] / 1.40625));
-				VectorScale(desired_angle, 1.40625, desired_angle);
-				if (self->fb.state & HURT_SELF) {
-					desired_angle[0] = 180;
-				}
-				VectorSubtract(desired_angle, self->s.v.v_angle, angle_error);
-				angle_error[0] = angle_error[0] - (1 - self->fb.fast_aim) * (self->fb.pitchspeed * self->fb.firing_reflex);
-				angle_error[1] = angle_error[1] - (1 - self->fb.fast_aim) * (self->fb.yawspeed * self->fb.firing_reflex);
-				if (angle_error[1] >= 180) {
-					angle_error[1] = angle_error[1] - 360;
-				}
-				else if (angle_error[1] < -180) {
-					angle_error[1] = angle_error[1] + 360;
-				}
-				self->fb.track_pitchspeed = self->fb.track_pitchspeed + self->fb.fast_aim * angle_error[0] / self->fb.firing_reflex;
-				self->fb.track_yawspeed = self->fb.track_yawspeed + self->fb.fast_aim * angle_error[1] / self->fb.firing_reflex;
-				self->fb.pitchaccel = (1 - self->fb.fast_aim) * angle_error[0] / self->fb.firing_reflex;
-				self->fb.yawaccel = (1 - self->fb.fast_aim) * angle_error[1] / self->fb.firing_reflex;
-				if (self->fb.pitchaccel > 0) {
-					self->fb.pitchaccel = self->fb.pitchaccel + 5400;
-				}
-				else if (self->fb.pitchaccel < 0) {
-					self->fb.pitchaccel = self->fb.pitchaccel - 5400;
-				}
-				if (self->fb.yawaccel > 0) {
-					self->fb.yawaccel = self->fb.yawaccel + 5400;
-				}
-				else if (self->fb.yawaccel < 0) {
-					self->fb.yawaccel = self->fb.yawaccel - 5400;
-				}
-				if (!self->fb.rocketjumping) {
-					SetFireButton();
+			}
+		}
+		else if (numberofclients > 2) {
+			if (random() < 0.1) {
+				if ((self->s.v.origin[2] + 18) > (enemy_->s.v.absmin[2] + enemy_->s.v.view_ofs[2])) {
+					if (((int)self->s.v.items & IT_ROCKET_LAUNCHER) || ((int)self->s.v.items & IT_LIGHTNING)) {
+						if ((self->s.v.ammo_cells >= 20) || (self->s.v.ammo_rockets > 3)) {
+							if (!self->s.v.waterlevel) {
+								if ((self->s.v.health > 70) && (self->s.v.armorvalue > 90)) {
+									self->fb.bot_evade = (qbool) (!((int)self->s.v.items & (IT_INVULNERABILITY | IT_INVISIBILITY | IT_QUAD)));
+								}
+							}
+						}
+					}
 				}
 			}
 		}
 	}
 }
-

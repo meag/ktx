@@ -111,7 +111,7 @@ void map_frobodm2() {
 	N(2551, -2080, 45);
 	N(2437, -2107, 40);
 
-	LSQ();
+	AllMarkersLoaded();
 
 	SetZone(6, 155);
 	SetZone(6, 154);
