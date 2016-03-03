@@ -5,15 +5,9 @@
 
 void obstruction() {
 	VectorSubtract(self->fb.oldvelocity, self->s.v.velocity, delta_velocity);
-	if (delta_velocity[0] < 0.1) {
-		if (delta_velocity[0] > -0.1) {
-			if (delta_velocity[1] < 0.1) {
-				if (delta_velocity[1] > -0.1) {
-					VectorClear(self->fb.obstruction_normal);
-					return;
-				}
-			}
-		}
+	if (abs(delta_velocity[0]) < 0.1 && abs(delta_velocity[1]) < 0.1) {
+		VectorClear(self->fb.obstruction_normal);
+		return;
 	}
 
 	if (!((int)self->s.v.flags & FL_ONGROUND)) {
@@ -22,39 +16,42 @@ void obstruction() {
 			return;
 		}
 	}
-	if (delta_velocity[2] < 0.1) {
-		if (delta_velocity[2] > -0.1) {
-			VectorCopy(self->s.v.velocity, hor_velocity);
-			hor_velocity[2] = 0;
-			if (hor_velocity[0] || hor_velocity[1] || hor_velocity[2]) {
-				if (self->ct == ctPlayer && !self->isBot) {
-					VectorNormalize(hor_direction);
-					VectorScale(hor_direction, DotProduct(hor_direction, self->fb.oldvelocity), hor_velocity);
-					self->s.v.velocity[0] = hor_velocity[0];
-					self->s.v.velocity[1] = hor_velocity[1];
-				}
-				VectorSubtract(self->fb.oldvelocity, hor_velocity, self->fb.velocity_normal);
-				self->fb.velocity_normal[2] = 0;
-				normalize(self->fb.velocity_normal, self->fb.obstruction_normal);
-				return;
+
+	if (abs(delta_velocity[2]) < 0.1) {
+		VectorCopy(self->s.v.velocity, hor_velocity);
+		hor_velocity[2] = 0;
+		if (hor_velocity[0] || hor_velocity[1] || hor_velocity[2]) {
+			if (self->ct == ctPlayer && !self->isBot) {
+				VectorNormalize(hor_direction);
+				VectorScale(hor_direction, DotProduct(hor_direction, self->fb.oldvelocity), hor_velocity);
+				self->s.v.velocity[0] = hor_velocity[0];
+				self->s.v.velocity[1] = hor_velocity[1];
 			}
-			VectorCopy(self->fb.oldvelocity, hor_velocity);
-			hor_velocity[2] = 0;
-			if (hor_velocity[0] || hor_velocity[1] || hor_velocity[2]) {
-				VectorMA(self->fb.oldvelocity, -DotProduct(self->fb.obstruction_normal, self->fb.oldvelocity), self->fb.obstruction_normal, self->fb.velocity_normal);
-				self->fb.velocity_normal[2] = 0;
-				normalize(self->fb.velocity_normal, self->fb.obstruction_normal);
-				return;
-			}
+			VectorSubtract(self->fb.oldvelocity, hor_velocity, self->fb.velocity_normal);
+			self->fb.velocity_normal[2] = 0;
+			normalize(self->fb.velocity_normal, self->fb.obstruction_normal);
+			return;
+		}
+		VectorCopy(self->fb.oldvelocity, hor_velocity);
+		hor_velocity[2] = 0;
+		if (hor_velocity[0] || hor_velocity[1] || hor_velocity[2]) {
+			VectorMA(self->fb.oldvelocity, -DotProduct(self->fb.obstruction_normal, self->fb.oldvelocity), self->fb.obstruction_normal, self->fb.velocity_normal);
+			self->fb.velocity_normal[2] = 0;
+			normalize(self->fb.velocity_normal, self->fb.obstruction_normal);
+			return;
 		}
 	}
 	VectorClear(self->fb.obstruction_normal);
 }
 
 void VelocityForArrow() {
+	int arrow_ = 0;
+
 	turning_speed = 0;
 	if (!self->s.v.waterlevel) {
 		if (g_globalvars.time > self->fb.arrow_time2) {
+			float hor_speed = 0;
+
 			VectorCopy(self->s.v.velocity, hor_velocity);
 			hor_velocity[2] = 0;
 			hor_speed = vlen(hor_velocity);
@@ -113,6 +110,7 @@ void VelocityForArrow() {
 			}
 		}
 	}
+
 	arrow_ = self->fb.arrow;
 	if (!arrow_) {
 		if (self->s.v.waterlevel <= 1) {
@@ -225,50 +223,10 @@ void VelocityForArrow() {
 			accel_forward = 0;
 		}
 	}
+
+	// TODO: this is wrong, set the command instead
 	VectorMA(self->s.v.velocity, accel_forward, dir_forward, self->s.v.velocity);
 }
-/*
-void DoFriction() {
-	if ((int)self->s.v.flags & FL_ONGROUND) {
-		VectorCopy(self->s.v.velocity, hor_velocity);
-		hor_velocity[2] = 0;
-		hor_speed = vlen(hor_velocity);
-		if (hor_speed > 100) {
-			self->s.v.velocity[0] = self->s.v.velocity[0] * inv_sv_friction_frametime;
-			self->s.v.velocity[1] = self->s.v.velocity[1] * inv_sv_friction_frametime;
-			return;
-		}
-		else  {
-			friction_factor = (1 - (sv_friction_frametime_100 / hor_speed));
-			if (friction_factor < 0) {
-				friction_factor = 0;
-			}
-			self->s.v.velocity[0] = self->s.v.velocity[0] * friction_factor;
-			self->s.v.velocity[1] = self->s.v.velocity[1] * friction_factor;
-			return;
-		}
-	}
-}
-
-void ApplyFriction() {
-	if ((int)self->s.v.flags & FL_WATERJUMP) {
-		self->s.v.velocity[0] = self->s.v.movedir[0];
-		self->s.v.velocity[1] = self->s.v.movedir[1];
-		if ((!self->s.v.waterlevel) || (g_globalvars.time >= self->s.v.teleport_time)) {
-			self->s.v.flags = self->s.v.flags - FL_WATERJUMP;
-			self->s.v.teleport_time = 0;
-		}
-	}
-	else  {
-		if (self->s.v.waterlevel <= 1) {
-			DoFriction();
-		}
-		else  {
-			VectorScale(self->s.v.velocity, inv_sv_friction_frametime, self->s.v.velocity);
-		}
-	}
-}
-*/
 
 void FrogbotPrePhysics1() {
 	// Set all players to non-solid so we can avoid rockets easier
@@ -298,51 +256,54 @@ void FrogbotPrePhysics1() {
 	}
 }
 
+void BotDetectTrapped(gedict_t* self) {
+	// This tries to detect stuck bots, and fixes the situation by either jumping or committing suicide
+	vec3_t point = { self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] - 24 };
+	content1 = trap_pointcontents(point[0], point[1], point[2]);
+	if (content1 == CONTENT_EMPTY) {
+		self->fb.oldwaterlevel = 0;
+		self->fb.oldwatertype = CONTENT_EMPTY;
+	}
+	else if (content1 == CONTENT_SOLID) {
+		unstick_time = unstick_time + g_globalvars.frametime;
+		if (unstick_time <= numberofclients) {
+			no_bots_stuck = FALSE;
+			self->s.v.velocity[2] = JUMPSPEED;
+		}
+		else  {
+			self->fb.botchose = 1;
+			self->s.v.impulse = CLIENTKILL;
+		}
+	}
+	else {
+		VectorSet(point, self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 4);
+		content2 = trap_pointcontents(point[0], point[1], point[2]);
+		if (content2 == CONTENT_EMPTY) {
+			self->fb.oldwaterlevel = 1;
+			self->fb.oldwatertype = content1;
+		}
+		else  {
+			VectorSet(point, self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 22);
+			content3 = trap_pointcontents(point[0], point[1], point[2]);
+			if (content3 == CONTENT_EMPTY) {
+				self->fb.oldwaterlevel = 2;
+				self->fb.oldwatertype = content2;
+			}
+			else  {
+				self->fb.oldwaterlevel = 3;
+				self->fb.oldwatertype = content3;
+			}
+		}
+	}
+}
+
 void FrogbotPrePhysics2() {
 	g_globalvars.frametime = real_frametime;
 	no_bots_stuck = TRUE;
 
 	for (self = find_plr(world); self; self = find_plr(world)) {
 		if (self->isBot) {
-		
-			// This tries to detect stuck bots, and fixes the situation by either jumping or committing suicide
-			vec3_t point = { self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] - 24 };
-			content1 = trap_pointcontents(point[0], point[1], point[2]);
-			if (content1 == CONTENT_EMPTY) {
-				self->fb.oldwaterlevel = 0;
-				self->fb.oldwatertype = CONTENT_EMPTY;
-			}
-			else if (content1 == CONTENT_SOLID) {
-				unstick_time = unstick_time + g_globalvars.frametime;
-				if (unstick_time <= numberofclients) {
-					no_bots_stuck = FALSE;
-					self->s.v.velocity[2] = JUMPSPEED;
-				}
-				else  {
-					self->fb.botchose = 1;
-					self->s.v.impulse = CLIENTKILL;
-				}
-			}
-			else {
-				VectorSet(point, self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 4);
-				content2 = trap_pointcontents(point[0], point[1], point[2]);
-				if (content2 == CONTENT_EMPTY) {
-					self->fb.oldwaterlevel = 1;
-					self->fb.oldwatertype = content1;
-				}
-				else  {
-					VectorSet(point, self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 22);
-					content3 = trap_pointcontents(point[0], point[1], point[2]);
-					if (content3 == CONTENT_EMPTY) {
-						self->fb.oldwaterlevel = 2;
-						self->fb.oldwatertype = content2;
-					}
-					else  {
-						self->fb.oldwaterlevel = 3;
-						self->fb.oldwatertype = content3;
-					}
-				}
-			}
+			BotDetectTrapped(self);
 
 			if (self->s.v.takedamage) {
 
@@ -372,12 +333,8 @@ void FrogbotPrePhysics2() {
 
 				self->s.v.waterlevel = self->s.v.watertype = 0;
 			}
-			else  {
-				if (!intermission_running) {
-					if (self->s.v.deadflag >= DEAD_DEAD) {
-						PlayerDeathThink();
-					}
-				}
+			else if (!intermission_running && self->s.v.deadflag >= DEAD_DEAD) {
+				PlayerDeathThink();
 			}
 		}
 	}
@@ -396,6 +353,8 @@ void FrogbotPostPhysics1() {
 			obstruction();
 			if (self->fb.obstruction_normal[0] || self->fb.obstruction_normal[1] || self->fb.obstruction_normal[2]) {
 				vec3_t temp, originDiff;
+				float yaw = 0;
+				float dist = 0;
 
 				VectorAdd(self->s.v.velocity, self->fb.velocity_normal, new_velocity);
 				yaw = vectoyaw(self->fb.obstruction_normal);

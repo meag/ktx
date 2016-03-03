@@ -285,8 +285,9 @@ typedef enum
 #define MAX_SPAWN_WEIGHTS (64)
 
 // frogbots
-typedef void (*fb_void_func_t)();
-typedef qbool (*fb_bool_func_t)();
+typedef void (*fb_void_func_t)(void);
+typedef qbool (*fb_bool_func_t)(void);
+typedef float (*fb_desire_func_t)(struct gedict_s* self);
 
 #ifndef NUMBER_MARKERS
 #define NUMBER_MARKERS 300
@@ -364,8 +365,12 @@ typedef struct fb_entvars_s {
 	float total_damage;
 	float firepower;
 
+	float enemy_time;                       // Time before bot re-evaluates who is its primary enemy
+	float enemy_dist;                       // Distance to primary enemy
+
 	// these determine the desire for items for each player 
 	//   (not just for bots ... bot's desire can take enemy's desire into consideration)
+	fb_desire_func_t desire;
 	float desire_armor1;
 	float desire_armor2;
 	float desire_armorInv;
@@ -389,10 +394,8 @@ typedef struct fb_entvars_s {
 	float swim_arrow;
 	float arrow_time;                       // If set in future, bots will avoid this path
 	float arrow_time2;
-	float enemy_time;
 	float linked_marker_time;
 	float touch_marker_time;
-	float enemy_dist;
 	float index;
 
 	vec3_t oldvelocity;
@@ -423,9 +426,9 @@ typedef struct fb_entvars_s {
 
 	struct gedict_s* near_teleport;
 	struct gedict_s* linked_marker;
-	struct gedict_s* old_linked_marker;
-	struct gedict_s* look_object;
-	float frogbot_nextthink;                  // when to next run periodic movement logic for this human/bot
+	struct gedict_s* old_linked_marker;       // 
+	struct gedict_s* look_object;             // the player/marker/entity that the bot is locked onto
+	float frogbot_nextthink;                  // when to next run periodic movement logic for this player
 	float fire_nextthink;                     // when to next run periodic firing logic for this bot
 
 	int T;                                    // flags for this individual marker
@@ -448,9 +451,8 @@ typedef struct fb_entvars_s {
 	fb_void_func_t sight_from_marker;
 	fb_void_func_t higher_sight_from_marker;
 	fb_void_func_t sight_from_time;
-	fb_void_func_t desire;
 	fb_bool_func_t pickup;
-	float saved_goal_desire;
+	float saved_goal_desire;                         // the desire for the current goal entity
 	float saved_respawn_time;
 	float saved_goal_time;
 	float saved_enemy_time_squared;
@@ -484,7 +486,6 @@ typedef struct fb_entvars_s {
 	vec3_t virtual_maxs;
 	vec3_t dir_move_;
 	float ledge_backup_time;
-	float hit_z;
 
 	struct gedict_s* movetarget;
 
@@ -492,22 +493,23 @@ typedef struct fb_entvars_s {
 	vec3_t missile_forward;
 	vec3_t missile_right;
 
-	struct gedict_s* touchPlayer;
-	float touchPlayerTime;
-	float tread_water_count;
-	vec3_t predict_origin;
-	float predict_shoot;
+	struct gedict_s* touchPlayer;               // last player to touch this object (see below)
+	float touchPlayerTime;                      // when this expires, check goal entity - if teammate touching it, leave for them
+	int tread_water_count;                      // number of frames spent treading water 
+
+	vec3_t predict_origin;                      // origin of enemy, or where the bot thinks they will land
+	qbool predict_shoot;                        // make a prediction shot this frame?
 
 	// frogbot logic (move out of entity)
-	float allowedMakeNoise;                     // if false, paths involving picking up an item are penalised
-	float willRocketJumpThisTic;                // will consider rocket jumping this frame?
+	qbool allowedMakeNoise;                     // if false, paths involving picking up an item are penalised
+	qbool willRocketJumpThisTic;                // will consider rocket jumping this frame?
 
-	// meag extensions
+	// meag extensions : every player
 	float is_strong;
 
-	// meag: zone summary
+	// meag extensions : every zone
 	float total_players;                        
-	
+
 	qbool bot_evade;                            // 
 	
 	float help_teammate_time;
@@ -522,12 +524,8 @@ typedef struct fb_entvars_s {
 	float up_finished;
 	float botnumber;
 	float old_bot;
-	float botchose;
-	float rocketjumping;
-
-	vec3_t oldangles;
-	struct gedict_s* chasing;
-	func_t think2;
+	qbool botchose;
+	qbool rocketjumping;                           
 } fb_entvars_t;
 
 //typedef (void(*)(gedict_t *)) one_edict_func;

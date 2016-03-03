@@ -3,11 +3,20 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
-void BestArrowForDirection() {
+float BestArrowForDirection() {
 	vec3_t temp;
+	float best_dotproduct = 0;
+	float best_arrow = 0;
+	float test_forward = 0;
+	float test_forward_left = 0;
+	float test_forward_right = 0;
+	float test_right = 0;
+	float test_left = 0;
+	float test_back = 0;
+	float test_back_left = 0;
+	float test_back_right = 0;
 
 	trap_makevectors(self->s.v.v_angle);
-	best_dotproduct = best_arrow = 0;
 
 	test_forward = DotProduct(g_globalvars.v_forward, dir_move);
 	if (test_forward > best_dotproduct) {
@@ -58,23 +67,27 @@ void BestArrowForDirection() {
 		best_dotproduct = test_back_right;
 		best_arrow = BACK_RIGHT;
 	}
+
+	return best_arrow;
 }
 
-void Visible_360() {
+// Test if one player is visible to another.  takes into account bodies & ring
+qbool Visible_360(gedict_t* self, gedict_t* visible_object) {
+	// If the object is already dead
 	if (visible_object->s.v.takedamage) {
+		// can't see eyes unless it's attacking
 		if (g_globalvars.time < visible_object->invisible_finished) {
 			if (g_globalvars.time >= visible_object->attack_finished) {
-				enemy_visible = FALSE;
-				return;
+				return (qbool) false;
 			}
 		}
+
 		traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 32, visible_object->s.v.origin[0], visible_object->s.v.origin[1], visible_object->s.v.origin[2] + 32, TRUE, self);
 		if (g_globalvars.trace_fraction == 1) {
-			enemy_visible = TRUE;
-			return;
+			return (qbool) true;
 		}
 	}
-	enemy_visible = FALSE;
+	return (qbool) false;
 }
 
 void Visible_infront() {

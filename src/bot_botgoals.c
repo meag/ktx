@@ -3,29 +3,37 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
-void ResetGoalEntity() {
-	goalentity_ = &g_edicts[self->s.v.goalentity];
-	if (goalentity_ != world) {
-		goalentity_->fb.teamflag = goalentity_->fb.teamflag - ((int)goalentity_->fb.teamflag & (int)self->fb.teamflag);
+static float best_score;
+
+// FIXME: Called during client.qc[ResetItems], maybe when player dies?
+void ResetGoalEntity(gedict_t* self) {
+	if (self->s.v.goalentity) {
+		gedict_t* ent = &g_edicts[self->s.v.goalentity];
+		ent->fb.teamflag = ent->fb.teamflag - ((int)ent->fb.teamflag & (int)self->fb.teamflag);
 		self->s.v.goalentity = NUM_FOR_EDICT(world);
 	}
 }
 
-void UpdateGoalEntity() {
-	test_enemy = first_client;
-	while (test_enemy) {
-		if (test_enemy->s.v.goalentity == NUM_FOR_EDICT(self)) {
-			goal_refresh_time_ = g_globalvars.time + random();
-			if (test_enemy->fb.goal_refresh_time > goal_refresh_time_) {
-				test_enemy->fb.goal_refresh_time = goal_refresh_time_;
+// If an item is picked up, all bots heading for that item should re-evaluate their goals
+// FIXME: Called during items.qc[{pickup functions}]
+void UpdateGoalEntity(gedict_t* item) {
+	gedict_t* plr;
+	int item_entity = NUM_FOR_EDICT(item);
+
+	for (plr = world; plr = find_plr(plr); ) {
+		if (plr->s.v.goalentity == item_entity) {
+			float goal_refresh_time_ = g_globalvars.time + random();
+			if (plr->fb.goal_refresh_time > goal_refresh_time_) {
+				plr->fb.goal_refresh_time = goal_refresh_time_;
 			}
 		}
-		test_enemy = test_enemy->fb.next;
 	}
 }
 
-void EvalGoal() {
-	goal_entity->fb.desire();
+// Evaluates a goal 
+static void EvalGoal(gedict_t* goal_entity) {
+	float goal_desire = goal_entity->fb.desire(self);
+	
 	goal_entity->fb.saved_goal_desire = goal_desire;
 	if (goal_desire > 0) {
 		// TODO: replace aerowalk dynamic_item (quad) with proper quad spawn
@@ -37,6 +45,8 @@ void EvalGoal() {
 				}
 			}
 		}
+
+		// TODO: there are two doors open? :)
 		if (streq(g_globalvars.mapname, "povdmm4")) {
 			if (!door_open) {
 				if (streq(goal_entity->s.v.classname, "item_armor2")) {
@@ -45,6 +55,9 @@ void EvalGoal() {
 				}
 			}
 		}
+
+		// If one person on a team is sitting waiting for an item, assume that they
+		//   are going to take it 
 		if (g_globalvars.time < goal_entity->fb.touchPlayerTime) {
 			if (goal_entity->s.v.nextthink > 0) {
 				if ( SameTeam(goal_entity, self) ) {
@@ -55,6 +68,7 @@ void EvalGoal() {
 				}
 			}
 		}
+
 		from_marker = touch_marker_;
 		to_marker = goal_entity->fb.touch_marker;
 		to_marker->fb.zone_marker();
@@ -172,7 +186,7 @@ void UpdateGoal() {
 	self->fb.goal_refresh_time = g_globalvars.time + 2 + random();
 	prediction_error_ = self->fb.prediction_error;
 	best_score = 0;
-	best_goal = 0;
+	best_goal = NULL;
 	enemy_ = &g_edicts[self->s.v.enemy];
 	enemy_touch_marker = enemy_->fb.touch_marker;
 	enemy_desire = enemy_repel = 0;
@@ -208,25 +222,22 @@ void UpdateGoal() {
 	}
 
 	for (i = 0; i < sizeof(m->fb.goals) / sizeof(m->fb.goals[0]); ++i) {
-		goal_entity = touch_marker_->fb.goals[i].next_marker->fb.virtual_goal;
-		EvalGoal();
+		EvalGoal(touch_marker_->fb.goals[i].next_marker->fb.virtual_goal);
 	}
 
-	goal_entity = ez_find(world, "dynamic_item");
-	while (goal_entity) {
+	for (goal_entity = world; goal_entity = ez_find(goal_entity, "dynamic_item"); ) {
 		if (goal_entity->fb.touch_marker) {
-			EvalGoal();
+			EvalGoal(goal_entity);
 		}
-		goal_entity = ez_find(goal_entity, "dynamic_item");
 	}
+
 	if (teamplay && !isRA()) {
 		search_entity = HelpTeammate();
-		if (search_entity != world) {
-			if (random() < 0.25) {
-				best_goal = search_entity;
-			}
+		if (search_entity && random() < 0.25) {
+			best_goal = search_entity;
 		}
 	}
+
 	if (best_goal) {
 		best_goal_desire = best_goal->fb.saved_goal_desire;
 		best_goal->fb.saved_goal_desire = 0;
@@ -275,19 +286,15 @@ void UpdateGoal() {
 			EvalGoal2();
 		}
 
-		goal_entity = ez_find(world, "dynamic_item");
-		while (goal_entity) {
+		for (goal_entity = world; goal_entity = ez_find(goal_entity, "dynamic_item"); ) {
 			if (goal_entity->fb.touch_marker) {
 				EvalGoal2();
 			}
-			goal_entity = ez_find(goal_entity, "dynamic_item");
 		}
-		goalentity_ = best_goal2;
 		self->s.v.goalentity = NUM_FOR_EDICT(best_goal2);
 		self->fb.goal_respawn_time = g_globalvars.time + best_goal2->fb.saved_respawn_time;
 	}
 	else  {
-		goalentity_ = world;
 		self->s.v.goalentity = NUM_FOR_EDICT(world);
 	}
 }

@@ -12,251 +12,12 @@ extern qbool marker_time;
 extern float next_marker_time;
 extern qbool hazard_time;
 extern float next_hazard_time;
-#ifndef START_SKILL
-#define START_SKILL 1
-#endif
-#ifndef START_SKIN
-#define START_SKIN 2
-#endif
-#ifndef START_SHIRT
-#define START_SHIRT 3
-#endif
-#ifndef START_PANTS
-#define START_PANTS 4
-#endif
-#ifndef START_TEAMSHIRT
-#define START_TEAMSHIRT 5
-#endif
-#ifndef START_TEAMPANTS
-#define START_TEAMPANTS 6
-#endif
-#ifndef START_TEAMPLAY
-#define START_TEAMPLAY 7
-#endif
-#ifndef START_DEATHMATCH
-#define START_DEATHMATCH 8
-#endif
-#ifndef START_TIMELIMIT
-#define START_TIMELIMIT 9
-#endif
-#ifndef START_FRAGLIMIT
-#define START_FRAGLIMIT 10
-#endif
-#ifndef START_LINES
-#define START_LINES 11
-#endif
-#ifndef START_MSG
-#define START_MSG 18
-#endif
-#ifndef START_BOTS
-#define START_BOTS 12
-#endif
-#ifndef START_ADMIN1
-#define START_ADMIN1 15
-#endif
-#ifndef START_ADMIN2
-#define START_ADMIN2 16
-#endif
-#ifndef START_ADMIN3
-#define START_ADMIN3 17
-#endif
-#ifndef IMP_START1
-#define IMP_START1 14
-#endif
-#ifndef IMP_SKILL
-#define IMP_SKILL 14
-#endif
-#ifndef IMP_SKIN
-#define IMP_SKIN 15
-#endif
-#ifndef IMP_SHIRT
-#define IMP_SHIRT 16
-#endif
-#ifndef IMP_PANTS
-#define IMP_PANTS 17
-#endif
-#ifndef IMP_TEAMSHIRT
-#define IMP_TEAMSHIRT 18
-#endif
-#ifndef IMP_TEAMPANTS
-#define IMP_TEAMPANTS 19
-#endif
-#ifndef IMP_END1
-#define IMP_END1 20
-#endif
-#ifndef IMP_LINES
-#define IMP_LINES 24
-#endif
-#ifndef IMP_ADDBOT
-#define IMP_ADDBOT 25
-#endif
-#ifndef IMP_ADD2BOTS
-#define IMP_ADD2BOTS 26
-#endif
-#ifndef IMP_ADD3BOTS
-#define IMP_ADD3BOTS 27
-#endif
-#ifndef IMP_ADD4BOTS
-#define IMP_ADD4BOTS 28
-#endif
-#ifndef IMP_ADDBOT0
-#define IMP_ADDBOT0 29
-#endif
-#ifndef IMP_ADDBOT1
-#define IMP_ADDBOT1 30
-#endif
-#ifndef IMP_ADDBOT2
-#define IMP_ADDBOT2 31
-#endif
-#ifndef IMP_ADDBOT3
-#define IMP_ADDBOT3 32
-#endif
-#ifndef IMP_ADDBOT4
-#define IMP_ADDBOT4 33
-#endif
-#ifndef IMP_ADDBOT5
-#define IMP_ADDBOT5 34
-#endif
-#ifndef IMP_ADDBOT6
-#define IMP_ADDBOT6 35
-#endif
-#ifndef IMP_ADDBOT7
-#define IMP_ADDBOT7 36
-#endif
-#ifndef IMP_ADDBOT8
-#define IMP_ADDBOT8 37
-#endif
-#ifndef IMP_ADDBOT9
-#define IMP_ADDBOT9 38
-#endif
-#ifndef IMP_ADDBOT10
-#define IMP_ADDBOT10 39
-#endif
-#ifndef IMP_ADDBOT11
-#define IMP_ADDBOT11 40
-#endif
-#ifndef IMP_ADDBOT12
-#define IMP_ADDBOT12 41
-#endif
-#ifndef IMP_ADDBOT13
-#define IMP_ADDBOT13 42
-#endif
-#ifndef IMP_END2
-#define IMP_END2 43
-#endif
-#ifndef IMP_MSG
-#define IMP_MSG 44
-#endif
-#ifndef IMP_BOTS
-#define IMP_BOTS 45
-#endif
-#ifndef IMP_ADMIN
-#define IMP_ADMIN 46
-#endif
-#ifndef IMP_TIME
-#define IMP_TIME 47
-#endif
-#ifndef IMP_RULES
-#define IMP_RULES 48
-#endif
-#ifndef IMP_SETSKIN
-#define IMP_SETSKIN 49
-#endif
-#ifndef IMP_FLASH
-#define IMP_FLASH 50
-#endif
-#ifndef IMP_HIDE
-#define IMP_HIDE 51
-#endif
-#ifndef IMP_REMOVEBOT
-#define IMP_REMOVEBOT 52
-#endif
-#ifndef IMP_REMOVEALLBOTS
-#define IMP_REMOVEALLBOTS 53
-#endif
-#ifndef IMP_LAVACHEAT
-#define IMP_LAVACHEAT 54
-#endif
-#ifndef IMP_FRAMERATE
-#define IMP_FRAMERATE 55
-#endif
-#ifndef IMP_POWERUP
-#define IMP_POWERUP 56
-#endif
-#ifndef IMP_RUNE
-#define IMP_RUNE 57
-#endif
-#ifndef IMP_READY
-#define IMP_READY 58
-#endif
-#ifndef IMP_MATCH
-#define IMP_MATCH 59
-#endif
-#ifndef IMP_OVERTIME
-#define IMP_OVERTIME 60
-#endif
-#ifndef IMP_REPORT
-#define IMP_REPORT 61
-#endif
-#ifndef IMP_AUTOREPORT
-#define IMP_AUTOREPORT 62
-#endif
-#ifndef IMP_DROPWEAP
-#define IMP_DROPWEAP 63
-#endif
-#ifndef IMP_AUTOSTEAMS
-#define IMP_AUTOSTEAMS 64
-#endif
-#ifndef IMP_BOTCHAT
-#define IMP_BOTCHAT 65
-#endif
-#ifndef IMP_WHO
-#define IMP_WHO 66
-#endif
-#ifndef IMP_RL_PREF
-#define IMP_RL_PREF 67
-#endif
-#ifndef IMP_LG_PREF
-#define IMP_LG_PREF 68
-#endif
-#ifndef IMP_RUNE_RJ
-#define IMP_RUNE_RJ 69
-#endif
-#ifndef IMP_NOSKINS
-#define IMP_NOSKINS 70
-#endif
-#ifndef IMP_POVDMM4_TRAINING
-#define IMP_POVDMM4_TRAINING 143
-#endif
-#ifndef IMP_LG_MODE_TOGGLE
-#define IMP_LG_MODE_TOGGLE 144
-#endif
-#ifndef IMP_DEBUG_MARKERS
-#define IMP_DEBUG_MARKERS 145
-#endif
-#ifndef IMP_DEBUG_ZONES
-#define IMP_DEBUG_ZONES 146
-#endif
-#ifndef IMP_HUMANDAMAGE_DOWN
-#define IMP_HUMANDAMAGE_DOWN 147
-#endif
-#ifndef IMP_HUMANDAMAGE_UP
-#define IMP_HUMANDAMAGE_UP 148
-#endif
-#ifndef IMP_HARDEST_JUMP
-#define IMP_HARDEST_JUMP 149
-#endif
-#ifndef IMP_RANDOM
-#define IMP_RANDOM 250
-#endif
-#ifndef IMP_IMPULSE_0
-#define IMP_IMPULSE_0 255
-#endif
+
 #ifndef IT_EITHER_NAILGUN
-#define IT_EITHER_NAILGUN 12
+#define IT_EITHER_NAILGUN (IT_NAILGUN | IT_SUPER_NAILGUN)
 #endif
 #ifndef IT_NAILGUN_ROCKET
-#define IT_NAILGUN_ROCKET 44
+#define IT_NAILGUN_ROCKET (IT_ROCKET_LAUNCHER | IT_SUPER_NAILGUN | IT_NAILGUN)
 #endif
 #ifndef IT_VELOCITY
 #define IT_VELOCITY (IT_ROCKET_LAUNCHER | IT_GRENADE_LAUNCHER | IT_SUPER_NAILGUN | IT_NAILGUN)
@@ -271,7 +32,7 @@ extern float next_hazard_time;
 #define IT_ALL_BUT_GRENADE (IT_AXE | IT_SHOTGUN | IT_SUPER_SHOTGUN | IT_NAILGUN | IT_SUPER_NAILGUN | IT_ROCKET_LAUNCHER | IT_LIGHTNING)
 #endif
 #ifndef IT_ALL
-#define IT_ALL 4223
+#define IT_ALL (IT_AXE | IT_SHOTGUN | IT_SUPER_SHOTGUN | IT_NAILGUN | IT_SUPER_NAILGUN | IT_GRENADE_LAUNCHER | IT_ROCKET_LAUNCHER | IT_LIGHTNING)
 #endif
 #ifndef IT_NOT_AMMO
 #define IT_NOT_AMMO 16773375
@@ -280,90 +41,43 @@ extern float next_hazard_time;
 #define IT_ARMOR (IT_ARMOR1 | IT_ARMOR2 | IT_ARMOR3)
 #endif
 #ifndef IT_NOT_ARMOR
-#define IT_NOT_ARMOR 16719871
+#define IT_NOT_ARMOR (~IT_ARMOR)
 #endif
 #ifndef IT_INVULNERABILITY_QUAD
-#define IT_INVULNERABILITY_QUAD 5242880
-#endif
-#ifndef IT_POWERUP
-#define IT_POWERUP 7864320
-#endif
-#ifndef IT_ARMOR3_INVULNERABILITY
-#define IT_ARMOR3_INVULNERABILITY 1081344
+#define IT_INVULNERABILITY_QUAD (IT_INVULNERABILITY | IT_QUAD)
 #endif
 #ifndef IT_NOT_INVISIBILITY
-#define IT_NOT_INVISIBILITY 16252927
+#define IT_NOT_INVISIBILITY (~IT_INVISIBILITY)
 #endif
 #ifndef IT_NOT_INVULNERABILITY
-#define IT_NOT_INVULNERABILITY 15728639
+#define IT_NOT_INVULNERABILITY (~IT_INVULNERABILITY)
 #endif
 #ifndef IT_NOT_SUIT
-#define IT_NOT_SUIT 14680063
+#define IT_NOT_SUIT (~IT_SUIT)
 #endif
 #ifndef IT_NOT_QUAD
-#define IT_NOT_QUAD 12582911
+#define IT_NOT_QUAD (~IT_QUAD)
 #endif
 #ifndef ITEM_RUNE_MASK
 #define ITEM_RUNE_MASK (CTF_RUNE_RES | CTF_RUNE_STR | CTF_RUNE_HST | CTF_RUNE_RGN)
-#endif
-#ifndef EF_MUZZLEFLASH
-#define EF_MUZZLEFLASH 2
 #endif
 #ifndef NOT_EF_DIMLIGHT
 #define NOT_EF_DIMLIGHT 16777207
 #endif
 #ifndef EF_DIMLIGHT_BLUE
-#define EF_DIMLIGHT_BLUE 72
+#define EF_DIMLIGHT_BLUE (EF_DIMLIGHT | EF_BLUE)
 #endif
 #ifndef EF_DIMLIGHT_RED
-#define EF_DIMLIGHT_RED 136
-#endif
-#ifndef NOT_EF_BLUE
-#define NOT_EF_BLUE 16777151
-#endif
-#ifndef NOT_EF_RED
-#define NOT_EF_RED 16777087
-#endif
-#ifndef MAX_SKILL
-#define MAX_SKILL 20
-#endif
-#ifndef MAX_TEAMPLAY
-#define MAX_TEAMPLAY 5
-#endif
-#ifndef MAX_DEATHMATCH
-#define MAX_DEATHMATCH 6
+#define EF_DIMLIGHT_RED (EF_DIMLIGHT | EF_RED)
 #endif
 #ifndef CLIENTKILL
 #define CLIENTKILL 11
 #endif
-extern gedict_t* attacker;
 extern char* str;
-extern float next_teamplay;
-extern float next_deathmatch;
 extern float team_index;
-#ifndef TEAM_TOTAL_HEALTH_PROTECT
-#define TEAM_TOTAL_HEALTH_PROTECT 1
-#endif
-#ifndef TEAM_FRAG_PENALTY
-#define TEAM_FRAG_PENALTY 2
-#endif
-#ifndef TEAM_HEALTH_PROTECT
-#define TEAM_HEALTH_PROTECT 3
-#endif
-#ifndef TEAM_HEALTH_MASK
-#define TEAM_HEALTH_MASK 3
-#endif
-#ifndef TEAM_ARMOR_PROTECT
-#define TEAM_ARMOR_PROTECT 4
-#endif
-extern float modelindex_head;
-extern gedict_t* runespawn;
 extern float current_team;
 extern float current_frogbot;
-extern float axhitme;
-extern float axhitme_;
 extern char* deathtype;
-extern float healthplay;
 extern float armorplay;
 extern int gamemode;
 extern int new_gamemode;
@@ -373,13 +87,9 @@ extern float game_disable_autosteams;
 extern float game_disable_botchat;
 extern float game_lava_cheat;
 extern float game_hardestjump_disabled;
-#ifndef game_fastnail
-#define game_fastnail 0
-#endif
 
 #define FB_PREFER_ROCKET_LAUNCHER 1
 #define FB_PREFER_LIGHTNING_GUN   2
-#define FB_PREFER_
 
 #ifndef GAME_ENABLE_POWERUPS
 #define GAME_ENABLE_POWERUPS 1
@@ -393,9 +103,6 @@ extern float game_hardestjump_disabled;
 #ifndef GAME_MATCH
 #define GAME_MATCH 64
 #endif
-#ifndef GAME_RL_PREF
-#define GAME_RL_PREF 128
-#endif
 #ifndef GAME_ENABLE_DROPWEAP
 #define GAME_ENABLE_DROPWEAP 512
 #endif
@@ -405,36 +112,6 @@ extern float game_hardestjump_disabled;
 #ifndef GAME_ENABLE_AUTOSTEAMS
 #define GAME_ENABLE_AUTOSTEAMS 2048
 #endif
-float random();
-float vlen(vec3_t v);
-float vectoyaw(vec3_t v);
-gedict_t* spawn();
-//gedict_t* find(gedict_t* start, char* fld, char* match);
-char* precache_sound(char* s);
-char* precache_model(char* s);
-char* ftos(float f);
-//float walkmove(float yaw, float dist);
-//float droptofloor();
-float rint(float v);
-float oldfloor(float v);
-//float floor(float a);
-//float ceil(float v);
-//float pointcontents(vec3_t v);
-//float fabs(float f);
-//float cvar(char* s);
-gedict_t* nextent(gedict_t* e);
-//vec3_t vectoangles(vec3_t v);
-char* precache_model2(char* s);
-char* precache_sound2(char* s);
-//char* infokey(gedict_t* e, char* key);
-//float stof(char* s);
-extern float msg_level;
-extern gedict_t* firstperson;
-#ifndef PF_FIRSTPERSON
-#define PF_FIRSTPERSON 1
-#endif
-extern float scoreboardsize;
-//float CanDamage();
 extern gedict_t* targ;
 extern vec3_t extra_velocity;
 extern float damage;
@@ -448,7 +125,6 @@ extern gedict_t* enemy_;
 extern gedict_t* virtual_enemy;
 extern gedict_t* look_object_;
 extern gedict_t* visible_object;
-extern gedict_t* goalentity_;
 extern gedict_t* test_enemy;
 extern gedict_t* viewport;
 extern gedict_t* non_viewport;
@@ -498,9 +174,7 @@ extern float numberofplayers;
 extern float numberofclients;
 extern vec3_t oldvelocity_;
 extern vec3_t delta_velocity;
-extern float new_pitch;
-extern float average_frametime;
-extern float time_12;
+extern float new_pitch;                       // fixme: set in client.qc
 extern gedict_t* current_waiting_bot;
 extern gedict_t* first_client;
 extern gedict_t* first_item;
@@ -636,8 +310,7 @@ extern gedict_t* dm6_door;
 
 extern float nextthink_;
 extern float try_shoot;
-extern float markers_loaded;
-extern float no_change;
+extern qbool markers_loaded;
 extern float goal_index;
 extern gedict_t* m;
 extern gedict_t* m_2;
@@ -671,14 +344,9 @@ extern float second_team;
 extern float new_team;
 extern vec3_t to_marker_pos;
 extern gedict_t* goal_entity;
-extern float goal_refresh_time_;
 extern float weapon_refresh_time_;
-extern float toughness_;
-//extern int items_;
 extern float weapon_;
 extern float am;
-extern float attackbonus;
-extern float firepower_;
 extern float save;
 extern float take;
 extern float maxplayers;
@@ -712,11 +380,7 @@ extern float velocity_forward;
 extern float accel_forward;
 extern float max_accel_forward;
 extern vec3_t desired_accel;
-extern int arrow_;
-extern float yaw;
-extern float dist;
 extern vec3_t hor_velocity;
-extern float hor_speed;
 extern vec3_t new_velocity;
 extern vec3_t new_origin;
 extern vec3_t last_clear_hor_velocity;
@@ -733,23 +397,8 @@ extern float fall;
 extern float new_fall;
 extern float current_fallspot;
 extern vec3_t edge_normal;
-extern float normal_comp;
-extern float best_dotproduct;
-extern float best_arrow;
-extern float test_forward;
-extern float test_forward_left;
-extern float test_forward_right;
-extern float test_right;
-extern float test_left;
-extern float test_back;
-extern float test_back_left;
-extern float test_back_right;
 extern vec3_t self_view;
 extern vec3_t testplace;
-extern vec3_t testplace_mins;
-extern vec3_t testplace_maxs;
-extern vec3_t test_enemy_mins;
-extern vec3_t test_enemy_maxs;
 extern float tries;
 extern vec3_t last_clear_point;
 extern vec3_t last_clear_velocity;
@@ -759,7 +408,6 @@ extern vec3_t dir_move;
 extern float total_goal_time;
 extern gedict_t* goal_marker2;
 extern vec3_t self_dir;
-extern float best_score;
 extern float look_score;
 extern vec3_t dir_look;
 extern gedict_t* best_goal;
@@ -804,19 +452,11 @@ extern float hit_radius;
 extern float risk_factor;
 extern float risk_strength;
 extern vec3_t rocket_origin;
-extern float shaft_available;
 extern vec3_t enemy_angles;
-extern float avoid_rockets;
 extern gedict_t* grenade_marker;
-extern float desired_weapon;
 extern gedict_t* bot;
 extern float rnd;
-extern float minutes;
-extern float seconds;
-extern float time_to_print;
 extern gedict_t* spawn_pos;
-extern float attacker_damaged;
-extern float attacker_damage;
 extern gedict_t* spots;
 extern float pcount;
 extern gedict_t* thing;
@@ -840,7 +480,7 @@ extern float score_count;
 extern vec3_t item_pos;
 extern gedict_t* closest_marker;
 extern float shortest_distance;
-//extern vec3_t marker_pos;
+extern vec3_t marker_pos;
 extern gedict_t* marker_;
 extern gedict_t* marker2;
 extern float zone_time;
@@ -904,15 +544,6 @@ extern gedict_t* rune_self;
 extern gedict_t* fallspot_self;
 extern gedict_t* door_enemy;
 extern gedict_t* multi_ent;
-extern float multi_damage;
-extern vec3_t blood_org;
-extern float blood_count;
-extern vec3_t puff_org;
-extern float puff_count;
-extern float load_frogbots;
-extern float frogbot_removetime;
-extern float invalid_map;
-extern float frogbot_load_stage;
 #ifndef NUMBER_LOAD_STAGE
 #define NUMBER_LOAD_STAGE 9
 #endif
@@ -926,17 +557,11 @@ extern float rocket_alert;
 extern vec3_t rocket_endpos;
 //extern char* nextmap;
 extern float frogbot_number;
-extern gedict_t* new_bot;
 extern gedict_t* prephysics;
 extern gedict_t* postphysics;
-extern gedict_t* first_frogbot;
 extern gedict_t* frogbot_spawned;
 extern float use_ammo;
 extern int available_weapons;
-extern float start_time;
-extern float real_time;
-extern float time_left;
-extern float minutes_left;
 extern float check_parm_time;
 #ifndef SPAWN_SIZE
 #define SPAWN_SIZE 1
@@ -970,8 +595,6 @@ extern gedict_t* best_away_marker;
 extern gedict_t* search_entity;
 extern float RA_time;
 extern float enemy_time_squared;
-extern float i;
-extern float j;
 float IsVisible(gedict_t* ent);
 gedict_t* spawn_apply();
 #ifndef IT_ROCKET_LIGHTNING
@@ -1096,99 +719,6 @@ extern float updatestuff;
 #endif
 extern float a_sounds;
 extern char* a_spawn;
-#ifndef BIT_30
-#define BIT_30 1073741824
-#endif
-#ifndef BIT_29
-#define BIT_29 536870912
-#endif
-#ifndef BIT_28
-#define BIT_28 268435456
-#endif
-#ifndef BIT_27
-#define BIT_27 134217728
-#endif
-#ifndef BIT_26
-#define BIT_26 67108864
-#endif
-#ifndef BIT_25
-#define BIT_25 33554432
-#endif
-#ifndef BIT_24
-#define BIT_24 16777216
-#endif
-#ifndef BIT_23
-#define BIT_23 8388608
-#endif
-#ifndef BIT_22
-#define BIT_22 4194304
-#endif
-#ifndef BIT_21
-#define BIT_21 2097152
-#endif
-#ifndef BIT_20
-#define BIT_20 1048576
-#endif
-#ifndef BIT_19
-#define BIT_19 524288
-#endif
-#ifndef BIT_18
-#define BIT_18 262144
-#endif
-#ifndef BIT_17
-#define BIT_17 131072
-#endif
-#ifndef BIT_16
-#define BIT_16 65536
-#endif
-#ifndef BIT_15
-#define BIT_15 32768
-#endif
-#ifndef BIT_14
-#define BIT_14 16384
-#endif
-#ifndef BIT_13
-#define BIT_13 8192
-#endif
-#ifndef BIT_12
-#define BIT_12 4096
-#endif
-#ifndef BIT_11
-#define BIT_11 2048
-#endif
-#ifndef BIT_10
-#define BIT_10 1024
-#endif
-#ifndef BIT_09
-#define BIT_09 512
-#endif
-#ifndef BIT_08
-#define BIT_08 256
-#endif
-#ifndef BIT_07
-#define BIT_07 128
-#endif
-#ifndef BIT_06
-#define BIT_06 64
-#endif
-#ifndef BIT_05
-#define BIT_05 32
-#endif
-#ifndef BIT_04
-#define BIT_04 16
-#endif
-#ifndef BIT_03
-#define BIT_03 8
-#endif
-#ifndef BIT_02
-#define BIT_02 4
-#endif
-#ifndef BIT_01
-#define BIT_01 2
-#endif
-#ifndef BIT_00
-#define BIT_00 1
-#endif
 float players_();
 float putselfinserver();
 float best_rl();
@@ -1393,12 +923,6 @@ float a_item();
 float TeamArmorDam();
 gedict_t* LocateMarker(vec3_t org);
 float NoItemTouch();
-#ifndef H_ROTTEN
-#define H_ROTTEN 1
-#endif
-#ifndef H_MEGA
-#define H_MEGA 2
-#endif
 float RankForWeapon(float w);
 float WeaponCode(float w);
 #ifndef WEAPON_BIG2
@@ -1454,10 +978,8 @@ float secret_target();
 #endif
 gedict_t* EntityAt(gedict_t* start_entity, float index_);
 float near_teammate(gedict_t* me);
-float right_direction();
-float able_rj();
-float checkboven();
-float checkground();
+
+qbool able_rj();
 float JumpInWater();
 float EntVisible(vec3_t vec);
 float VisibleEntity(gedict_t* ent);
@@ -1469,72 +991,40 @@ float BotCanReachMarker();
 float BotSwimDown();
 float BotSwimUp();
 float BotGoUpForAir();
-#ifndef fakenick_prefix
-#define fakenick_prefix ("$\\")
-#endif
 gedict_t* check_wp_stats(gedict_t* pl);
 float AddRandomBot();
-float BotExists();
 float BeenSpawned(gedict_t* client, float value);
-char* SetNetName();
-char* EnemyTeamName();
-char* FriendTeamName();
-char* SetTeamNetName();
-float SpawnBot();
 
-void Visible_360();
-void NewVelocityForArrow();
-void VelocityForArrow();
-void Z_marker_error();
-void S_time_error();
-void S_path_marker_error();
-void Z_path_marker_error();
-void Z_next_zone_marker_error();
-void Z_sight_from_marker_error();
-void Z_higher_sight_from_marker_error();
-void Z_sight_from_time_error();
+// 
+char* SetNetName(void);
+char* EnemyTeamName(void);
+char* FriendTeamName(void);
+char* SetTeamNetName(void);
+float SpawnBot(void);
+
+qbool Visible_360(gedict_t* self, gedict_t* visible_object);
+void NewVelocityForArrow(void);
+void VelocityForArrow(void);
+void Z_marker_error(void);
+void S_time_error(void);
+void S_path_marker_error(void);
+void Z_path_marker_error(void);
+void Z_next_zone_marker_error(void);
+void Z_sight_from_marker_error(void);
+void Z_higher_sight_from_marker_error(void);
+void Z_sight_from_time_error(void);
 
 //
 void spawn_marker(vec3_t org);
 
-// load.qc
-void spawn_load();
-void set_load();
-void remove_load();
-
-void InitialiseMarkerRoutes();
+// route_calc.qc
+void InitialiseMarkerRoutes(void);
 
 // route_fields.qc
 void EnterZone(int zoneNumber, float teamNumber, float strong);
 void LeaveZone(int zoneNumber, float teamNumber, float strong);
 
 // items.qc
-void SUB_regen();
-void goal_health0();
-void goal_health2();
-void goal_armor1();
-void goal_armor2();
-void goal_armorInv();
-void goal_supershotgun1();
-void goal_supershotgun2();
-void goal_nailgun1();
-void goal_nailgun2();
-void goal_supernailgun1();
-void goal_supernailgun2();
-void goal_grenadelauncher1();
-void goal_grenadelauncher2();
-void goal_rocketlauncher1();
-void goal_rocketlauncher2();
-void goal_lightning1();
-void goal_lightning2();
-void goal_shells();
-void goal_spikes();
-void goal_rockets();
-void goal_cells();
-void goal_artifact_invulnerability();
-void goal_artifact_invisibility();
-void goal_artifact_super_damage();
-
 qbool pickup_health0();
 qbool pickup_health2();
 qbool pickup_armor1();
@@ -1638,7 +1128,7 @@ void bprint_ftos(int level, float value);
 void bprint_g(int level, float f);
 
 // botutil.qc
-void BestArrowForDirection();
+float BestArrowForDirection();
 void FallSpotAir();
 void CanJumpOver(); // only used in bothazd?
 void FallSpotGround(); // Same
@@ -1650,7 +1140,7 @@ void GrenadeExplode();
 void Missile_Remove();
 
 // items.qc
-void goal_NULL();
+float goal_NULL(gedict_t* self);
 
 // client.qc
 void NewItems();
@@ -1687,34 +1177,34 @@ void AvoidHazards();
 void HigherSightMarker();
 
 // botweap.qc
-void UpdateWeapons();
-void SelectWeapon();
-void AttackRespawns();
-void SetFireButton();
+void UpdateWeapons(void);
+void SelectWeapon(void);
+void AttackRespawns(void);
+void SetFireButton(void);
 
 // marker_util.qc
-void Visible_infront();
+void Visible_infront(void);
 void AssignVirtualGoal_apply(gedict_t* marker_);
 void adjust_view_ofs_z(gedict_t* ent);
 
 // botenemy.qc
 void ClearLookObject(gedict_t* client);
-void LookEnemy();
-void BestEnemy();
+void LookEnemy(void);
+void BestEnemy(void);
 
 // botjump.qc
-void CheckCombatJump();
-void BotInLava();
+void CheckCombatJump(void);
+void BotInLava(void);
 
 // botgoal.qc
-void UpdateGoal();
+void UpdateGoal(void);
 
 // botpath.qc
-void frogbot_marker_touch();
+void frogbot_marker_touch(void);
 
 // marker_load.qc
 void N(float x, float y, float z);
-void AllMarkersLoaded();
+void AllMarkersLoaded(void);
 
 void SetZone(int zone_number, int marker_number);
 void SetMarkerFlag(int marker_number, int flags);
@@ -1725,28 +1215,28 @@ void SetMarkerPathFlags(int marker_number, int path_index, int flags);
 void SetMarkerPath(int source_marker, int path_index, int next_marker);
 
 // added for ktx
-qbool fb_lg_disabled();
-float random();
-void StartItems();
+qbool fb_lg_disabled(void);
+float random(void);
+void StartItems(void);
 
 // maps
-void LoadMap();
-void map_aerowalk();
-void map_amphi2();
-void map_dm4();
-void map_dm3();
-void map_dm6();
-void map_e1m2();
-void map_frobodm2();
-void map_pkeg1();
-void map_povdmm4();
-void map_spinev2();
-void map_ukooldm2();
-void map_ultrav();
-void map_ztndm3();
-void map_ztndm4();
-void map_ztndm5();
+void LoadMap(void);
+void map_aerowalk(void);
+void map_amphi2(void);
+void map_dm4(void);
+void map_dm3(void);
+void map_dm6(void);
+void map_e1m2(void);
+void map_frobodm2(void);
+void map_pkeg1(void);
+void map_povdmm4(void);
+void map_spinev2(void);
+void map_ukooldm2(void);
+void map_ultrav(void);
+void map_ztndm3(void);
+void map_ztndm4(void);
+void map_ztndm5(void);
 
 // 
-void BotEvadeLogic();
+void BotEvadeLogic(void);
 qbool SameTeam(gedict_t* p1, gedict_t* p2);

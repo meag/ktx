@@ -28,8 +28,6 @@ void N(float x, float y, float z) {
 
 void AllMarkersLoaded() {
 	self = world;
-	load_frogbots = invalid_map = FALSE;
-	no_change = TRUE;
 	m = m_2 = first_marker;
 	m_zone = zone_stack_head;
 	path_normal = TRUE;

@@ -40,8 +40,6 @@ void CalculatePhysicsVariables() {
 }
 
 void SetGame() {
-	//game_rl_pref = gamemode & GAME_RL_PREF;
-	//game_lg_pref = gamemode & GAME_LG_PREF;
 	game_disable_autosteams = (!(gamemode & GAME_ENABLE_AUTOSTEAMS));
 }
 
@@ -71,21 +69,10 @@ void InitParameters() {
 	SetGame();
 	teamplay = cvar("teamplay");
 	//initialize(); // TODO: RA initialization?
-	if (teamplay == 1) {
-		healthplay = TEAM_TOTAL_HEALTH_PROTECT;
-	}
-	else if (teamplay == 2) {
-		healthplay = TEAM_FRAG_PENALTY;
-	}
-	else if (teamplay == 3) {
-		healthplay = TEAM_HEALTH_PROTECT;
-	}
-	else if (teamplay == 4) {
-		healthplay = TEAM_HEALTH_PROTECT;
+	if (teamplay == 4) {
 		armorplay = TRUE;
 	}
 	else if (teamplay == 5) {
-		healthplay = TEAM_TOTAL_HEALTH_PROTECT;
 		armorplay = TRUE;
 	}
 	else  {
@@ -93,15 +80,8 @@ void InitParameters() {
 		cvar_set("teamplay", "0");
 	}
 
-	next_teamplay = teamplay;
 	sv_accelerate = cvar("sv_accelerate");
 	sv_friction = cvar("sv_friction");
-	numberofbots = -1;
-	if ((deathmatch < 1) || (deathmatch > MAX_DEATHMATCH)) {
-		deathmatch = 1;
-		cvar_set("deathmatch", "1");
-	}
-	next_deathmatch = deathmatch;
 	use_ammo = (deathmatch != 4);
 
 	available_weapons = deathmatch <= 3 ? IT_AXE_SHOTGUN : (deathmatch == 4 ? IT_ALL_BUT_GRENADE : IT_ALL);
@@ -112,13 +92,6 @@ void InitParameters() {
 
 void SetSkill() {
 	bprint_fb(2, va("%s changed to %s\n", "botskill", dig3(cvar("k_bot_skill"))));
-}
-
-void localload(float frogbot_pos) {
-	char buffer[1024] = { 0 };
-	
-	str = va("%f", frogbot_pos * 2 + frogbot_load_stage);
-	//registered = atof(infokey(world, str, buffer, sizeof(buffer)));
 }
 
 void CheckParameters() {
@@ -141,24 +114,6 @@ void CheckParameters() {
 		cvar_fset("sv_friction", sv_friction);
 	}
 	*/
-}
-
-float BotExists() {
-	bot = frogbot_spawned;
-	while (bot != postphysics) {
-		if (bot != self) {
-			if (bot->fb.botnumber == self->fb.botnumber) {
-				return TRUE;
-			}
-		}
-		bot = nextent(bot);
-	}
-	return FALSE;
-}
-
-void HCFrogbot(float color, float numb) {
-	self->fb.color_ = color;
-	self->fb.botnumber = numb;
 }
 
 char* SetTeamNetName() {
@@ -326,8 +281,6 @@ void PrintRules() {
 	print_boolean(GAME_ENABLE_RUNES, "����........ ");
 	print_boolean(GAME_RUNE_RJ, "�������..... ");
 	print_boolean(GAME_MATCH, "�����....... ");
-	print_boolean(GAME_RL_PREF, "�������..... ");
-	print_boolean(GAME_LG_PREF, "�������..... ");
 	print_boolean(GAME_HIDE_RULES, "����........ ");
 	print_boolean(GAME_ENABLE_AUTOREPORT, "����������.. ");
 	print_boolean(GAME_ENABLE_DROPWEAP, "��������.... ");

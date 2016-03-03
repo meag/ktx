@@ -3,6 +3,12 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
+void DM3CampLogic();
+void DM4CampLogic();
+void DM6CampLogic();
+
+static float best_score;
+
 static void BotWaitLogic(gedict_t* touch_marker_) {
 	// if we're not looking at a player
 	if (!look_object_->ct == ctPlayer) {
@@ -158,6 +164,8 @@ void EvalCloseRunAway() {
 }
 
 void frogbot_marker_touch() {
+	gedict_t* goalentity_ = &g_edicts[self->s.v.goalentity];
+
 	if (self->fb.path_state & WAIT_GROUND) {
 		if (!((int)self->s.v.flags & FL_ONGROUND)) {
 			return;
@@ -470,7 +478,7 @@ void frogbot_marker_touch() {
 				to_marker->fb.sub_arrival_time();
 				if (look_traveltime < traveltime) {
 					self->fb.look_object = look_object_ = look_marker;
-					self->fb.predict_shoot = TRUE;
+					self->fb.predict_shoot = (qbool) true;
 					return;
 				}
 			}
@@ -506,6 +514,6 @@ void frogbot_marker_touch() {
 		}
 	}
 	self->fb.look_object = look_object_;
-	self->fb.predict_shoot = FALSE;
+	self->fb.predict_shoot = false;
 }
 

@@ -148,16 +148,16 @@ qbool Calc_G_time_3_path_apply(gedict_t* m, gedict_t* m_P /* next */, float P_ti
 
 void PathCalculation(fb_path_calc_func_t func) {
 	// Keep going until no changes detected (hmm...)
-	int no_change = FALSE;
+	qbool no_change = (qbool) false;
 	while (!no_change) {
 		gedict_t* m;
 
-		no_change = TRUE;
+		no_change = (qbool) true;
 		for (m = first_marker; m && m != world; m = m->fb.marker_link) {
 			int i = 0;
 
 			for (i = 0; i < sizeof(from_marker->fb.paths) / sizeof(from_marker->fb.paths[0]); ++i) {
-				no_change &= func(m, m->fb.paths[i].next_marker, m->fb.paths[i].time);
+				no_change = no_change & func(m, m->fb.paths[i].next_marker, m->fb.paths[i].time);
 			}
 		}
 	}
@@ -194,9 +194,8 @@ void Calc_G_time_4_path() {
 	Calc_G_time_5_path();
 }
 
-void ZoneTimeAdjust(gedict_t* m, gedict_t* m_P, int x) {
+qbool ZoneTimeAdjust(gedict_t* m, gedict_t* m_P, int x) {
 	if (m->fb.zones[x].time > (P_time + m_P->fb.zones[x].time)) { 
-		no_change = (qbool) false; 
 		m->fb.zones[x].marker = m_P->fb.zones[x].marker; 
 		m->fb.zones[x].time = P_time + m_P->fb.zones[x].time; 
 		m->fb.zones[x].next = m_P; 
@@ -209,7 +208,10 @@ void ZoneTimeAdjust(gedict_t* m, gedict_t* m_P, int x) {
 			} 
 		} 
 		m->fb.zones[x].task |= m_D; 
+		return (qbool) false;
 	}
+
+	return (qbool) true;
 }
 
 qbool Calc_G_time_5_path_apply(gedict_t* m, gedict_t* m_P, float P_time) {
@@ -221,7 +223,7 @@ qbool Calc_G_time_5_path_apply(gedict_t* m, gedict_t* m_P, float P_time) {
 	}
 
 	for (i = 0; i < sizeof(m->fb.zones) / sizeof(m->fb.zones[0]); ++i) {
-		ZoneTimeAdjust(m, m_P, i);
+		no_change = (qbool) (no_change & ZoneTimeAdjust(m, m_P, i));
 	}
 
 	return no_change;
@@ -233,17 +235,13 @@ void Calc_G_time_5_path() {
 	Calc_G_time_6_path();
 }
 
-#define ZONE_FROM_TIME_ADJUST(m, m_P, x) \
-	if (m_P->fb.Z ## x ## _from_time > (m->fb.Z ## x ## _from_time + P_time)) { \
-		no_change = (qbool) false; \
-		m_P->fb.Z ## x ## _from_time = m->fb.Z ## x ## _from_time + P_time; \
+qbool ZoneFromTimeAdjust(gedict_t* m, gedict_t* m_P, int x) {
+	if (m_P->fb.zones[x].from_time > (m->fb.zones[x].from_time + P_time)) { 
+		m_P->fb.zones[x].from_time = m->fb.zones[x].from_time + P_time; 
+		return (qbool) false;
 	}
 
-void ZoneFromTimeAdjust(gedict_t* m, gedict_t* m_P, int x) {
-	if (m_P->fb.zones[x].from_time > (m->fb.zones[x].from_time + P_time)) { 
-		no_change = (qbool) false; 
-		m_P->fb.zones[x].from_time = m->fb.zones[x].from_time + P_time; 
-	}
+	return (qbool) true;
 }
 
 qbool Calc_G_time_6_path_apply(gedict_t* m, gedict_t* m_P, float P_time) {
@@ -255,7 +253,7 @@ qbool Calc_G_time_6_path_apply(gedict_t* m, gedict_t* m_P, float P_time) {
 	}
 
 	for (i = 0; i < NUMBER_ZONES; ++i) {
-		ZoneFromTimeAdjust(m, m_P, i);
+		no_change = (qbool) (no_change & ZoneFromTimeAdjust(m, m_P, i));
 	}
 
 	return no_change;
@@ -268,7 +266,7 @@ void Calc_G_time_6_path() {
 }
 
 int CheckReversible(gedict_t* m, gedict_t* from_marker) {
-	gedict_t* next_marker = from_marker->fb.zones[m->fb.Z_].next_zone;// m->fb.next_zone_marker();
+	gedict_t* next_marker = from_marker->fb.zones[m->fb.Z_].next_zone;
 	if (next_marker->fb.Z_ == m->fb.Z_) {
 		return REVERSIBLE;
 	}
@@ -295,21 +293,16 @@ void Calc_G_time_7() {
 	Calc_G_time_8_path();
 }
 
-#define ZONE_REVERSE_TIME_ADJUST(m, m_P, x) \
-	if (m->fb.Z ## x ## _time_rev > (P_time + m_P->fb.Z ## x ## _time_rev)) { \
-		no_change = (qbool) false; \
-		m->fb.Z ## x ## _rev = m_P->fb.Z ## x ## _rev; \
-		m->fb.Z ## x ## _time_rev = P_time + m_P->fb.Z ## x ## _time_rev; \
-		m->fb.Z ## x ## _next_rev = m_P; \
-	}
-
-void ZoneReverseTimeAdjust(gedict_t* m, gedict_t* m_P, int x) {
+qbool ZoneReverseTimeAdjust(gedict_t* m, gedict_t* m_P, int x) {
 	if (m->fb.zones[x].reverse_time > (P_time + m_P->fb.zones[x].reverse_time)) { 
-		no_change = (qbool) false; 
 		m->fb.zones[x].reverse_marker = m_P->fb.zones[x].reverse_marker; 
 		m->fb.zones[x].reverse_time = P_time + m_P->fb.zones[x].reverse_time; 
 		m->fb.zones[x].reverse_next = m_P; 
+
+		return (qbool) false;
 	}
+
+	return (qbool) true;
 }
 
 qbool Calc_G_time_8_path_apply(gedict_t* m, gedict_t* m_P, float P_time) {
@@ -322,7 +315,7 @@ qbool Calc_G_time_8_path_apply(gedict_t* m, gedict_t* m_P, float P_time) {
 
 	if (m_D & REVERSIBLE) {
 		for (i = 0; i < sizeof(m->fb.zones) / sizeof(m->fb.zones[0]); ++i) {
-			ZoneReverseTimeAdjust(m, m_P, i);
+			no_change = (qbool) (no_change & ZoneReverseTimeAdjust(m, m_P, i));
 		}
 	}
 
@@ -344,15 +337,6 @@ void ZoneSightFromMarkerCalculate(gedict_t* m, gedict_t* m_2, int x) {
 		m->fb.zones[x].sight_from = world; 
 	}
 }
-
-#define ZONE_HIGHER_SIGHT_FROM_MARKER_CALCULATE(m, m_2, x) \
-	if (m->fb.Z ## x ## _higher_sight_from_time_ > m_2->fb.Z ## x ## _from_time) { \
-		m->fb.Z ## x ## _higher_sight_from_time_ = m_2->fb.Z ## x ## _from_time; \
-		m->fb.Z ## x ## _higher_sight_from = m_2; \
-	} \
-	else if (!m_2->fb.Z ## x ## _from_time) { \
-		m->fb.Z ## x ## _higher_sight_from = world; \
-	}
 
 void ZoneHigherSightFromMarkerCalculate(gedict_t* m, gedict_t* m_2, int x) {
 	if (m->fb.zones[x].higher_sight_from_time > m_2->fb.zones[x].from_time) { 
@@ -405,11 +389,13 @@ void Calc_G_time_9() {
 	Calc_G_time_10_path();
 }
 
-void ZoneMinSightFromTimeCalc(gedict_t* m, gedict_t* m_P, int x) {
+qbool ZoneMinSightFromTimeCalc(gedict_t* m, gedict_t* m_P, int x) {
 	if (m->fb.zones[x].sight_from_time < (m_P->fb.zones[x].sight_from_time - P_time)) {
-		no_change = (qbool) false; 
 		m->fb.zones[x].sight_from_time = m_P->fb.zones[x].sight_from_time - P_time; 
-	} 
+		return (qbool) false;
+	}
+
+	return (qbool) true;
 }
 
 qbool Calc_G_time_10_path_apply(gedict_t* m, gedict_t* m_P, float P_time) {
@@ -421,7 +407,7 @@ qbool Calc_G_time_10_path_apply(gedict_t* m, gedict_t* m_P, float P_time) {
 	}
 
 	for (i = 0; i < sizeof(m->fb.zones) / sizeof(m->fb.zones[0]); ++i) {
-		ZoneMinSightFromTimeCalc(m, m_P, i);
+		no_change = (qbool) (no_change & ZoneMinSightFromTimeCalc(m, m_P, i));
 	}
 
 	return no_change;

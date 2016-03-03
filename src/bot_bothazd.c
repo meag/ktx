@@ -6,21 +6,23 @@
 // A lot of this is the bot cheating?..
 void AvoidEdge();
 
+// FIXME: called in triggers.qc[TeleportTouch]
 void HazardTeleport() {
+	gedict_t* plr;
+
 	if (self->fb.arrow_time < g_globalvars.time + 0.5) {
 		self->fb.arrow_time = g_globalvars.time + 0.5;
 	}
-	test_enemy = first_client;
-	while (test_enemy) {
+
+	for (plr = world; plr = find_plr(plr); ) {
 		if (test_enemy != other) {
 			if (test_enemy->fb.linked_marker == self) {
-				test_enemy->fb.old_linked_marker = world;
+				test_enemy->fb.old_linked_marker = NULL;
 				test_enemy->fb.linked_marker = LocateMarker(test_enemy->s.v.origin);
 				test_enemy->fb.path_state = 0;
 				test_enemy->fb.linked_marker_time = g_globalvars.time + 5;
 			}
 		}
-		test_enemy = test_enemy->fb.next;
 	}
 }
 
@@ -44,6 +46,7 @@ void ExplodeAlert(vec3_t org) {
 	}
 }
 
+// FIXME: called from weapons.qc[W_Attack]
 void GrenadeAlert() {
 	nextthink_ = self->s.v.nextthink = g_globalvars.time + 0.05;
 	self->s.v.think = (func_t) GrenadeAlert;
@@ -54,6 +57,7 @@ void GrenadeAlert() {
 	ExplodeAlert(self->s.v.origin);
 }
 
+// FIXME: called from weapons.qc[W_Attack]
 void RocketAlert() {
 	nextthink_ = self->s.v.nextthink = g_globalvars.time + 0.5;
 	if (nextthink_ >= self->fb.frogbot_nextthink) {
@@ -65,7 +69,7 @@ void RocketAlert() {
 }
 
 void NewVelocityForArrow() {
-	BestArrowForDirection();
+	float best_arrow = BestArrowForDirection();
 	if (self->fb.arrow != best_arrow) {
 		VectorCopy(dir_move, self->fb.dir_move_);
 		self->fb.arrow = best_arrow;
@@ -76,6 +80,8 @@ void NewVelocityForArrow() {
 }
 
 void AvoidHazards() {
+	float hor_speed = 0;
+
 	VectorCopy(self->s.v.velocity, new_velocity);
 	linked_marker_ = self->fb.linked_marker;
 	if ((int)self->fb.path_state & JUMP_LEDGE) {
@@ -287,6 +293,8 @@ void AvoidHazards() {
 				self->fb.path_state = self->fb.path_state - DELIBERATE_AIR;
 			}
 			if (new_fall > fall) {
+				float normal_comp = 0;
+
 				if (g_globalvars.time > self->fb.arrow_time2) {
 					current_fallspot = fall;
 					VectorCopy(new_velocity, jump_velocity);
@@ -319,9 +327,8 @@ void AvoidHazards() {
 					AvoidEdge();
 					return;
 				}
-				else  {
-					normalize(g_globalvars.trace_plane_normal, edge_normal);
-				}
+
+				normalize(g_globalvars.trace_plane_normal, edge_normal);
 				normal_comp = DotProduct(edge_normal, dir_forward);
 				if (normal_comp <= 0) {
 					AvoidEdge();

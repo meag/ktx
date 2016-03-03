@@ -31,9 +31,8 @@ void AvoidLookObjectsMissile() {
 }
 
 void LookingAtEnemyLogic() {
-	visible_object = look_object_;
-	Visible_360();
-	if (enemy_visible) {
+	//UpdateEnemy
+	if (Visible_360(self, look_object_)) {
 		if (look_object_ == enemy_) {
 			self->fb.enemy_dist = VectorDistance(look_object_->s.v.origin, origin_);
 		}
@@ -51,10 +50,11 @@ void LookingAtEnemyLogic() {
 }
 
 void NewlyPickedEnemyLogic() {
+	gedict_t* goalentity_ = &g_edicts[self->s.v.goalentity];
+
 	visible_object = enemy_;
 	if (goalentity_ == enemy_) {
-		Visible_360();
-		if (enemy_visible) {
+		if (Visible_360(self, enemy_)) {
 			LookEnemy();
 		}
 		else  {
@@ -144,6 +144,8 @@ void BotOnGroundMovement() {
 
 void BotMoveTowardsLinkedMarker() {
 	vec3_t temp;
+	gedict_t* goalentity_ = &g_edicts[self->s.v.goalentity];
+
 	VectorAdd(linked_marker_->s.v.absmin, linked_marker_->s.v.view_ofs, temp);
 	VectorSubtract(temp, origin_, temp);
 	normalize(temp, dir_move);
@@ -193,16 +195,16 @@ void BotTouchMarkerLogic() {
 			dir_move[2] = 0;
 		}
 
-		BestArrowForDirection();
-
+		self->fb.arrow = BestArrowForDirection();
 		VectorCopy(dir_move, self->fb.dir_move_);
-		self->fb.arrow = best_arrow;
 	}
 
 	SelectWeapon();
 }
 
 void HumanTouchMarkerLogic() {
+	gedict_t* goalentity_ = &g_edicts[self->s.v.goalentity];
+
 	enemy_ = &g_edicts[self->s.v.enemy];
 	touch_marker_ = self->fb.touch_marker;
 	lookahead_time_ = self->fb.lookahead_time;
@@ -226,6 +228,8 @@ void PeriodicAllClientLogic() {
 
 	if (self->fb.touch_marker) {
 		if (self->fb.state & AWARE_SURROUNDINGS) {
+			gedict_t* goalentity_ = &g_edicts[self->s.v.goalentity];
+
 			enemy_ = &g_edicts[self->s.v.enemy];
 			look_object_ = self->fb.look_object;
 			touch_marker_ = self->fb.touch_marker;
@@ -247,10 +251,8 @@ void PeriodicAllClientLogic() {
 				self->fb.old_linked_marker = world;
 				self->fb.state = self->fb.state | AWARE_SURROUNDINGS;
 			}
-			else  {
-				if (markers_loaded) {
-					self->fb.state = self->fb.state | AWARE_SURROUNDINGS;
-				}
+			else if (markers_loaded) {
+				self->fb.state = self->fb.state | AWARE_SURROUNDINGS;
 			}
 		}
 	}
@@ -261,10 +263,10 @@ void PeriodicAllClientLogic() {
 }
 
 static void BotStopFiring() {
-	if (!((int)self->s.v.weapon & IT_CONTINUOUS)) {
-		if (!self->fb.rocketjumping) {
-			self->fb.firing = false;
-		}
+	qbool continuous = (qbool) ((int)self->s.v.weapon & IT_CONTINUOUS);
+
+	if (!(continuous || self->fb.rocketjumping)) {
+		self->fb.firing = (qbool) false;
 	}
 }
 
@@ -292,6 +294,7 @@ static void PredictEnemyLocationInFuture(gedict_t* enemy, float rel_time) {
 	enemy_->s.v.solid = enemy_->fb.oldsolid;
 }
 
+// This is when firing at buttons/doors etc
 static void BotsFireAtWorldLogic() {
 	VectorAdd(look_object_->s.v.absmin, look_object_->s.v.view_ofs, rel_pos);
 	VectorSubtract(rel_pos, origin_, rel_pos);
@@ -305,19 +308,18 @@ static void BotsFireAtWorldLogic() {
 			self->fb.state = self->fb.state & NOT_NOTARGET_ENEMY;
 		}
 	}
-	else  {
-		if (rel_dist < 160) {
-			rel_pos2[0] = rel_pos[0];
-			rel_pos2[1] = rel_pos[1];
-			VectorNormalize(rel_pos2);
-			VectorScale(rel_pos2, 160, rel_pos2);
-			rel_pos[0] = rel_pos2[0];
-			rel_pos[1] = rel_pos2[1];
-			rel_dist = 160;
-		}
+	else if (rel_dist < 160) {
+		rel_pos2[0] = rel_pos[0];
+		rel_pos2[1] = rel_pos[1];
+		VectorNormalize(rel_pos2);
+		VectorScale(rel_pos2, 160, rel_pos2);
+		rel_pos[0] = rel_pos2[0];
+		rel_pos[1] = rel_pos2[1];
+		rel_dist = 160;
 	}
 }
 
+// When firing at another player
 static void BotsFireAtPlayerLogic() {
 	VectorSubtract(look_object_->s.v.origin, origin_, rel_pos);
 	rel_dist = vlen(rel_pos);

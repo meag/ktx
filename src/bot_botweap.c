@@ -76,35 +76,18 @@ void AttackRespawns() {
 	}
 }
 
-static void CheckNewWeapon() {
+static void CheckNewWeapon(int desired_weapon) {
+	int weapons[] = { 
+		IT_AXE, IT_SHOTGUN, IT_SUPER_SHOTGUN, IT_NAILGUN, IT_SUPER_NAILGUN, IT_GRENADE_LAUNCHER, IT_ROCKET_LAUNCHER, IT_LIGHTNING
+	};
+
 	if (self->s.v.weapon != desired_weapon) {
-		if (self->fb.lines) {
-			return;
-		}
-		self->fb.botchose = 1;
-		if (desired_weapon == IT_LIGHTNING) {
-			self->s.v.impulse = 8;
-		}
-		else if (desired_weapon == IT_ROCKET_LAUNCHER) {
-			self->s.v.impulse = 7;
-		}
-		else if (desired_weapon == IT_GRENADE_LAUNCHER) {
-			self->s.v.impulse = 6;
-		}
-		else if (desired_weapon == IT_SUPER_NAILGUN) {
-			self->s.v.impulse = 5;
-		}
-		else if (desired_weapon == IT_NAILGUN) {
-			self->s.v.impulse = 4;
-		}
-		else if (desired_weapon == IT_SUPER_SHOTGUN) {
-			self->s.v.impulse = 3;
-		}
-		else if (desired_weapon == IT_SHOTGUN) {
-			self->s.v.impulse = 2;
-		}
-		else if (desired_weapon == IT_AXE) {
-			self->s.v.impulse = 1;
+		int i = 0;
+		for (i = 0; i < sizeof(weapons) / sizeof(weapons[0]); ++i) {
+			if (weapons[i] == desired_weapon) {
+				self->fb.botchose = true;
+				self->s.v.impulse = i + 1;
+			}
 		}
 	}
 }
@@ -118,7 +101,7 @@ static qbool ShotForLuck(vec3_t object) {
 void SetFireButton() {
 	if (match_in_progress != 2) {
 		if (! match_in_progress) {
-			if ((enemy_ != attacker) || ((g_globalvars.time + random()) < enemy_->attack_finished)) {
+			if ((g_globalvars.time + random()) < enemy_->attack_finished) {
 				self->fb.firing = false;
 				return;
 			}
@@ -149,8 +132,10 @@ void SetFireButton() {
 		return;
 	}
 	if (! SameTeam(look_object_, self)) {
+		// FIXME: Move to DM6 file
 		if (self->fb.path_state & DM6_DOOR) {
 			int items_ = (int) self->s.v.items;
+			int desired_weapon = 0;
 			if (self->s.v.ammo_shells) {
 				desired_weapon = IT_SHOTGUN;
 			}
@@ -163,11 +148,13 @@ void SetFireButton() {
 			else if ((items_ & IT_LIGHTNING) && (self->s.v.ammo_cells)) {
 				desired_weapon = IT_LIGHTNING;
 			}
-			CheckNewWeapon();
+			CheckNewWeapon( desired_weapon );
 			if (self->s.v.weapon == desired_weapon) {
 				self->fb.firing = true;
 			}
 		}
+
+		// FIXME: what is this referring to?
 		if (self->fb.state & HURT_SELF) {
 			if (self->s.v.weapon == IT_ROCKET_LAUNCHER) {
 				if (self->fb.real_pitch == 78.75) {
@@ -177,6 +164,7 @@ void SetFireButton() {
 			}
 			return;
 		}
+
 		if (enemy_) {
 			if (enemy_->fb.touch_marker) {
 				traceline(origin_[0], origin_[1], origin_[2] + 16, origin_[0] + rel_pos[0], origin_[1] + rel_pos[1], origin_[2] + rel_pos[2] + 16, FALSE, self);
@@ -217,11 +205,13 @@ void SetFireButton() {
 						}
 					}
 				}
+
 				if (self->s.v.weapon == IT_LIGHTNING) {
 					if (self->s.v.waterlevel > 1) {
 						return;
 					}
 				}
+
 				risk_factor = 0.5;
 				risk = random();
 				risk = risk * risk;
@@ -231,7 +221,9 @@ void SetFireButton() {
 							if ((self->s.v.weapon == IT_ROCKET_LAUNCHER) || (self->s.v.weapon == IT_GRENADE_LAUNCHER)) {
 								if (self->fb.look_object == enemy_) {
 									if (self->fb.enemy_dist <= 250) {
+										// Enemy is too close for explosion, fire something else instead.
 										int items_ = (int) self->s.v.items;
+										int desired_weapon = 0;
 										if ((items_ & IT_LIGHTNING) && (self->s.v.ammo_cells)) {
 											desired_weapon = IT_LIGHTNING;
 										}
@@ -247,7 +239,7 @@ void SetFireButton() {
 										else if (self->s.v.ammo_shells) {
 											desired_weapon = IT_SHOTGUN;
 										}
-										CheckNewWeapon();
+										CheckNewWeapon( desired_weapon );
 										if (self->s.v.weapon == desired_weapon) {
 											self->fb.firing = true;
 										}
@@ -408,20 +400,20 @@ void SetFireButton() {
 	}
 }
 
-void DesiredWeapon() {
+static int DesiredWeapon() {
 	int items_ = self->s.v.items;
+	qbool shaft_available = false;
+	qbool avoid_rockets = false;
 
-	avoid_rockets = FALSE;
 	if ((int)self->s.v.items & IT_QUAD) {
-		if (teamplay && (healthplay != TEAM_TOTAL_HEALTH_PROTECT)) {
+		if (teamplay != 1 && teamplay != 5) {
 			search_entity = identify_teammate_(self);
 			if (!search_entity->invincible_time) {
 				if (VisibleEntity(search_entity)) {
 					if (enemy_visible) {
 						if (VectorDistance(search_entity->s.v.origin, enemy_->s.v.origin) < 150) {
 							if (self->s.v.ammo_shells) {
-								desired_weapon = IT_SHOTGUN;
-								return;
+								return IT_SHOTGUN;
 							}
 						}
 					}
@@ -429,35 +421,34 @@ void DesiredWeapon() {
 			}
 		}
 	}
+
 	if (game_rl_pref || fb_lg_disabled()) {
 		if (items_ & IT_ROCKET_LAUNCHER) {
 			if (self->s.v.ammo_rockets) {
 				if (RocketSafe()) {
-					desired_weapon = IT_ROCKET_LAUNCHER;
-					return;
+					return IT_ROCKET_LAUNCHER;
 				}
-				avoid_rockets = TRUE;
+				avoid_rockets = (qbool) true;
 			}
 		}
 	}
-	shaft_available = FALSE;
+
+	shaft_available = false;
 	if (game_lg_pref && !fb_lg_disabled()) {
 		if ((self->s.v.waterlevel <= 1) || ((int)self->s.v.items & IT_INVULNERABILITY)) {
-			if (items_ & IT_LIGHTNING) {
-				if (self->s.v.ammo_cells) {
-					if (self->fb.enemy_dist <= 600) {
-						desired_weapon = IT_LIGHTNING;
-						return;
-					}
-					shaft_available = TRUE;
+			if ((items_ & IT_LIGHTNING) && self->s.v.ammo_cells) {
+				if (self->fb.enemy_dist <= 600) {
+					return IT_LIGHTNING;
 				}
+				shaft_available = true;
 			}
 		}
 	}
+
 	if (BotShouldDischarge()) {
-		desired_weapon = IT_LIGHTNING;
-		return;
+		return IT_LIGHTNING;
 	}
+
 	if (!fb_lg_disabled()) {
 		if ((self->s.v.waterlevel <= 1) || ((int)self->s.v.items & IT_INVULNERABILITY)) {
 			if (items_ & IT_LIGHTNING) {
@@ -469,30 +460,28 @@ void DesiredWeapon() {
 							vectoangles(diff, enemy_angles);
 							if (enemy_angles[0] < 15) {
 								if (enemy_angles[0] > -15) {
-									desired_weapon = IT_LIGHTNING;
-									return;
+									return IT_LIGHTNING;
 								}
 							}
 						}
 						else  {
-							desired_weapon = IT_LIGHTNING;
-							return;
+							return IT_LIGHTNING;
 						}
-						shaft_available = TRUE;
+						shaft_available = true;
 					}
 				}
 			}
 		}
 	}
+
 	if (!avoid_rockets) {
 		if (items_ & IT_ROCKET_LAUNCHER) {
 			if (self->s.v.ammo_rockets) {
 				if (RocketSafe()) {
-					desired_weapon = IT_ROCKET_LAUNCHER;
-					return;
+					return IT_ROCKET_LAUNCHER;
 				}
 				if (!((int)self->s.v.items & IT_INVULNERABILITY)) {
-					avoid_rockets = TRUE;
+					avoid_rockets = (qbool) true;
 				}
 			}
 		}
@@ -501,23 +490,20 @@ void DesiredWeapon() {
 		if (items_ & IT_ROCKET_LAUNCHER) {
 			if (self->s.v.ammo_rockets) {
 				if (RocketSafe()) {
-					desired_weapon = IT_ROCKET_LAUNCHER;
-					return;
+					return IT_ROCKET_LAUNCHER;
 				}
 			}
 		}
 		else if (items_ & IT_LIGHTNING) {
 			if (self->s.v.ammo_cells) {
 				if (shaft_available) {
-					desired_weapon = IT_LIGHTNING;
-					return;
+					return IT_LIGHTNING;
 				}
 			}
 		}
 	}
 	if (shaft_available) {
-		desired_weapon = IT_LIGHTNING;
-		return;
+		return IT_LIGHTNING;
 	}
 	if (self->fb.enemy_dist <= 320) {
 		if (!avoid_rockets) {
@@ -525,8 +511,7 @@ void DesiredWeapon() {
 				if (self->s.v.ammo_rockets) {
 					if (RocketSafe()) {
 						if (WaterCombat()) {
-							desired_weapon = IT_GRENADE_LAUNCHER;
-							return;
+							return IT_GRENADE_LAUNCHER;
 						}
 					}
 				}
@@ -536,26 +521,22 @@ void DesiredWeapon() {
 	if (self->fb.enemy_dist <= 600) {
 		if (items_ & IT_SUPER_NAILGUN) {
 			if (self->s.v.ammo_nails) {
-				desired_weapon = IT_SUPER_NAILGUN;
-				return;
+				return IT_SUPER_NAILGUN;
 			}
 		}
 		if (items_ & IT_SUPER_SHOTGUN) {
 			if (self->s.v.ammo_shells) {
-				desired_weapon = IT_SUPER_SHOTGUN;
-				return;
+				return IT_SUPER_SHOTGUN;
 			}
 		}
 		if (items_ & IT_NAILGUN) {
 			if (self->s.v.ammo_nails) {
-				desired_weapon = IT_NAILGUN;
-				return;
+				return IT_NAILGUN;
 			}
 		}
 	}
 	if (self->s.v.ammo_shells) {
-		desired_weapon = IT_SHOTGUN;
-		return;
+		return IT_SHOTGUN;
 	}
 }
 
@@ -579,8 +560,7 @@ void SelectWeapon() {
 		}
 		self->fb.state = self->fb.state & NOT_HURT_SELF;
 	}
-	DesiredWeapon();
-	CheckNewWeapon();
+	CheckNewWeapon( DesiredWeapon() );
 }
 
 void DelayUpdateWeapons() {
@@ -592,10 +572,12 @@ void DelayUpdateWeapons() {
 
 void UpdateWeapons() {
 	int items_ = (int) self->s.v.items;
+	float firepower_ = 100.0f;
 
 	self->fb.weapon_refresh_time = 1000000;
 	if (deathmatch != 4) {
-		attackbonus = 0;
+		int attackbonus = 0;
+		firepower_ = 0;
 		if (items_ & IT_ROCKET_LAUNCHER) {
 			firepower_ = self->s.v.ammo_rockets * 8;
 			if (self->s.v.ammo_rockets) {
@@ -608,9 +590,8 @@ void UpdateWeapons() {
 				firepower_ = 50;
 			}
 		}
-		else  {
-			firepower_ = 0;
-		}
+
+
 		if (items_ & IT_LIGHTNING) {
 			firepower_ = firepower_ + self->s.v.ammo_cells;
 			if (self->s.v.ammo_cells >= 10) {
@@ -639,38 +620,21 @@ void UpdateWeapons() {
 		if (firepower_ > 100) {
 			firepower_ = 100;
 		}
-		if (self->s.v.ammo_rockets >= 15) {
-			self->fb.desire_rockets = 5;
-		}
-		else  {
-			self->fb.desire_rockets = 20 - self->s.v.ammo_rockets;
-		}
-		if (self->s.v.ammo_cells >= 37.5) {
-			self->fb.desire_cells = 2.5;
-		}
-		else  {
-			self->fb.desire_cells = (50 - self->s.v.ammo_cells) * 0.2;
-		}
-		self->fb.desire_rocketlauncher = 100 - firepower_;
-		if (self->fb.desire_rocketlauncher < self->fb.desire_rockets) {
-			self->fb.desire_rocketlauncher = self->fb.desire_rockets;
-		}
-		if (self->fb.desire_rocketlauncher >= self->fb.desire_cells) {
-			self->fb.desire_lightning = self->fb.desire_rocketlauncher;
-		}
-		else  {
-			self->fb.desire_lightning = self->fb.desire_cells;
-		}
+
+		self->fb.desire_rockets = max(5, 20 - self->s.v.ammo_rockets);
+		self->fb.desire_cells = max(2.5, (50 - self->s.v.ammo_cells) * 0.2);
+		self->fb.desire_rocketlauncher = max(100 - firepower_, self->fb.desire_rockets);
+		self->fb.desire_lightning = max(self->fb.desire_rocketlauncher, self->fb.desire_cells);
+
 		if (items_ & IT_ROCKET_LAUNCHER) {
 			self->fb.desire_rockets = self->fb.desire_grenadelauncher = self->fb.desire_rocketlauncher;
 		}
-		else  {
-			if (firepower_ >= 50) {
-				self->fb.desire_grenadelauncher = 0;
-			}
-			else  {
+		else {
+			self->fb.desire_grenadelauncher = 0;
+			if (firepower_ < 50) {
 				self->fb.desire_grenadelauncher = 50 - firepower_;
 			}
+
 			if (self->fb.desire_grenadelauncher < self->fb.desire_rockets) {
 				self->fb.desire_grenadelauncher = self->fb.desire_rockets;
 			}
@@ -678,64 +642,39 @@ void UpdateWeapons() {
 				self->fb.desire_rockets = self->fb.desire_grenadelauncher;
 			}
 		}
+
 		if (items_ & IT_LIGHTNING) {
 			self->fb.desire_cells = self->fb.desire_lightning;
 		}
+
+		self->fb.desire_nails = self->fb.desire_shells = 0;
 		if (firepower_ < 20) {
 			self->fb.desire_nails = 2.5 - (self->s.v.ammo_nails * 0.0125);
-			if (self->s.v.ammo_shells >= 50) {
-				self->fb.desire_shells = 0;
-			}
-			else  {
+			if (self->s.v.ammo_shells < 50) {
 				self->fb.desire_shells = 2.5 - (self->s.v.ammo_shells * 0.05);
 			}
 		}
-		else  {
-			self->fb.desire_nails = self->fb.desire_shells = 0;
-		}
-		if (firepower_ >= 20) {
-			self->fb.desire_supershotgun = 0;
-		}
-		else  {
-			self->fb.desire_supershotgun = 20 - firepower_;
-		}
-		if (self->fb.desire_supershotgun >= self->fb.desire_nails) {
-			self->fb.desire_nailgun = self->fb.desire_supernailgun = self->fb.desire_supershotgun;
-		}
-		else  {
-			self->fb.desire_nailgun = self->fb.desire_supernailgun = self->fb.desire_nails;
-		}
-		if (self->fb.desire_supershotgun < self->fb.desire_shells) {
-			self->fb.desire_supershotgun = self->fb.desire_shells;
-		}
+
+		self->fb.desire_supershotgun = max(0, 20 - firepower_);
+		self->fb.desire_nailgun = self->fb.desire_supernailgun = max(self->fb.desire_supershotgun, self->fb.desire_nails);
+		self->fb.desire_supershotgun = max(self->fb.desire_supershotgun, self->fb.desire_shells);
+
 		if (items_ & IT_EITHER_NAILGUN) {
 			self->fb.desire_nails = self->fb.desire_supernailgun;
 		}
 		if (items_ & IT_SUPER_SHOTGUN) {
 			self->fb.desire_shells = self->fb.desire_supershotgun;
 		}
-		firepower_ = firepower_ + attackbonus;
-		if (firepower_ > 100) {
-			firepower_ = 100;
-		}
-		if (self->super_damage_finished > g_globalvars.time) {
-			firepower_ = firepower_ * 4;
-		}
-		if (self->ctf_flag & CTF_RUNE_STR) {
-			firepower_ = firepower_ * 2;
-		}
-		self->fb.firepower = firepower_;
+
+		firepower_ = bound(0, firepower_ + attackbonus, 100);
 	}
-	else  {
-		if (self->super_damage_finished > g_globalvars.time) {
-			self->fb.firepower = 800;
-		}
-		else  {
-			self->fb.firepower = 100;
-		}
-		if (self->ctf_flag & CTF_RUNE_STR) {
-			self->fb.firepower = self->fb.firepower * 2;
-		}
+
+	if (self->super_damage_finished > g_globalvars.time) {
+		firepower_ *= (deathmatch == 4 ? 8 : 4);
 	}
+	if (self->ctf_flag & CTF_RUNE_STR) {
+		firepower_ *= 2;
+	}
+	self->fb.firepower = firepower_;
 }
 

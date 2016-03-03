@@ -3,6 +3,8 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
+#if 0
+
 void a_think() {
 }
 
@@ -28,7 +30,6 @@ void spawn_load() {
 		++total_entity_count;
 	}
 }
-
 void set_load() {
 	load_position = current_load_position;
 	while (load_position) {
@@ -42,7 +43,7 @@ void remove_load() {
 
 	time_start = g_globalvars.time;
 	framecount_start = framecount;
-	markers_loaded = load_frogbots = TRUE;
+	markers_loaded = true;
 	/*
 	while (current_load_position) {
 		if (current_load_position->s.v.classname == "load") {
@@ -60,3 +61,4 @@ void remove_load() {
 	}
 }
 
+#endif

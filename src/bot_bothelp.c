@@ -123,21 +123,21 @@ gedict_t* HelpTeammate() {
 	      best_dist2;
 
 	if (!teamplay) {
-		return world;
+		return NULL;
 	}
 	if (self->fb.state & WAIT) {
-		return world;
+		return NULL;
 	}
 	if (self->fb.state & RUNAWAY) {
-		return world;
+		return NULL;
 	}
 	if (self->fb.state & NOTARGET_ENEMY) {
-		return world;
+		return NULL;
 	}
 
 	goalent = &g_edicts[self->s.v.goalentity];
 	if (goalent->s.v.goalentity == NUM_FOR_EDICT(self)) {
-		return world;
+		return NULL;
 	}
 	if ((goalent->ct == ctPlayer) && (goalent != self)) {
 		if (SameTeam(goalent, self)) {
@@ -155,7 +155,7 @@ gedict_t* HelpTeammate() {
 	}
 	bdist = 500;
 	if (g_globalvars.time < self->fb.help_teammate_time) {
-		return world;
+		return NULL;
 	}
 	self->fb.help_teammate_time = g_globalvars.time + 20 + 3 * random();
 	selected1 = world;
@@ -205,6 +205,6 @@ gedict_t* HelpTeammate() {
 	else if (selected2 != world) {
 		return selected2;
 	}
-	return world;
+	return NULL;
 }
 

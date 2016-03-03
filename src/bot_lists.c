@@ -81,14 +81,6 @@ gedict_t* EntityAt(gedict_t* start_entity, float index_) {
 void InitFrogbots1() {
 	prephysics = spawn();
 	prephysics->s.v.think = (func_t) FrogbotPrePhysics2;
-	while (frogbot_number < maxplayers) {
-		new_bot = spawn();
-		if (!first_frogbot) {
-			first_frogbot = new_bot;
-		}
-		frogbot_number = frogbot_number + 1;
-		new_bot->s.v.colormap = frogbot_number;
-	}
 	postphysics = frogbot_spawned = spawn();
 	postphysics->s.v.think = (func_t) FrogbotPostPhysics;
 }

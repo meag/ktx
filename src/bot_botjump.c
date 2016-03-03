@@ -3,60 +3,47 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
-float right_direction() {
-	vec3_t test_dir,
-	       temp;
-	float current_dir,
-	      wish_dir,
-	      right_dir;
+// Returns true if the bot is travelling in the 'right' direction (with 90 degrees of target)
+static qbool right_direction(gedict_t* self) {
+	vec3_t test_direction,
+	       direction_to_test_marker;
+	float current_direction,
+	      desired_direction,
+	      right_direction;
 	float min_one,
 	      min_two;
-	normalize(self->fb.oldvelocity, test_dir);
-	current_dir = vectoyaw(test_dir);
-	VectorSubtract(self->fb.linked_marker->s.v.origin, self->s.v.origin, temp);
-	normalize(temp, test_dir);
-	wish_dir = vectoyaw(test_dir);
-	min_one = fabs(wish_dir - current_dir);
-	if (wish_dir >= 180) {
-		wish_dir = wish_dir - 360;
+
+	// current direction
+	normalize(self->fb.oldvelocity, test_direction);
+	current_direction = vectoyaw(test_direction);
+	
+	// desired direction
+	VectorSubtract(self->fb.linked_marker->s.v.origin, self->s.v.origin, direction_to_test_marker);
+	normalize(direction_to_test_marker, test_direction);
+	desired_direction = vectoyaw(test_direction);
+
+	min_one = fabs(desired_direction - current_direction);
+
+	// Reduce angle size and try again, incase one was 20 and the other was 340.. 
+	if (desired_direction >= 180) {
+		desired_direction -= 360;
 	}
-	if (current_dir >= 180) {
-		current_dir = current_dir - 360;
+	if (current_direction >= 180) {
+		current_direction -= 360;
 	}
-	min_two = fabs(wish_dir - current_dir);
-	right_dir = min_one;
-	if (min_two < right_dir) {
-		right_dir = min_two;
-	}
-	return (right_dir <= 90);
+	min_two = fabs(desired_direction - current_direction);
+
+	return (qbool) (min(min_one, min_two) <= 90);
 }
 
-float able_rj() {
-	float health_after = min(self->s.v.armorvalue, ceil(self->s.v.armortype * 50));
-
-	// If invincible, can always rocket jump
-	if ((int)self->s.v.items & (IT_INVULNERABILITY_QUAD | IT_INVULNERABILITY)) {
-		return 1;
-	}
-
-	// work out how much health we'll have after - factor in if we're heading towards a respawned healthbox
-	health_after = ((teamplay == 1) || (teamplay == 5) ? 100 : self->s.v.health - ceil(55 - health_after));
-	if (self->fb.linked_marker && self->fb.linked_marker->healamount > 0 && self->fb.linked_marker->s.v.nextthink == 0) {
-		health_after = health_after + self->fb.linked_marker->healamount;
-	}
-
-	if (health_after > 50 && ((int)self->s.v.items & IT_ROCKET_LAUNCHER) && (self->s.v.ammo_rockets >= 1) && (!beQuiet) && (self->fb.willRocketJumpThisTic)) {
-		return 1;
-	}
-	return 0;
-}
-
-float checkboven() {
+// Returns true if space above bot
+static float checkboven(gedict_t* self) {
 	traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2], self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 140, TRUE, self);
 	return (g_globalvars.trace_fraction == 1);
 }
 
-float checkground() {
+// Returns true if ground
+static float checkground(gedict_t* self) {
 	trap_makevectors(self->s.v.v_angle);
 	g_globalvars.v_forward[2] = 0;
 	VectorNormalize(g_globalvars.v_forward);
@@ -65,25 +52,24 @@ float checkground() {
 	return (g_globalvars.trace_fraction != 1);
 }
 
-void lava_jump() {
-	gedict_t *e,
-	         *pt;
-	float bdist,
-	      byaw;
+// Performs lava jump (RJ when in lava)
+static void lava_jump(gedict_t* self) {
+	gedict_t *e = NULL,
+	         *pt = self;
+	float best_distance = 1001,
+	      best_yaw = 0;
 
-	bdist = 1001;
-	pt = self;
 	for (e = world; e = trap_findradius(e, e->s.v.origin, 1000); world) {
 		if (streq(e->s.v.classname, "marker")) {
-			if (VectorDistance(t->s.v.origin, e->s.v.origin) < bdist) {
-				bdist = VectorDistance(t->s.v.origin, e->s.v.origin);
+			if (VectorDistance(t->s.v.origin, e->s.v.origin) < best_distance) {
+				best_distance = VectorDistance(t->s.v.origin, e->s.v.origin);
 				pt = e;
 			}
 		}
 	}
 
-	byaw = vectoyaw(t->s.v.origin);
-	self->fb.real_yaw = (360 - byaw);
+	best_yaw = vectoyaw(t->s.v.origin);
+	self->fb.real_yaw = (360 - best_yaw);
 	self->fb.yawaccel = 0;
 	self->fb.yawspeed = 0;
 	if (self->s.v.waterlevel == 3) {
@@ -102,8 +88,8 @@ void lava_jump() {
 			self->fb.pitchspeed = 0;
 			self->fb.arrow = BACK;
 			VelocityForArrow();
-			self->fb.rocketjumping = 1;
-			self->fb.botchose = 1;
+			self->fb.rocketjumping = true;
+			self->fb.botchose = true;
 			self->s.v.impulse = 7;
 			self->fb.firing = true;
 			self->fb.up_finished = g_globalvars.time + 0.1;
@@ -117,22 +103,39 @@ void lava_jump() {
 	}
 }
 
+qbool able_rj() {
+	float health_after = min(self->s.v.armorvalue, ceil(self->s.v.armortype * 50));
+	qbool has_rj       = (qbool) (((int)self->s.v.items & IT_ROCKET_LAUNCHER) && (self->s.v.ammo_rockets >= 1));
+	qbool has_pent     = (qbool) ((int)self->s.v.items & (IT_INVULNERABILITY_QUAD | IT_INVULNERABILITY));
+
+	// If invincible, can always rocket jump
+	if (has_pent) {
+		return true;
+	}
+
+	// work out how much health we'll have after - factor in if we're heading towards a respawned healthbox
+	health_after = ((teamplay == 1) || (teamplay == 5) ? 100 : self->s.v.health - ceil(55 - health_after));
+	if (self->fb.linked_marker && self->fb.linked_marker->healamount > 0 && self->fb.linked_marker->s.v.nextthink == 0) {
+		health_after = health_after + self->fb.linked_marker->healamount;
+	}
+
+	return (qbool) (health_after > 50 && has_rj && (!beQuiet) && g_random() < 0.2);
+}
+
+// FIXME: not called at present (client.qc)
+// Performs rocket jump 
 void a_rocketjump() {
-	self->fb.rocketjumping = 0;
-	if (match_in_progress != 2) {
-		return;
-	}
-	if (!self->s.v.ammo_rockets) {
-		return;
-	}
-	if (!((int)self->s.v.items & IT_ROCKET_LAUNCHER)) {
+	qbool has_rl = (qbool) (self->s.v.ammo_rockets && ((int)self->s.v.items & IT_ROCKET_LAUNCHER));
+
+	self->fb.rocketjumping = true;
+	if (match_in_progress != 2 || !has_rl) {
 		return;
 	}
 	if (self->s.v.waterlevel > 1) {
 		vec3_t point = { self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] - 24 };
 		if (trap_pointcontents(point[0], point[1], point[2]) == CONTENT_LAVA) {
-			if (checkboven()) {
-				lava_jump();
+			if (checkboven(self)) {
+				lava_jump(self, t);
 				return;
 			}
 		}
@@ -140,18 +143,13 @@ void a_rocketjump() {
 	if (!self->fb.willRocketJumpThisTic) {
 		return;
 	}
-	if ((int)self->s.v.items & IT_QUAD) {
-		if (!((int)self->s.v.items & IT_INVULNERABILITY)) {
-			return;
-		}
+	if ((int)self->s.v.items & IT_QUAD && !((int)self->s.v.items & IT_INVULNERABILITY)) {
+		return;
 	}
 	if (!((int)self->fb.path_state & ROCKET_JUMP)) {
 		return;
 	}
-	if (self->fb.firing || self->fb.jumping) {
-		return;
-	}
-	if (near_teammate(self)) {
+	if (self->fb.firing || self->fb.jumping || near_teammate(self)) {
 		return;
 	}
 	if (self->attack_finished > g_globalvars.time) {
@@ -163,30 +161,25 @@ void a_rocketjump() {
 	if (VectorDistance(self->s.v.origin, self->fb.touch_marker->s.v.origin) > 100) {
 		return;
 	}
-	if (!checkboven()) {
+	if (!checkboven(self) || !checkground(self) || !right_direction(self)) {
 		return;
 	}
-	if (!checkground()) {
-		return;
-	}
-	if (!right_direction()) {
-		return;
-	}
+
 	BestArrowForDirection();
 	VelocityForArrow();
 	new_pitch = 78.75;
 	self->fb.real_pitch = 78.75;
 	self->fb.pitchspeed = 0;
 	self->fb.pitchaccel = 0;
-	self->fb.rocketjumping = 1;
-	self->fb.botchose = 1;
+	self->fb.rocketjumping = (qbool) true;
+	self->fb.botchose = (qbool) true;
 	self->s.v.impulse = 7;
-	self->fb.firing = true;
-	self->fb.jumping = true;
+	self->fb.firing = (qbool) true;
+	self->fb.jumping = (qbool) true;
 }
 
+// TODO: FIX THIS
 void CheckCombatJump() {
-	// TODO: FIX THIS
 	if (self->isBot) {
 		if (!self->s.v.waterlevel) {
 			if (self->fb.allowedMakeNoise) {

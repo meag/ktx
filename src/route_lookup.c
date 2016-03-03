@@ -306,6 +306,7 @@ ZONE_PATH_MARKER_FUNCTION(22)
 ZONE_PATH_MARKER_FUNCTION(23)
 ZONE_PATH_MARKER_FUNCTION(24)
 
+// 
 void SightMarker() {
 	look_traveltime = 1000000;
 	middle_marker = from_marker;
