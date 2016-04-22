@@ -12,7 +12,7 @@ static float goal_health2(gedict_t* self) {
 	return self->fb.desire_health2;
 }
 
-static float goal_NULL(gedict_t* self) {
+float goal_NULL(gedict_t* self) {
 	return 0;
 }
 
@@ -60,7 +60,7 @@ static float goal_supershotgun2(gedict_t* self) {
 	if ((int)self->s.v.items & IT_SUPER_SHOTGUN) {
 		return 0;
 	}
-	return goal_supershotgun1();
+	return goal_supershotgun1(self);
 }
 
 static float goal_nailgun1(gedict_t* self) {
@@ -71,7 +71,7 @@ static float goal_nailgun2(gedict_t* self) {
 	if ((int)self->s.v.items & IT_NAILGUN) {
 		return 0;
 	}
-	return goal_nailgun1();
+	return goal_nailgun1(self);
 }
 
 static float goal_supernailgun1(gedict_t* self) {
@@ -82,7 +82,7 @@ static float goal_supernailgun2(gedict_t* self) {
 	if ((int)self->s.v.items & IT_SUPER_NAILGUN) {
 		return 0;
 	}
-	return goal_supernailgun1();
+	return goal_supernailgun1(self);
 }
 
 static float goal_grenadelauncher1(gedict_t* self) {
@@ -93,7 +93,7 @@ static float goal_grenadelauncher2(gedict_t* self) {
 	if ((int)self->s.v.items & IT_GRENADE_LAUNCHER) {
 		return 0;
 	}
-	return goal_grenadelauncher1();
+	return goal_grenadelauncher1(self);
 }
 
 static float goal_rocketlauncher1(gedict_t* self) {
@@ -104,7 +104,7 @@ static float goal_rocketlauncher2(gedict_t* self) {
 	if ((int)self->s.v.items & IT_ROCKET_LAUNCHER) {
 		return 0;
 	}
-	return goal_rocketlauncher1();
+	return goal_rocketlauncher1(self);
 }
 
 static float goal_lightning1(gedict_t* self) {
@@ -161,79 +161,113 @@ static float goal_artifact_super_damage(gedict_t* self) {
 
 // Pickup functions (TODO)
 
-qbool pickup_health0() {
+qbool pickup_health0(void) {
 	return (qbool) (self->s.v.health < 100);
 }
 
-qbool pickup_health2() {
+qbool pickup_health2(void) {
 	return (qbool) (self->s.v.health < 250);
 }
 
-qbool pickup_armor1() {
+qbool pickup_armor1(void) {
 	return (qbool) (self->fb.total_armor < 30);
 }
 
-qbool pickup_armor2() {
+qbool pickup_armor2(void) {
 	return (qbool) (self->fb.total_armor < 90);
 }
 
-qbool pickup_armorInv() {
+qbool pickup_armorInv(void) {
 	return (qbool) (self->fb.total_armor < 160);
 }
 
-qbool pickup_supershotgun2() {
+qbool pickup_supershotgun2(void) {
 	return (qbool) !((int)self->s.v.items & IT_SUPER_SHOTGUN);
 }
 
-qbool pickup_true() {
-	return (qbool) true;
+qbool pickup_true(void) {
+	return TRUE;
 }
 
-qbool pickup_nailgun2() {
+qbool pickup_nailgun2(void) {
 	return (qbool) !((int)self->s.v.items & IT_NAILGUN);
 }
 
-qbool pickup_supernailgun2() {
+qbool pickup_supernailgun2(void) {
 	return (qbool) !((int)self->s.v.items & IT_SUPER_NAILGUN);
 }
 
-qbool pickup_grenadelauncher2() {
+qbool pickup_grenadelauncher2(void) {
 	return (qbool) !((int)self->s.v.items & IT_GRENADE_LAUNCHER);
 }
 
-qbool pickup_rocketlauncher2() {
+qbool pickup_rocketlauncher2(void) {
 	return (qbool) !((int)self->s.v.items & IT_ROCKET_LAUNCHER);
 }
 
-qbool pickup_lightning2() {
+qbool pickup_lightning2(void) {
 	return (qbool) !((int)self->s.v.items & IT_LIGHTNING);
 }
 
-qbool pickup_shells() {
+qbool pickup_shells(void) {
 	return (qbool) (self->s.v.ammo_shells < 100);
 }
 
-qbool pickup_spikes() {
+qbool pickup_spikes(void) {
 	return (qbool) (self->s.v.ammo_nails < 200);
 }
 
-qbool pickup_rockets() {
+qbool pickup_rockets(void) {
 	return (qbool) (self->s.v.ammo_rockets < 100);
 }
 
-qbool pickup_cells() {
+qbool pickup_cells(void) {
 	return (qbool) (self->s.v.ammo_cells < 100);
 }
 
-
 // Item creation functions 
-static void StartItem(gedict_t* ent) {
+static void StartItemFB(gedict_t* ent) {
 	AddToQue(ent);
 	VectorSet(ent->s.v.view_ofs, 80, 80, 24);
-	first_item = AddToList(first_item, ent);
+	if (! ent->s.v.touch) {
+		ent->s.v.touch = (func_t) marker_touch;
+		ent->s.v.nextthink = -1;
+	}
+	//first_item = AddToList(first_item, ent);
 	//ent->s.v.solid = SOLID_TRIGGER;
 	//ent->s.v.flags = FL_ITEM;
 	BecomeMarker(ent);
+}
+
+//
+// Health
+
+static void fb_health_taken (gedict_t* item, gedict_t* player)
+{
+	if ((int)item->s.v.spawnflags & H_MEGA)
+	{
+		// TODO: TeamReport (TookMega)
+	}
+
+	AssignVirtualGoal ();
+	UpdateTotalDamage (player);
+	UpdateGoalEntity (item);
+}
+
+static void fb_health_touch (gedict_t* item, gedict_t* player)
+{
+	if (marker_time)
+		check_marker();
+}
+
+static void fb_health_rot (gedict_t* item, gedict_t* player)
+{
+	UpdateTotalDamage (player);
+
+	if (player->s.v.health <= 100)
+	{
+
+	}
 }
 
 static void fb_spawn_health(gedict_t* ent) {
@@ -246,7 +280,34 @@ static void fb_spawn_health(gedict_t* ent) {
 		ent->fb.pickup = pickup_health0;
 	}
 
-	StartItem(ent);
+	ent->fb.item_taken = fb_health_taken;
+	ent->fb.item_touch = fb_health_touch;
+	StartItemFB(ent);
+}
+
+//
+// Armor
+
+static void fb_armor_taken (gedict_t* item, gedict_t* player)
+{
+	UpdateTotalDamage(player);
+	UpdateGoalEntity(item);
+}
+
+static void fb_armor_touch (gedict_t* item, gedict_t* player)
+{
+	// allow the bot to hurt themselves to pickup armor
+	qbool have_more_armor = item->fb.total_armor >= player->fb.total_armor;
+	qbool want_armor = player->s.v.goalentity == NUM_FOR_EDICT (item);
+	qbool targetting_player = player->fb.look_object && player->fb.look_object->ct == ctPlayer;
+
+	if (want_armor && have_more_armor && marker_time && !targetting_player && !player->fb.firing) {
+		player->fb.state |= HURT_SELF;
+		player->fb.linked_marker = item;
+		player->fb.path_state = 0;
+		player->fb.linked_marker_time = g_globalvars.time + 0.5f;
+		player->fb.goal_refresh_time = g_globalvars.time + 2 + random();
+	}
 }
 
 static void fb_spawn_armor(gedict_t* ent) {
@@ -263,7 +324,24 @@ static void fb_spawn_armor(gedict_t* ent) {
 		ent->fb.pickup = pickup_armorInv;
 	}
 
-	StartItem(ent);
+	ent->fb.item_taken = fb_armor_taken;
+	ent->fb.item_touch = fb_armor_touch;
+	ent->fb.total_armor = ent->s.v.armortype * ent->s.v.armorvalue;
+
+	StartItemFB(ent);
+}
+
+//
+// weapons
+
+static void fb_weapon_touch (gedict_t* item, gedict_t* player)
+{
+	
+}
+
+static void fb_weapon_taken (gedict_t* item, gedict_t* player)
+{
+
 }
 
 static void fb_spawn_ssg(gedict_t* ent) {
@@ -279,7 +357,7 @@ static void fb_spawn_ssg(gedict_t* ent) {
 		ent->fb.pickup = pickup_supershotgun2;
 	}
 
-	StartItem(ent);
+	StartItemFB(ent);
 }
 
 static void fb_spawn_ng(gedict_t* ent) {
@@ -295,7 +373,7 @@ static void fb_spawn_ng(gedict_t* ent) {
 		ent->fb.pickup = pickup_nailgun2;
 	}
 
-	StartItem(ent);
+	StartItemFB(ent);
 }
 
 static void fb_spawn_sng(gedict_t* ent) {
@@ -311,7 +389,7 @@ static void fb_spawn_sng(gedict_t* ent) {
 		ent->fb.pickup = pickup_supernailgun2;
 	}
 
-	StartItem(ent);
+	StartItemFB(ent);
 }
 
 static void fb_spawn_gl(gedict_t* ent) {
@@ -327,7 +405,7 @@ static void fb_spawn_gl(gedict_t* ent) {
 		ent->fb.pickup = pickup_grenadelauncher2;
 	}
 
-	StartItem(ent);
+	StartItemFB(ent);
 }
 
 static void fb_spawn_rl(gedict_t* ent) {
@@ -343,7 +421,7 @@ static void fb_spawn_rl(gedict_t* ent) {
 		ent->fb.pickup = pickup_rocketlauncher2;
 	}
 
-	StartItem(ent);
+	StartItemFB(ent);
 }
 
 static void fb_spawn_lg(gedict_t* ent) {
@@ -359,7 +437,7 @@ static void fb_spawn_lg(gedict_t* ent) {
 		ent->fb.pickup = pickup_lightning2;
 	}
 
-	StartItem(ent);
+	StartItemFB(ent);
 }
 
 static void fb_spawn_shells(gedict_t* ent) {
@@ -368,7 +446,7 @@ static void fb_spawn_shells(gedict_t* ent) {
 	ent->fb.desire = goal_shells;
 	ent->fb.pickup = pickup_shells;
 
-	StartItem(ent);
+	StartItemFB(ent);
 }
 
 static void fb_spawn_spikes(gedict_t* ent) {
@@ -377,7 +455,7 @@ static void fb_spawn_spikes(gedict_t* ent) {
 	ent->fb.desire = goal_spikes;
 	ent->fb.pickup = pickup_spikes;
 
-	StartItem(ent);
+	StartItemFB(ent);
 }
 
 static void fb_spawn_rockets(gedict_t* ent) {
@@ -386,7 +464,7 @@ static void fb_spawn_rockets(gedict_t* ent) {
 	ent->fb.desire = goal_rockets;
 	ent->fb.pickup = pickup_rockets;
 
-	StartItem(ent);
+	StartItemFB(ent);
 }
 
 static void fb_spawn_cells(gedict_t* ent) {
@@ -395,7 +473,7 @@ static void fb_spawn_cells(gedict_t* ent) {
 	ent->fb.desire = goal_cells;
 	ent->fb.pickup = pickup_cells;
 
-	StartItem(ent);
+	StartItemFB(ent);
 }
 
 static void fb_spawn_weapon(gedict_t* ent) {
@@ -414,26 +492,53 @@ static void fb_spawn_pent(gedict_t* ent) {
 	ent->fb.desire = goal_artifact_invulnerability;
 	ent->fb.pickup = pickup_true;
 
-	StartItem(ent);
+	StartItemFB(ent);
 }
 
 static void fb_spawn_biosuit(gedict_t* ent) {
 	ent->fb.desire = goal_NULL;
 	ent->fb.pickup = pickup_true;
 
-	StartItem(ent);
+	StartItemFB(ent);
 }
 
 static void fb_spawn_ring(gedict_t* ent) {
 	ent->fb.desire = goal_artifact_invisibility;
 	ent->fb.pickup = pickup_true;
 
-	StartItem(ent);
+	StartItemFB(ent);
 }
 
 static void fb_spawn_quad(gedict_t* ent) {
 	ent->fb.desire = goal_artifact_super_damage;
 	ent->fb.pickup = pickup_true;
 	
-	StartItem(ent);
+	StartItemFB(ent);
+}
+
+fb_spawn_t itemSpawnFunctions[] = {
+	{ "item_health", fb_spawn_health },
+	{ "item_armor1", fb_spawn_armor },
+	{ "item_armor2", fb_spawn_armor },
+	{ "item_armorInv", fb_spawn_armor },
+	{ "weapon_supershotgun", fb_spawn_ssg },
+	{ "weapon_nailgun", fb_spawn_ng },
+	{ "weapon_supernailgun", fb_spawn_sng },
+	{ "weapon_grenadelauncher", fb_spawn_gl },
+	{ "weapon_rocketlauncher", fb_spawn_rl },
+	{ "weapon_lightning", fb_spawn_lg },
+	{ "item_shells", fb_spawn_shells },
+	{ "item_spikes", fb_spawn_spikes },
+	{ "item_rockets", fb_spawn_rockets },
+	{ "item_cells", fb_spawn_cells },
+	{ "item_weapon", fb_spawn_weapon },
+	{ "item_artifact_invulnerability", fb_spawn_pent },
+	{ "item_artifact_envirosuit", fb_spawn_biosuit },
+	{ "item_artifact_invisibility", fb_spawn_ring },
+	{ "item_artifact_super_damage", fb_spawn_quad }
+};
+
+int ItemSpawnFunctionCount (void)
+{
+	return sizeof (itemSpawnFunctions) / sizeof (itemSpawnFunctions[0]);
 }

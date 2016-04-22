@@ -174,13 +174,10 @@ extern float numberofplayers;
 extern float numberofclients;
 extern vec3_t oldvelocity_;
 extern vec3_t delta_velocity;
-extern float new_pitch;                       // fixme: set in client.qc
 extern gedict_t* current_waiting_bot;
-extern gedict_t* first_client;
 extern gedict_t* first_item;
 extern gedict_t* first_ent;
 extern gedict_t* first_teleport;
-extern gedict_t* first_takedamage;
 extern gedict_t* first_marker;
 extern float takedamage_exists;
 #ifndef FALL_FALSE
@@ -201,11 +198,6 @@ extern float mouse_friction;
 extern vec3_t pitch_tangent;
 extern vec3_t yaw_tangent;
 extern float mouse_vel;
-extern float pitchspeed_;
-extern float yawspeed_;
-extern float total_pitchspeed;
-extern float total_yawspeed;
-extern float real_pitch_;
 extern gedict_t* m_P;
 extern gedict_t* m_zone;
 extern float P_time;
@@ -376,9 +368,9 @@ extern float distance;
 extern vec3_t hor_direction;
 extern vec3_t dir_forward;
 extern float current_maxspeed;
-extern float velocity_forward;
-extern float accel_forward;
-extern float max_accel_forward;
+//extern float velocity_forward;
+//extern float accel_forward;
+//extern float max_accel_forward;
 extern vec3_t desired_accel;
 extern vec3_t hor_velocity;
 extern vec3_t new_velocity;
@@ -403,7 +395,7 @@ extern float tries;
 extern vec3_t last_clear_point;
 extern vec3_t last_clear_velocity;
 extern float jumpspeed;
-extern vec3_t dir_move;
+//extern vec3_t dir_move;
 //extern float path_score;
 extern float total_goal_time;
 extern gedict_t* goal_marker2;
@@ -439,9 +431,7 @@ extern vec3_t rel_dir;
 extern float rel_dist;
 extern float rel_time;
 extern vec3_t rel_hor_dir;
-extern vec3_t desired_angle;
 extern float hor_component;
-extern vec3_t angle_error;
 extern float min_angle_error;
 extern gedict_t* enemy_touch_marker;
 extern float new_health;
@@ -524,8 +514,6 @@ extern float forward;
 extern char* deathstring;
 extern char* deathstring2;
 extern gedict_t* removebot_self;
-extern float min_first;
-extern float min_second;
 extern vec3_t start;
 extern vec3_t end;
 //extern int description;
@@ -541,7 +529,6 @@ extern float dodge_factor;
 extern gedict_t* dodge_missile;
 extern gedict_t* killed_self;
 extern gedict_t* rune_self;
-extern gedict_t* fallspot_self;
 extern gedict_t* door_enemy;
 extern gedict_t* multi_ent;
 #ifndef NUMBER_LOAD_STAGE
@@ -574,7 +561,6 @@ extern float turning_speed;
 extern vec3_t hor_normal_vec;
 extern vec3_t last_clear_angle;
 extern vec3_t velocity_hor_angle;
-extern float predict_spot;
 extern float beQuiet;
 #ifndef PREF_FLASH
 #define PREF_FLASH 1
@@ -596,7 +582,7 @@ extern gedict_t* search_entity;
 extern float RA_time;
 extern float enemy_time_squared;
 float IsVisible(gedict_t* ent);
-gedict_t* spawn_apply();
+gedict_t* spawn_apply(void);
 #ifndef IT_ROCKET_LIGHTNING
 #define IT_ROCKET_LIGHTNING 96
 #endif
@@ -608,10 +594,8 @@ gedict_t* spawn_apply();
 #endif
 extern float intermission_getting_closer;
 extern float total_entity_count;
-float ExistsPath();
-float BotShouldDischarge();
-float WaterCombat();
-float boomstick_only();
+float ExistsPath(gedict_t* from_marker, gedict_t* to_marker);
+float boomstick_only(void);
 
 extern float ar_time;
 #ifndef MSG_HIGH
@@ -625,16 +609,18 @@ extern float door_open;
 extern char* string_null;
 char* GetTeamName(float g);
 char* ClientTeamName(gedict_t* p);
-float ControlRPlayers();
-float CountTeams();
+float ControlRPlayers(void);
+float CountTeams(void);
 float rndm(float fw, float fh);
 char* gNum(float n);
 float ent_fspeed(gedict_t* p);
-float IsDanger();
-float self_have_rl_or_lg();
-float enemy_have_rl_or_lg();
-float enemy_defenceless();
-float enemy_shaft_attack();
+/*qbool IsDanger(void);
+float self_have_rl_or_lg(void);
+float enemy_have_rl_or_lg(void);
+float enemy_defenceless(void);*/
+qbool EnemyDefenceless (gedict_t* self);
+
+float enemy_shaft_attack(void);
 extern float pingupdate;
 #ifndef SVC_UPDATEPACKETLOSS
 #define SVC_UPDATEPACKETLOSS 53
@@ -682,32 +668,6 @@ extern float game_raspawn;
 #define GAME_BOTJUMP 8388608
 #endif
 extern float teams;
-extern float round;
-extern float rounds;
-extern float a_health;
-extern float a_armorvalue;
-extern float a_armortype;
-extern float a_ammo_shells;
-extern float a_ammo_nails;
-extern float a_ammo_rockets;
-extern float a_ammo_cells;
-extern float a_items;
-extern float arenastate;
-#ifndef A_IDLE
-#define A_IDLE 0
-#endif
-#ifndef A_STARTING
-#define A_STARTING 1
-#endif
-#ifndef A_PREROUND
-#define A_PREROUND 2
-#endif
-#ifndef A_PLAYING
-#define A_PLAYING 3
-#endif
-#ifndef A_POSTROUND
-#define A_POSTROUND 4
-#endif
 extern float a_nextthink;
 extern float initialized;
 extern float updatestuff;
@@ -719,16 +679,16 @@ extern float updatestuff;
 #endif
 extern float a_sounds;
 extern char* a_spawn;
-float players_();
-float putselfinserver();
-float best_rl();
-float best_gl();
-float a_prethink();
-float a_postthink();
-float a_newitems();
-float toss_player();
-float scratch1();
-float W_BestWeapon();
+float players_(void);
+float putselfinserver(void);
+float best_rl(void);
+float best_gl(void);
+float a_prethink(void);
+float a_postthink(void);
+float a_newitems(void);
+float toss_player(void);
+float scratch1(void);
+float W_BestWeapon(void);
 #ifndef IMP_DROP
 #define IMP_DROP 71
 #endif
@@ -915,14 +875,14 @@ float imaginary(float a, float b);
 float dig(float a, float b);
 //float pow(float a, float b);
 float anglemod2(float a);
-float check_cvar();
-float loadbot_time_();
+float check_cvar(void);
+float loadbot_time_(void);
 float utilFloatToLong(float n);
-float T_Damage2();
-float a_item();
-float TeamArmorDam();
+float T_Damage2(void);
+float a_item(void);
+float TeamArmorDam(void);
 gedict_t* LocateMarker(vec3_t org);
-float NoItemTouch();
+float NoItemTouch(void);
 float RankForWeapon(float w);
 float WeaponCode(float w);
 #ifndef WEAPON_BIG2
@@ -940,15 +900,15 @@ float WeaponCode(float w);
 #ifndef WEAPON_BIG
 #define WEAPON_BIG 8
 #endif
-float G_is_connected();
+float G_is_connected(void);
 //char* GetMapName(float f2);
 float map_was_voted(float val);
 float count_map_votes(float val);
-char* rndffamap();
+char* rndffamap(void);
 float RemoveBot(float remove_name);
-float crandom();
+float crandom(void);
 gedict_t* RemoveFromList(gedict_t* first_in_list, gedict_t* ent);
-vec_t* VelocityForDamage();
+vec_t* VelocityForDamage(void);
 #ifndef DOOR_START_OPEN
 #define DOOR_START_OPEN 1
 #endif
@@ -961,9 +921,9 @@ vec_t* VelocityForDamage();
 #ifndef DOOR_TOGGLE
 #define DOOR_TOGGLE 32
 #endif
-float door_target();
+float door_target(void);
 float EntitiesTouching(gedict_t* e1, gedict_t* e2);
-float secret_target();
+float secret_target(void);
 #ifndef SILENT
 #define SILENT 2
 #endif
@@ -979,20 +939,15 @@ float secret_target();
 gedict_t* EntityAt(gedict_t* start_entity, float index_);
 float near_teammate(gedict_t* me);
 
-qbool able_rj();
-float JumpInWater();
+qbool able_rj(void);
 float EntVisible(vec3_t vec);
 float VisibleEntity(gedict_t* ent);
 gedict_t* identify_teammate_(gedict_t* me);
 float anglemod(float v);
 float visible_teammate(gedict_t* me);
-gedict_t* HelpTeammate();
-float BotCanReachMarker();
-float BotSwimDown();
-float BotSwimUp();
-float BotGoUpForAir();
+gedict_t* HelpTeammate(void);
 gedict_t* check_wp_stats(gedict_t* pl);
-float AddRandomBot();
+float AddRandomBot(void);
 float BeenSpawned(gedict_t* client, float value);
 
 // 
@@ -1003,8 +958,7 @@ char* SetTeamNetName(void);
 float SpawnBot(void);
 
 qbool Visible_360(gedict_t* self, gedict_t* visible_object);
-void NewVelocityForArrow(void);
-void VelocityForArrow(void);
+void VelocityForArrow(gedict_t* self);
 void Z_marker_error(void);
 void S_time_error(void);
 void S_path_marker_error(void);
@@ -1025,95 +979,95 @@ void EnterZone(int zoneNumber, float teamNumber, float strong);
 void LeaveZone(int zoneNumber, float teamNumber, float strong);
 
 // items.qc
-qbool pickup_health0();
-qbool pickup_health2();
-qbool pickup_armor1();
-qbool pickup_armor2();
-qbool pickup_armorInv();
-qbool pickup_true();
-qbool pickup_supershotgun2();
-qbool pickup_nailgun2();
-qbool pickup_supernailgun2();
-qbool pickup_grenadelauncher2();
-qbool pickup_rocketlauncher2();
-qbool pickup_lightning2();
-qbool pickup_shells();
-qbool pickup_spikes();
-qbool pickup_rockets();
-qbool pickup_cells();
+qbool pickup_health0(void);
+qbool pickup_health2(void);
+qbool pickup_armor1(void);
+qbool pickup_armor2(void);
+qbool pickup_armorInv(void);
+qbool pickup_true(void);
+qbool pickup_supershotgun2(void);
+qbool pickup_nailgun2(void);
+qbool pickup_supernailgun2(void);
+qbool pickup_grenadelauncher2(void);
+qbool pickup_rocketlauncher2(void);
+qbool pickup_lightning2(void);
+qbool pickup_shells(void);
+qbool pickup_spikes(void);
+qbool pickup_rockets(void);
+qbool pickup_cells(void);
 
 // marker_util.qc
-void marker_touch();
+void marker_touch(void);
 void BecomeMarker(gedict_t* marker);
 
 // route_calc.qc
 void CheckWaterColumn(gedict_t* m, vec3_t m_pos, vec3_t testplace);
 
 // route_lookup.qc
-void SightMarker();
+void SightMarker(gedict_t* from_marker);
 
 #define SubZoneFunction(x) \
-	void S1_ ## x (); \
-	void S2_ ## x (); \
-	void S3_ ## x (); \
-	void S4_ ## x (); \
-	void S5_ ## x (); \
-	void S6_ ## x (); \
-	void S7_ ## x (); \
-	void S8_ ## x (); \
-	void S9_ ## x (); \
-	void S10_ ## x (); \
-	void S11_ ## x (); \
-	void S12_ ## x (); \
-	void S13_ ## x (); \
-	void S14_ ## x (); \
-	void S15_ ## x (); \
-	void S16_ ## x (); \
-	void S17_ ## x (); \
-	void S18_ ## x (); \
-	void S19_ ## x (); \
-	void S20_ ## x (); \
-	void S21_ ## x (); \
-	void S22_ ## x (); \
-	void S23_ ## x (); \
-	void S24_ ## x (); \
-	void S25_ ## x (); \
-	void S26_ ## x (); \
-	void S27_ ## x (); \
-	void S28_ ## x (); \
-	void S29_ ## x (); \
-	void S30_ ## x (); \
-	void S31_ ## x (); \
-	void S32_ ## x ();
+	void S1_ ## x (void); \
+	void S2_ ## x (void); \
+	void S3_ ## x (void); \
+	void S4_ ## x (void); \
+	void S5_ ## x (void); \
+	void S6_ ## x (void); \
+	void S7_ ## x (void); \
+	void S8_ ## x (void); \
+	void S9_ ## x (void); \
+	void S10_ ## x (void); \
+	void S11_ ## x (void); \
+	void S12_ ## x (void); \
+	void S13_ ## x (void); \
+	void S14_ ## x (void); \
+	void S15_ ## x (void); \
+	void S16_ ## x (void); \
+	void S17_ ## x (void); \
+	void S18_ ## x (void); \
+	void S19_ ## x (void); \
+	void S20_ ## x (void); \
+	void S21_ ## x (void); \
+	void S22_ ## x (void); \
+	void S23_ ## x (void); \
+	void S24_ ## x (void); \
+	void S25_ ## x (void); \
+	void S26_ ## x (void); \
+	void S27_ ## x (void); \
+	void S28_ ## x (void); \
+	void S29_ ## x (void); \
+	void S30_ ## x (void); \
+	void S31_ ## x (void); \
+	void S32_ ## x (void);
 
 SubZoneFunction(time_)
 SubZoneFunction(path_marker)
 
 #define ZoneFunction(x) \
-	void Z1_ ## x (); \
-	void Z2_ ## x (); \
-	void Z3_ ## x (); \
-	void Z4_ ## x (); \
-	void Z5_ ## x (); \
-	void Z6_ ## x (); \
-	void Z7_ ## x (); \
-	void Z8_ ## x (); \
-	void Z9_ ## x (); \
-	void Z10_ ## x (); \
-	void Z11_ ## x (); \
-	void Z12_ ## x (); \
-	void Z13_ ## x (); \
-	void Z14_ ## x (); \
-	void Z15_ ## x (); \
-	void Z16_ ## x (); \
-	void Z17_ ## x (); \
-	void Z18_ ## x (); \
-	void Z19_ ## x (); \
-	void Z20_ ## x (); \
-	void Z21_ ## x (); \
-	void Z22_ ## x (); \
-	void Z23_ ## x (); \
-	void Z24_ ## x ();
+	void Z1_ ## x (void); \
+	void Z2_ ## x (void); \
+	void Z3_ ## x (void); \
+	void Z4_ ## x (void); \
+	void Z5_ ## x (void); \
+	void Z6_ ## x (void); \
+	void Z7_ ## x (void); \
+	void Z8_ ## x (void); \
+	void Z9_ ## x (void); \
+	void Z10_ ## x (void); \
+	void Z11_ ## x (void); \
+	void Z12_ ## x (void); \
+	void Z13_ ## x (void); \
+	void Z14_ ## x (void); \
+	void Z15_ ## x (void); \
+	void Z16_ ## x (void); \
+	void Z17_ ## x (void); \
+	void Z18_ ## x (void); \
+	void Z19_ ## x (void); \
+	void Z20_ ## x (void); \
+	void Z21_ ## x (void); \
+	void Z22_ ## x (void); \
+	void Z23_ ## x (void); \
+	void Z24_ ## x (void);
 
 ZoneFunction(marker)
 ZoneFunction(next_zone_marker)
@@ -1128,73 +1082,90 @@ void bprint_ftos(int level, float value);
 void bprint_g(int level, float f);
 
 // botutil.qc
-float BestArrowForDirection();
-void FallSpotAir();
-void CanJumpOver(); // only used in bothazd?
-void FallSpotGround(); // Same
-void TestTopBlock(); // same
-void PredictSpot(); // botthink
+float BestArrowForDirection(gedict_t* self, vec3_t dir_move);
+void TestTopBlock (void); // same
+void TestBottomBlock (void);
+
+// botwater.qc
+void BotWaterMove (gedict_t* self);
 
 // weapons.qc
-void GrenadeExplode();
-void Missile_Remove();
+void GrenadeExplode(void);
+void Missile_Remove(void);
 
 // items.qc
 float goal_NULL(gedict_t* self);
 
 // client.qc
-void NewItems();
-void InitBodyQue();
-void ClientConnect_apply();
-void PlayerPreThink_apply();
-void PlayerPostThink_apply();
-void PlayerDeathThink();
-void CheckLand();
+void NewItems(void);
+void InitBodyQue(void);
+void ClientConnect_apply(void);
+void PlayerPreThink_apply(void);
+void PlayerPostThink_apply(void);
+void PlayerDeathThink(void);
+void CheckLand(void);
+void BotDeathThink(void);
+void BotClientEntersEvent(gedict_t* self, gedict_t* spawn_pos);
+void BotPreThink(gedict_t* self);
+void BotClientConnectedEvent (gedict_t* self);
+void BotOutOfWater (gedict_t* self);
+void BotSetCommand (gedict_t* self);
+void ThinkTime (gedict_t* self);
+void ResetGoalEntity(gedict_t* self);
+void ResetEnemy(gedict_t* self);
 
 // match.qc
-void DoCountDown();
-void NextLevel();
+//void DoCountDown(void);
+void NextLevel(void);
+
+// botwater.qc
+qbool JumpInWater(void);
+qbool BotShouldDischarge(void);
 
 // botphys.qc
-void FrogbotPrePhysics2();
-void thud_touch();
-void FrogbotPostPhysics();
+void FrogbotPrePhysics1 (void);
+void FrogbotPrePhysics2(void);
+void FrogbotPostPhysics(void);
+//void thud_touch(void);
 
 // names.qc
 void CopyBot(gedict_t* e, gedict_t* f);
 
 // lists.qc
 void SetColorName(float to, gedict_t* client);
-void Add_takedamage(gedict_t* ent);
+//void Add_takedamage(gedict_t* ent);
 
 // defs2.qc
-void remove_self();
+void remove_self(void);
 
 // bothazd.qc
-void AvoidHazards();
+void AvoidHazards(void);
+void NewVelocityForArrow (gedict_t* self, vec3_t dir_move);
 
 // route_lookup.qc
-void HigherSightMarker();
+void HigherSightMarker(gedict_t* from_marker);
 
 // botweap.qc
 void UpdateWeapons(void);
 void SelectWeapon(void);
 void AttackRespawns(void);
-void SetFireButton(void);
+void SetFireButton(gedict_t* self);
 
 // marker_util.qc
 void Visible_infront(void);
+void AssignVirtualGoal (void);
 void AssignVirtualGoal_apply(gedict_t* marker_);
 void adjust_view_ofs_z(gedict_t* ent);
 
 // botenemy.qc
 void ClearLookObject(gedict_t* client);
-void LookEnemy(void);
-void BestEnemy(void);
+void LookEnemy(gedict_t* player, gedict_t* enemy);
+void BestEnemy(gedict_t* self);
 
 // botjump.qc
 void CheckCombatJump(void);
-void BotInLava(void);
+//void BotInLava(void);
+void a_rocketjump (gedict_t* self);
 
 // botgoal.qc
 void UpdateGoal(void);
@@ -1217,7 +1188,7 @@ void SetMarkerPath(int source_marker, int path_index, int next_marker);
 // added for ktx
 qbool fb_lg_disabled(void);
 float random(void);
-void StartItems(void);
+//void StartItems(void);
 
 // maps
 void LoadMap(void);
@@ -1238,5 +1209,29 @@ void map_ztndm4(void);
 void map_ztndm5(void);
 
 // 
+float pr1_rint (float f);
+
+// 
 void BotEvadeLogic(void);
 qbool SameTeam(gedict_t* p1, gedict_t* p2);
+
+// botstat.qc
+void UpdateTotalDamage (gedict_t* client);
+void UpdateGoalEntity (gedict_t* item);
+
+// bot_client.qc
+void BotPlayerDeathEvent (gedict_t* self);
+
+// bot_items.qc
+typedef void (*fb_spawn_func_t)(gedict_t* ent);
+
+typedef struct fb_spawn_s {
+	char* name;                 // classname
+	fb_spawn_func_t func;       // initialisation function
+} fb_spawn_t;
+
+extern fb_spawn_t itemSpawnFunctions[];
+int ItemSpawnFunctionCount(void);
+
+#define FB_CVAR_GAMEMODE "k_fb_gamemode"
+#define FB_CVAR_SKILL "k_fb_skill"

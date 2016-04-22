@@ -3,7 +3,14 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
-static qbool RocketSafe() {
+static qbool WaterCombat(void) {
+	if (self->s.v.waterlevel < 2) {
+		return TRUE;
+	}
+	return ((trap_pointcontents(enemy_->s.v.origin[0], enemy_->s.v.origin[1], enemy_->s.v.origin[2]) == CONTENT_WATER) && (enemy_->s.v.origin[2] < origin_[2] - 32));
+}
+
+static qbool RocketSafe(void) {
 	float splash_damage = 80 - (0.25 * self->fb.enemy_dist);
 	if (splash_damage <= 0 || (teamplay != 1 && teamplay != 5)) {
 		return true;
@@ -24,8 +31,8 @@ static qbool RocketSafe() {
 	return (self->fb.total_damage > splash_damage);
 }
 
-// When duelling, try and spawn frag
-void AttackRespawns() {
+// When duelling, try and spawn frag.  FIXME: ar_time not set in player.qc
+void AttackRespawns(void) {
 	if (isRA() || numberofclients != 2) {
 		return;
 	}
@@ -50,11 +57,11 @@ void AttackRespawns() {
 												vec3_t diff;
 
 												self->fb.botchose = 1;
-												self->s.v.impulse = 7;
+												self->fb.next_impulse = 7;
 												self->fb.look_object = look_object_ = resp;
 												VectorCopy(resp->s.v.origin, self->fb.predict_origin);
 												self->fb.predict_origin[2] += 16;
-												self->fb.old_linked_marker = world;
+												self->fb.old_linked_marker = NULL;
 
 												VectorSubtract(resp->s.v.origin, self->s.v.origin, diff);
 												ang2 = vectoyaw(diff);
@@ -86,7 +93,7 @@ static void CheckNewWeapon(int desired_weapon) {
 		for (i = 0; i < sizeof(weapons) / sizeof(weapons[0]); ++i) {
 			if (weapons[i] == desired_weapon) {
 				self->fb.botchose = true;
-				self->s.v.impulse = i + 1;
+				self->fb.next_impulse = i + 1;
 			}
 		}
 	}
@@ -98,7 +105,7 @@ static qbool ShotForLuck(vec3_t object) {
 	return (g_globalvars.trace_fraction == 1);
 }
 
-void SetFireButton() {
+void SetFireButton(gedict_t* self) {
 	if (match_in_progress != 2) {
 		if (! match_in_progress) {
 			if ((g_globalvars.time + random()) < enemy_->attack_finished) {
@@ -114,7 +121,7 @@ void SetFireButton() {
 	if (self->fb.firing) {
 		if (look_object_ == enemy_) {
 			if (random() < 0.666667) {
-				if (!self->s.v.impulse) {
+				if (!self->fb.next_impulse) {
 					return;
 				}
 			}
@@ -128,11 +135,11 @@ void SetFireButton() {
 			return;
 		}
 	}
-	if (self->s.v.impulse) {
+	if (self->fb.next_impulse) {
 		return;
 	}
 	if (! SameTeam(look_object_, self)) {
-		// FIXME: Move to DM6 file
+		// FIXME: Move to DM6 file & make more generic (it's picking weapon to trigger a door/button with)
 		if (self->fb.path_state & DM6_DOOR) {
 			int items_ = (int) self->s.v.items;
 			int desired_weapon = 0;
@@ -149,9 +156,7 @@ void SetFireButton() {
 				desired_weapon = IT_LIGHTNING;
 			}
 			CheckNewWeapon( desired_weapon );
-			if (self->s.v.weapon == desired_weapon) {
-				self->fb.firing = true;
-			}
+			self->fb.firing |= (self->s.v.weapon == desired_weapon);
 		}
 
 		// FIXME: what is this referring to?
@@ -159,7 +164,7 @@ void SetFireButton() {
 			if (self->s.v.weapon == IT_ROCKET_LAUNCHER) {
 				if (self->fb.real_pitch == 78.75) {
 					self->fb.firing = true;
-					self->fb.state = self->fb.state & NOT_HURT_SELF;
+					self->fb.state &= ~HURT_SELF;
 				}
 			}
 			return;
@@ -177,13 +182,13 @@ void SetFireButton() {
 				}
 				else  {
 					if (g_globalvars.trace_ent != NUM_FOR_EDICT(look_object_)) {
-						gedict_t* traced = &g_edicts[g_globalvars.trace_ent];
+						gedict_t* traced = PROG_TO_EDICT(g_globalvars.trace_ent);
 						if (traced->ct == ctPlayer) {
 							if (!SameTeam(traced, self)) {
 								if (!((int)self->s.v.flags & FL_WATERJUMP)) {
-									self->s.v.enemy = g_globalvars.trace_ent;
+									self->s.v.enemy = NUM_FOR_EDICT( traced );
 									enemy_ = traced;
-									LookEnemy();
+									LookEnemy(self, enemy_);
 								}
 							}
 							return;
@@ -194,9 +199,7 @@ void SetFireButton() {
 									if (self->fb.allowedMakeNoise) {
 										if ((int)self->s.v.flags & FL_ONGROUND) {
 											traceline(origin_[0], origin_[1], origin_[2] + 32, origin_[0] + rel_pos[0], origin_[1] + rel_pos[1], origin_[2] + rel_pos[2] + 32 , FALSE, self);
-											if (g_globalvars.trace_fraction == 1) {
-												self->fb.jumping = true;
-											}
+											self->fb.jumping |= (g_globalvars.trace_fraction == 1);
 										}
 									}
 								}
@@ -257,8 +260,8 @@ void SetFireButton() {
 					traceline(rocket_origin[0], rocket_origin[1], rocket_origin[2], rocket_origin[0] + (g_globalvars.v_forward[0] * 600), rocket_origin[1] + (g_globalvars.v_forward[1] * 600), rocket_origin[2] + (g_globalvars.v_forward[2] * 600), FALSE, self);
 					VectorCopy(g_globalvars.trace_endpos, rocket_endpos);
 					risk_strength = g_globalvars.trace_fraction;
-					test_enemy = first_client;
-					while (test_enemy) {
+
+					for (test_enemy = world; test_enemy = find_plr (test_enemy); ) {
 						if (test_enemy->s.v.takedamage) {
 							if (test_enemy == enemy_) {
 								predict_dist = 1000000;
@@ -290,7 +293,7 @@ void SetFireButton() {
 								if (g_globalvars.trace_fraction == 1) {
 									if ( ! SameTeam(test_enemy, self)) {
 										risk_factor = risk_factor / risk_strength;
-										if (look_object_ == enemy_) {
+										if (self->fb.look_object == enemy_) {
 											self->fb.firing = true;
 										}
 										else if (predict_dist <= (80 / (1.2 - risk))) {
@@ -299,7 +302,7 @@ void SetFireButton() {
 										else  {
 											if ((int)self->s.v.items & IT_ROCKET_LAUNCHER) {
 												if (!self->fb.lines) {
-													if (look_object_) {
+													if (self->fb.look_object) {
 														float dist_sfl = ((int)self->s.v.items & IT_QUAD) ? 300.0f : 250.0f;
 
 														VectorAdd(self->fb.look_object->s.v.absmin, self->fb.look_object->s.v.view_ofs, testplace);
@@ -323,7 +326,7 @@ void SetFireButton() {
 																					}
 																					self->fb.state = self->fb.state | SHOT_FOR_LUCK;
 																					self->fb.botchose = 1;
-																					self->s.v.impulse = 7;
+																					self->fb.next_impulse = 7;
 																					self->fb.firing = true;
 																				}
 																				else  {
@@ -347,7 +350,7 @@ void SetFireButton() {
 																	if (!visible_teammate(self)) {
 																		if (self->fb.arrow == BACK) {
 																			self->fb.botchose = 1;
-																			self->s.v.impulse = 6;
+																			self->fb.next_impulse = 6;
 																			self->fb.firing = true;
 																		}
 																	}
@@ -370,28 +373,27 @@ void SetFireButton() {
 								}
 							}
 						}
-						test_enemy = test_enemy->fb.next;
 					}
 					return;
 				}
-				VectorSubtract(desired_angle, self->s.v.v_angle, angle_error);
-				if (angle_error[1] >= 180) {
-					angle_error[1] = angle_error[1] - 360;
+				VectorSubtract(self->fb.desired_angle, self->s.v.v_angle, self->fb.angle_error);
+				if (self->fb.angle_error[1] >= 180) {
+					self->fb.angle_error[1] -= 360;
 				}
-				else if (angle_error[1] < -180) {
-					angle_error[1] = angle_error[1] + 360;
+				else if (self->fb.angle_error[1] < -180) {
+					self->fb.angle_error[1] += 360;
 				}
-				if (angle_error[0] < 0) {
-					angle_error[0] = 0 - angle_error[0];
+				if (self->fb.angle_error[0] < 0) {
+					self->fb.angle_error[0] = 0 - self->fb.angle_error[0];
 				}
-				if (angle_error[1] < 0) {
-					angle_error[1] = 0 - angle_error[1];
+				if (self->fb.angle_error[1] < 0) {
+					self->fb.angle_error[1] = 0 - self->fb.angle_error[1];
 				}
 				min_angle_error = (1 + risk) * risk_factor * (self->fb.accuracy + (1440 / rel_dist));
-				if (angle_error[0] > min_angle_error) {
+				if (self->fb.angle_error[0] > min_angle_error) {
 					return;
 				}
-				if (angle_error[1] > min_angle_error) {
+				if (self->fb.angle_error[1] > min_angle_error) {
 					return;
 				}
 				self->fb.firing = true;
@@ -428,7 +430,7 @@ static int DesiredWeapon() {
 				if (RocketSafe()) {
 					return IT_ROCKET_LAUNCHER;
 				}
-				avoid_rockets = (qbool) true;
+				avoid_rockets = TRUE;
 			}
 		}
 	}
@@ -481,7 +483,7 @@ static int DesiredWeapon() {
 					return IT_ROCKET_LAUNCHER;
 				}
 				if (!((int)self->s.v.items & IT_INVULNERABILITY)) {
-					avoid_rockets = (qbool) true;
+					avoid_rockets = TRUE;
 				}
 			}
 		}
@@ -538,6 +540,7 @@ static int DesiredWeapon() {
 	if (self->s.v.ammo_shells) {
 		return IT_SHOTGUN;
 	}
+	return IT_AXE;
 }
 
 void SelectWeapon() {
@@ -551,7 +554,7 @@ void SelectWeapon() {
 					if (self->super_damage_finished <= g_globalvars.time) {
 						if (self->s.v.weapon != IT_ROCKET_LAUNCHER) {
 							self->fb.botchose = 1;
-							self->s.v.impulse = 7;
+							self->fb.next_impulse = 7;
 						}
 						return;
 					}

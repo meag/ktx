@@ -44,8 +44,10 @@ void obstruction() {
 	VectorClear(self->fb.obstruction_normal);
 }
 
-void VelocityForArrow() {
+void VelocityForArrow(gedict_t* self) {
 	int arrow_ = 0;
+	float accel_forward = 0;
+	float velocity_forward = 0;
 
 	turning_speed = 0;
 	if (!self->s.v.waterlevel) {
@@ -94,7 +96,7 @@ void VelocityForArrow() {
 					VectorSubtract(temp, hor_velocity, desired_accel);
 					normalize(desired_accel, dir_forward);
 					accel_forward = vlen(desired_accel);
-					if (accel_forward > max_accel_forward) {
+					/*if (accel_forward > max_accel_forward) {
 						accel_forward = max_accel_forward;
 					}
 					velocity_forward = DotProduct(self->s.v.velocity, dir_forward);
@@ -103,8 +105,10 @@ void VelocityForArrow() {
 						if (accel_forward < 0) {
 							accel_forward = 0;
 						}
-					}
-					VectorMA(self->s.v.velocity, accel_forward, dir_forward, self->s.v.velocity);
+					}*/
+					//VectorMA(self->s.v.velocity, accel_forward, dir_forward, self->s.v.velocity);
+					//VectorMA(self->s.v.velocity, accel_forward, dir_forward, self->fb.real_direction);
+					VectorCopy (dir_forward, self->fb.real_direction);
 					return;
 				}
 			}
@@ -225,10 +229,11 @@ void VelocityForArrow() {
 	}
 
 	// TODO: this is wrong, set the command instead
-	VectorMA(self->s.v.velocity, accel_forward, dir_forward, self->s.v.velocity);
+	//VectorMA(self->s.v.velocity, accel_forward, dir_forward, self->s.v.velocity);
+	VectorCopy (dir_forward, self->fb.real_direction);
 }
 
-void FrogbotPrePhysics1() {
+void FrogbotPrePhysics1(void) {
 	// Set all players to non-solid so we can avoid rockets easier
 	if (hazard_time) {
 		for (self = find_plr(world); self; self = find_plr(self)) {
@@ -238,10 +243,10 @@ void FrogbotPrePhysics1() {
 	}
 
 	// 
-	for (self = find_plr(world); self; self = find_plr(self)) {
+	for (self = world; self = find_plr (self); ) {
 		if (self->isBot && self->s.v.takedamage) {
 			VectorCopy(self->s.v.velocity, oldvelocity_);
-			VelocityForArrow();
+			VelocityForArrow(self);
 			if (hazard_time) {
 				AvoidHazards();
 			}
@@ -272,7 +277,7 @@ void BotDetectTrapped(gedict_t* self) {
 		}
 		else  {
 			self->fb.botchose = 1;
-			self->s.v.impulse = CLIENTKILL;
+			self->fb.next_impulse = CLIENTKILL;
 		}
 	}
 	else {
@@ -301,12 +306,11 @@ void FrogbotPrePhysics2() {
 	g_globalvars.frametime = real_frametime;
 	no_bots_stuck = TRUE;
 
-	for (self = find_plr(world); self; self = find_plr(world)) {
+	for (self = world; self = find_plr (self); ) {
 		if (self->isBot) {
 			BotDetectTrapped(self);
 
 			if (self->s.v.takedamage) {
-
 				PlayerPreThink_apply();
 
 				if ((int)self->s.v.flags & FL_ONGROUND) {
@@ -316,7 +320,7 @@ void FrogbotPrePhysics2() {
 					if (self->fb.fl_ontrain) {
 						self->fb.fl_ontrain = FALSE;
 					}
-					else  {
+					else {
 						self->s.v.flags = self->s.v.flags - FL_ONGROUND;
 					}
 				}
@@ -345,9 +349,9 @@ void FrogbotPrePhysics2() {
 
 void FrogbotPostPhysics1() {
 	g_globalvars.frametime = real_frametime;
-	self = first_client;
-	while (self) {
-		if (self->s.v.movetype == MOVETYPE_STEP) {
+
+	for (self = world; self = find_plr (self); ) {
+		if (self->isBot) {
 			self->s.v.waterlevel = self->fb.oldwaterlevel;
 			self->s.v.watertype = self->fb.oldwatertype;
 			obstruction();
@@ -375,25 +379,17 @@ void FrogbotPostPhysics1() {
 					self->s.v.flags = oldflags;
 				}
 			}
-			if (self->jump_flag) {
-				if ((int)self->s.v.flags & FL_ONGROUND) {
-					CheckLand();
-				}
-			}
 		}
-		self = self->fb.next;
 	}
 }
 
 void FrogbotPostPhysics2() {
-	g_globalvars.frametime = real_frametime;
-	self = first_client;
-	while (self) {
+	/*g_globalvars.frametime = real_frametime;
+	for (self = world; self = find_plr (self); ) {
 		if (self->s.v.movetype == MOVETYPE_STEP) {
 			PlayerPostThink_apply();
 		}
-		self = self->fb.next;
-	}
+	}*/
 }
 
 void FrogbotPostPhysics() {

@@ -288,6 +288,7 @@ typedef enum
 typedef void (*fb_void_func_t)(void);
 typedef qbool (*fb_bool_func_t)(void);
 typedef float (*fb_desire_func_t)(struct gedict_s* self);
+typedef void (*fb_touch_func_t)(struct gedict_s* player, struct gedict_s* item);
 
 #ifndef NUMBER_MARKERS
 #define NUMBER_MARKERS 300
@@ -408,10 +409,6 @@ typedef struct fb_entvars_s {
 	struct gedict_s* next;
 	struct gedict_s* next_load;
 	
-	// FIXME: predominantly set in client.qc
-	float real_pitch;
-	float real_yaw;
-
 	// FIXME: these set in client.qc, not currently set
 	float pitchspeed;
 	float yawspeed;
@@ -524,8 +521,22 @@ typedef struct fb_entvars_s {
 	float up_finished;
 	float botnumber;
 	float old_bot;
+	qbool rocketjumping;
+
+	// These dictate the QW command sent to mvdsv
+	vec3_t desired_angle;             // for 'perfect' aim, this is where the bot wants to be aiming
+	vec3_t angle_error;               // this is the difference between current viewangle and desired_angle
+
+	float real_pitch;
+	float real_yaw;
+	vec3_t real_direction;
+	float last_cmd_sent;
 	qbool botchose;
-	qbool rocketjumping;                           
+	int next_impulse;
+
+	// For each bot
+	fb_touch_func_t item_touch;      // called whenever an item is touched
+	fb_touch_func_t item_taken;      // called whenever an item is taken
 } fb_entvars_t;
 
 //typedef (void(*)(gedict_t *)) one_edict_func;

@@ -50,13 +50,10 @@ float numberofplayers = 0;
 float numberofclients = 0;
 vec3_t oldvelocity_ = { 0 };
 vec3_t delta_velocity = { 0 };
-float new_pitch = 0;
 gedict_t* current_waiting_bot = 0;
-gedict_t* first_client = 0;
 gedict_t* first_item = 0;
 gedict_t* first_ent = 0;
 gedict_t* first_teleport = 0;
-gedict_t* first_takedamage = 0;
 gedict_t* first_marker = 0;
 float takedamage_exists = 0;
 gedict_t* dropper = 0;
@@ -65,11 +62,6 @@ float mouse_friction = 0;
 vec3_t pitch_tangent = { 0 };
 vec3_t yaw_tangent = { 0 };
 float mouse_vel = 0;
-float pitchspeed_ = 0;
-float yawspeed_ = 0;
-float total_pitchspeed = 0;
-float total_yawspeed = 0;
-float real_pitch_ = 0;
 gedict_t* m_P = 0;
 gedict_t* m_zone = 0;
 float P_time = 0;
@@ -145,8 +137,6 @@ float distance = 0;
 vec3_t hor_direction = { 0 };
 vec3_t dir_forward = { 0 };
 float current_maxspeed = 0;
-float velocity_forward = 0;
-float accel_forward = 0;
 float max_accel_forward = 0;
 vec3_t desired_accel = { 0 };
 vec3_t hor_velocity = { 0 };
@@ -172,7 +162,6 @@ float tries = 0;
 vec3_t last_clear_point = { 0 };
 vec3_t last_clear_velocity = { 0 };
 float jumpspeed = 0;
-vec3_t dir_move = { 0 };
 float path_score = 0;
 float total_goal_time = 0;
 gedict_t* goal_marker2 = 0;
@@ -208,9 +197,7 @@ vec3_t rel_dir = { 0 };
 float rel_dist = 0;
 float rel_time = 0;
 vec3_t rel_hor_dir = { 0 };
-vec3_t desired_angle = { 0 };
 float hor_component = 0;
-vec3_t angle_error = { 0 };
 float min_angle_error = 0;
 gedict_t* enemy_touch_marker = 0;
 float new_health = 0;
@@ -293,8 +280,6 @@ float forward = 0;
 char* deathstring = 0;
 char* deathstring2 = 0;
 gedict_t* removebot_self = 0;
-float min_first = 0;
-float min_second = 0;
 vec3_t start = { 0 };
 vec3_t end = { 0 };
 int description = 0;
@@ -310,7 +295,6 @@ float dodge_factor = 0;
 gedict_t* dodge_missile = 0;
 gedict_t* killed_self = 0;
 gedict_t* rune_self = 0;
-gedict_t* fallspot_self = 0;
 gedict_t* door_enemy = 0;
 gedict_t* multi_ent = 0;
 //float intermission_running = 0;
@@ -334,7 +318,6 @@ float turning_speed = 0;
 vec3_t hor_normal_vec = { 0 };
 vec3_t last_clear_angle = { 0 };
 vec3_t velocity_hor_angle = { 0 };
-float predict_spot = 0;
 float beQuiet = 0;
 float runaway_time = 0;
 float runaway_time_temp = 0;
@@ -387,18 +370,6 @@ float game_drop = 0;
 float game_damage = 0;
 float game_raspawn = 0;
 float teams = 0;
-float round = 0;
-float rounds = 0;
-float a_health = 0;
-float a_armorvalue = 0;
-float a_armortype = 0;
-float a_ammo_shells = 0;
-float a_ammo_nails = 0;
-float a_ammo_rockets = 0;
-float a_ammo_cells = 0;
-float a_items = 0;
-float arenastate = 0;
-float a_nextthink = 0;
 float initialized = 0;
 float updatestuff = 0;
 float a_sounds = 0;
@@ -418,7 +389,7 @@ float boomstick_only() {
 }
 
 // taken from pr1 implementation
-float rint(float f) {
+float pr1_rint(float f) {
 	if (f > 0)
 		return (int)(f + 0.5);
 	else
@@ -449,7 +420,7 @@ void bprint_g(int lev, float f)
 		f = f * -1;
 		bprint_fb(lev, "-");
 	}
-	n = rint(f);
+	n = pr1_rint(f);
 	d = floor(n / 100);
 	if (d) {
 		bprint_ftos(lev, d);
@@ -498,24 +469,51 @@ void PlayerPostThink_apply() {
 	// remove
 }
 
-void StartItems() {
-	gedict_t* marker_;
-
-	for (marker_ = first_item; marker_ && marker_ != world; marker_ = marker_->fb.next) {
-		if (! marker_->s.v.touch) {
-			marker_->s.v.touch = (func_t) marker_touch;
-			marker_->s.v.nextthink = -1;
-		}
-	}
-}
-
 qbool bots_enabled() {
-	return (qbool) true;	// FIXME: make a variable
+	return TRUE;	// FIXME: make a variable
 }
 
 qbool SameTeam(gedict_t* p1, gedict_t* p2) {
 	if (! teamplay)
-		return (qbool) false;
+		return FALSE;
 
 	return (qbool) streq( ezinfokey(p1, "team"), ezinfokey(p2, "team") );
+}
+
+static qbool HasRLOrLG (gedict_t* self)
+{
+	return ((((int)self->s.v.items & IT_ROCKET_LAUNCHER) && (self->s.v.ammo_rockets > 1)) || (((int)self->s.v.items & IT_LIGHTNING) && (self->s.v.ammo_cells > 5)));
+}
+
+static qbool EnemyHasRLorLG (gedict_t* self)
+{
+	gedict_t* enemy = &g_edicts[self->s.v.enemy];
+	if (enemy == world)
+		return FALSE;
+
+	return ((((int)enemy->s.v.items & IT_ROCKET_LAUNCHER) && (enemy->s.v.ammo_rockets > 1)) || (((int)enemy->s.v.items & IT_LIGHTNING) && (enemy->s.v.ammo_cells > 5)));
+}
+
+static qbool IsDanger (gedict_t* self)
+{
+	gedict_t* enemy = &g_edicts[self->s.v.enemy];
+	if (enemy == world)
+		return FALSE;
+	
+	if ((self->s.v.health < enemy->s.v.health) && 
+		(self->s.v.armorvalue < enemy->s.v.armorvalue) && 
+		(self->s.v.armortype < enemy->s.v.armortype) && 
+		(self->fb.firepower < enemy->fb.firepower))
+		return TRUE;
+	if (((int)enemy->s.v.items & (IT_INVULNERABILITY | IT_QUAD | IT_INVISIBILITY)) && (!((int)self->s.v.items & (IT_INVULNERABILITY | IT_INVISIBILITY))))
+		return TRUE;
+	return FALSE;
+}
+
+qbool EnemyDefenceless(gedict_t* self)
+{
+	if (!EnemyHasRLorLG(self) && HasRLOrLG (self)) {
+		return (!IsDanger(self) && (self->s.v.health > 50) && (self->s.v.armorvalue >= 50));
+	}
+	return FALSE; 
 }

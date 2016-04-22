@@ -125,7 +125,7 @@ void Calc_G_time_2() {
 typedef qbool (*fb_path_calc_func_t)(gedict_t* m, gedict_t* m_P, float P_time);
 
 qbool Calc_G_time_3_path_apply(gedict_t* m, gedict_t* m_P /* next */, float P_time /* traveltime */) {
-	qbool no_change = (qbool) true;
+	qbool no_change = TRUE;
 
 	if (!m || m == world || !m_P || m_P == world) {
 		return no_change;
@@ -136,7 +136,7 @@ qbool Calc_G_time_3_path_apply(gedict_t* m, gedict_t* m_P /* next */, float P_ti
 
 		for (i = 0; i < sizeof(m->fb.subzones) / sizeof(m->fb.subzones[0]); ++i) {
 			if (m->fb.subzones[i].time > (P_time + m_P->fb.subzones[i].time)) {
-				no_change = (qbool) false;
+				no_change = FALSE;
 				m->fb.subzones[i].time = P_time + m_P->fb.subzones[i].time;
 				m->fb.subzones[i].next_marker = m_P;
 			}
@@ -148,11 +148,11 @@ qbool Calc_G_time_3_path_apply(gedict_t* m, gedict_t* m_P /* next */, float P_ti
 
 void PathCalculation(fb_path_calc_func_t func) {
 	// Keep going until no changes detected (hmm...)
-	qbool no_change = (qbool) false;
+	qbool no_change = FALSE;
 	while (!no_change) {
 		gedict_t* m;
 
-		no_change = (qbool) true;
+		no_change = TRUE;
 		for (m = first_marker; m && m != world; m = m->fb.marker_link) {
 			int i = 0;
 
@@ -170,7 +170,7 @@ void Calc_G_time_3_path() {
 }
 
 qbool Calc_G_time_4_path_apply(gedict_t* m, gedict_t* m_P, float P_time) {
-	qbool no_change = (qbool) true;
+	qbool no_change = TRUE;
 	int i = 0;
 
 	if (!m || m == world || !m_P || m_P == world) {
@@ -179,7 +179,7 @@ qbool Calc_G_time_4_path_apply(gedict_t* m, gedict_t* m_P, float P_time) {
 
 	for (i = 0; i < sizeof(m->fb.goals) / sizeof(m->fb.goals[0]); ++i) {
 		if (m->fb.goals[i].time > (P_time + m_P->fb.goals[i].time)) {
-			no_change = (qbool) false;
+			no_change = FALSE;
 			m->fb.goals[i].next_marker = m_P->fb.goals[i].next_marker;
 			m->fb.goals[i].time = P_time + m_P->fb.goals[i].time;
 		}
@@ -208,14 +208,14 @@ qbool ZoneTimeAdjust(gedict_t* m, gedict_t* m_P, int x) {
 			} 
 		} 
 		m->fb.zones[x].task |= m_D; 
-		return (qbool) false;
+		return FALSE;
 	}
 
-	return (qbool) true;
+	return TRUE;
 }
 
 qbool Calc_G_time_5_path_apply(gedict_t* m, gedict_t* m_P, float P_time) {
-	qbool no_change = (qbool) true;
+	qbool no_change = TRUE;
 	int i = 0;
 
 	if (!m || m == world || !m_P || m_P == world) {
@@ -238,14 +238,14 @@ void Calc_G_time_5_path() {
 qbool ZoneFromTimeAdjust(gedict_t* m, gedict_t* m_P, int x) {
 	if (m_P->fb.zones[x].from_time > (m->fb.zones[x].from_time + P_time)) { 
 		m_P->fb.zones[x].from_time = m->fb.zones[x].from_time + P_time; 
-		return (qbool) false;
+		return FALSE;
 	}
 
-	return (qbool) true;
+	return TRUE;
 }
 
 qbool Calc_G_time_6_path_apply(gedict_t* m, gedict_t* m_P, float P_time) {
-	qbool no_change = (qbool) true;
+	qbool no_change = TRUE;
 	int i = 0;
 
 	if (!m || m == world || !m_P || m_P == world) {
@@ -299,14 +299,14 @@ qbool ZoneReverseTimeAdjust(gedict_t* m, gedict_t* m_P, int x) {
 		m->fb.zones[x].reverse_time = P_time + m_P->fb.zones[x].reverse_time; 
 		m->fb.zones[x].reverse_next = m_P; 
 
-		return (qbool) false;
+		return FALSE;
 	}
 
-	return (qbool) true;
+	return TRUE;
 }
 
 qbool Calc_G_time_8_path_apply(gedict_t* m, gedict_t* m_P, float P_time) {
-	qbool no_change = (qbool) true;
+	qbool no_change = TRUE;
 	int i = 0;
 
 	if (!m || m == world || !m_P || m_P == world) {
@@ -392,14 +392,14 @@ void Calc_G_time_9() {
 qbool ZoneMinSightFromTimeCalc(gedict_t* m, gedict_t* m_P, int x) {
 	if (m->fb.zones[x].sight_from_time < (m_P->fb.zones[x].sight_from_time - P_time)) {
 		m->fb.zones[x].sight_from_time = m_P->fb.zones[x].sight_from_time - P_time; 
-		return (qbool) false;
+		return FALSE;
 	}
 
-	return (qbool) true;
+	return TRUE;
 }
 
 qbool Calc_G_time_10_path_apply(gedict_t* m, gedict_t* m_P, float P_time) {
-	qbool no_change = (qbool) true;
+	qbool no_change = TRUE;
 	int i = 0;
 
 	if (!m || m == world || !m_P || m_P == world) {

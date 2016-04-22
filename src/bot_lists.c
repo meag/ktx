@@ -27,7 +27,7 @@ gedict_t* RemoveFromList(gedict_t* first_in_list, gedict_t* ent) {
 	}
 	return first_in_list;
 }
-
+/*
 void Add_takedamage(gedict_t* ent) {
 	ent->s.v.takedamage = DAMAGE_YES;
 	first_takedamage = AddToList(first_takedamage, ent);
@@ -66,9 +66,10 @@ void Add_client() {
 			self->fb.teamflag = self->fb.teamflag * 2;
 		}
 	}
-	self->fb.movetarget = world;
+	self->fb.movetarget = NULL;
 	self->s.v.goalentity = self->s.v.enemy = NUM_FOR_EDICT(world);
 }
+*/
 
 gedict_t* EntityAt(gedict_t* start_entity, float index_) {
 	while (index_ > 0) {

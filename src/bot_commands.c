@@ -38,6 +38,7 @@ void FrogbotsAddbot() {
 			memset(&bots[i], 0, sizeof(bot_t));
 			bots[i].entity = entity;
 			memset(&bots[i].command, 0, sizeof(bots[i].command));
+			self->fb.last_cmd_sent = g_globalvars.time;
 			return;
 		}
 	}
@@ -80,13 +81,18 @@ void BotStartFrame(int time) {
 			next_hazard_time = time + 0.025;
 	}
 
+	FrogbotPrePhysics1 ();
+	//FrameThink ();
+	FrogbotPrePhysics2 ();
+	FrogbotPostPhysics ();
+
 	for (i = 0; i < sizeof(bots) / sizeof(bots[0]); ++i) {
 		// meag testing...
 		//bots[i].command.angles[0] = (int)(bots[i].command.angles[0] + 1) % 360;
-		bots[i].command.velocity[0] = 320;
-		bots[i].command.msec = 13;
 
 		if (bots[i].entity) {
+			BotSetCommand (&g_edicts[bots[i].entity]);
+			/*
 			trap_SetBotCMD(
 				bots[i].entity,
 				bots[i].command.msec,
@@ -98,7 +104,7 @@ void BotStartFrame(int time) {
 				bots[i].command.velocity[2],
 				bots[i].command.buttons,
 				bots[i].command.impulse
-			);
+			);*/
 		}
 	}
 }

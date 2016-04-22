@@ -43,13 +43,13 @@ float VisibleEntity(gedict_t* ent) {
 }
 
 gedict_t* identify_teammate_(gedict_t* me) {
-	gedict_t* p, *g;
+	gedict_t* p, *g = NULL;
 	float closeness;
 	vec3_t diff, point;
 	float currclose;
 
 	closeness = -1;
-	for (p = find_plr(world); p; p = find_plr(p)) {
+	for (p = world; p = find_plr (p); ) {
 		if (SameTeam(me, p)) {
 			VectorSubtract(p->s.v.origin, me->s.v.origin, diff);
 			VectorNormalize(diff);
@@ -57,7 +57,7 @@ gedict_t* identify_teammate_(gedict_t* me) {
 			VectorSubtract(diff, point, diff);
 			currclose = vlen(diff);
 			traceline(me->s.v.origin[0], me->s.v.origin[1], me->s.v.origin[2], p->s.v.origin[0], p->s.v.origin[1], p->s.v.origin[2], FALSE, me);
-			if (g_globalvars.trace_ent == NUM_FOR_EDICT(p)) {
+			if (PROG_TO_EDICT(g_globalvars.trace_ent) == p) {
 				if (closeness == -1) {
 					closeness = currclose;
 					g = p;
@@ -69,10 +69,8 @@ gedict_t* identify_teammate_(gedict_t* me) {
 			}
 		}
 	}
-	if (g != world) {
-		return g;
-	}
-	return world;
+	
+	return g ? g : world;
 }
 
 float visible_teammate(gedict_t* me) {
@@ -158,8 +156,8 @@ gedict_t* HelpTeammate() {
 		return NULL;
 	}
 	self->fb.help_teammate_time = g_globalvars.time + 20 + 3 * random();
-	selected1 = world;
-	selected2 = world;
+	selected1 = NULL;
+	selected2 = NULL;
 	best_dist1 = 99999999;
 	best_dist2 = 99999999;
 	for (head = world; head = trap_findradius(head, self->s.v.origin, bdist); ) {
@@ -199,10 +197,10 @@ gedict_t* HelpTeammate() {
 			}
 		}
 	}
-	if (selected1 != world) {
+	if (selected1) {
 		return selected1;
 	}
-	else if (selected2 != world) {
+	else if (selected2) {
 		return selected2;
 	}
 	return NULL;

@@ -8,8 +8,7 @@ static qbool right_direction(gedict_t* self) {
 	vec3_t test_direction,
 	       direction_to_test_marker;
 	float current_direction,
-	      desired_direction,
-	      right_direction;
+		  desired_direction;
 	float min_one,
 	      min_two;
 
@@ -59,7 +58,7 @@ static void lava_jump(gedict_t* self) {
 	float best_distance = 1001,
 	      best_yaw = 0;
 
-	for (e = world; e = trap_findradius(e, e->s.v.origin, 1000); world) {
+	for (e = world; e = trap_findradius(e, e->s.v.origin, 1000); ) {
 		if (streq(e->s.v.classname, "marker")) {
 			if (VectorDistance(t->s.v.origin, e->s.v.origin) < best_distance) {
 				best_distance = VectorDistance(t->s.v.origin, e->s.v.origin);
@@ -74,30 +73,28 @@ static void lava_jump(gedict_t* self) {
 	self->fb.yawspeed = 0;
 	if (self->s.v.waterlevel == 3) {
 		self->fb.real_pitch = 78.75;
-		new_pitch = 78.75;
 		self->fb.pitchaccel = 0;
 		self->fb.pitchspeed = 0;
 		self->fb.arrow = BACK;
-		VelocityForArrow();
+		VelocityForArrow(self);
 	}
 	if (self->s.v.waterlevel == 2) {
 		if (self->fb.arrow == BACK) {
 			self->fb.real_pitch = 78.75;
-			new_pitch = 78.75;
 			self->fb.pitchaccel = 0;
 			self->fb.pitchspeed = 0;
 			self->fb.arrow = BACK;
-			VelocityForArrow();
+			VelocityForArrow(self);
 			self->fb.rocketjumping = true;
 			self->fb.botchose = true;
-			self->s.v.impulse = 7;
+			self->fb.next_impulse = 7;
 			self->fb.firing = true;
 			self->fb.up_finished = g_globalvars.time + 0.1;
 		}
 		else  {
 			if (g_globalvars.time > self->fb.up_finished) {
 				self->fb.swim_arrow = DOWN;
-				VelocityForArrow();
+				VelocityForArrow(self);
 			}
 		}
 	}
@@ -122,9 +119,8 @@ qbool able_rj() {
 	return (qbool) (health_after > 50 && has_rj && (!beQuiet) && g_random() < 0.2);
 }
 
-// FIXME: not called at present (client.qc)
-// Performs rocket jump 
-void a_rocketjump() {
+// Performs rocket jump [TODO: rename]
+void a_rocketjump(gedict_t* self) {
 	qbool has_rl = (qbool) (self->s.v.ammo_rockets && ((int)self->s.v.items & IT_ROCKET_LAUNCHER));
 
 	self->fb.rocketjumping = true;
@@ -135,7 +131,7 @@ void a_rocketjump() {
 		vec3_t point = { self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] - 24 };
 		if (trap_pointcontents(point[0], point[1], point[2]) == CONTENT_LAVA) {
 			if (checkboven(self)) {
-				lava_jump(self, t);
+				lava_jump(self);
 				return;
 			}
 		}
@@ -143,7 +139,7 @@ void a_rocketjump() {
 	if (!self->fb.willRocketJumpThisTic) {
 		return;
 	}
-	if ((int)self->s.v.items & IT_QUAD && !((int)self->s.v.items & IT_INVULNERABILITY)) {
+	if (((int)self->s.v.items & IT_QUAD) && !((int)self->s.v.items & IT_INVULNERABILITY)) {
 		return;
 	}
 	if (!((int)self->fb.path_state & ROCKET_JUMP)) {
@@ -165,35 +161,24 @@ void a_rocketjump() {
 		return;
 	}
 
-	BestArrowForDirection();
-	VelocityForArrow();
-	new_pitch = 78.75;
+	//BestArrowForDirection(self, dir_move);
+	VelocityForArrow(self);
 	self->fb.real_pitch = 78.75;
 	self->fb.pitchspeed = 0;
 	self->fb.pitchaccel = 0;
-	self->fb.rocketjumping = (qbool) true;
-	self->fb.botchose = (qbool) true;
-	self->s.v.impulse = 7;
-	self->fb.firing = (qbool) true;
-	self->fb.jumping = (qbool) true;
+	self->fb.rocketjumping = TRUE;
+	self->fb.botchose = TRUE;
+	self->fb.next_impulse = 7;
+	self->fb.firing = TRUE;
+	self->fb.jumping = TRUE;
 }
 
 // TODO: FIX THIS
 void CheckCombatJump() {
-	if (self->isBot) {
-		if (!self->s.v.waterlevel) {
-			if (self->fb.allowedMakeNoise) {
-				if ((int)self->s.v.flags & FL_ONGROUND) {
-					if (self->s.v.weapon != IT_LIGHTNING) {
-						if (look_object_ == enemy_) {
-							if (random() < 0.2) {
-								if (!self->fb.rocketjumping) {
-									self->fb.jumping = true;
-								}
-							}
-						}
-					}
-				}
+	if (self->isBot && !self->s.v.waterlevel && self->fb.allowedMakeNoise) {
+		if (((int)self->s.v.flags & FL_ONGROUND) && self->s.v.weapon != IT_LIGHTNING) {
+			if (look_object_ == enemy_ && random() < 0.2 && !self->fb.rocketjumping) {
+				self->fb.jumping = true;
 			}
 		}
 	}

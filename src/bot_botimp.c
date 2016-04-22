@@ -39,19 +39,19 @@ void CalculatePhysicsVariables() {
 	inv_sv_maxspeed = 1 / sv_maxspeed;
 }
 
-void SetGame() {
-	game_disable_autosteams = (!(gamemode & GAME_ENABLE_AUTOSTEAMS));
-}
-
 void InitParameters() {
 	char buffer[1024] = { 0 };
 
 	first_ent = nextent(world);
-	test_enemy = first_ent;
-	while (test_enemy) {
+
+	// FIXME: ?
+	for (test_enemy = world; test_enemy = nextent (test_enemy); ) {
 		maxplayers = maxplayers + 1;
-		test_enemy = nextent(test_enemy);
 	}
+	if (maxplayers > 24) {
+		maxplayers = 24;
+	}
+
 	dropper = spawn();
 	setsize(dropper, PASSVEC3( VEC_HULL_MIN ), PASSVEC3( VEC_HULL_MAX ));
 	dropper->fb.desire = goal_NULL;
@@ -60,15 +60,11 @@ void InitParameters() {
 	NewItems();
 	InitBodyQue();
 
-	deathmatch = cvar("deathmatch");
-	if (maxplayers > 24) {
-		maxplayers = 24;
-	}
-	//nextmap = g_globalvars.mapname;
-	gamemode = cvar("samelevel");
-	SetGame();
-	teamplay = cvar("teamplay");
+	gamemode = cvar(FB_CVAR_GAMEMODE);			// FIXME
+	game_disable_autosteams = (!(gamemode & GAME_ENABLE_AUTOSTEAMS));
+
 	//initialize(); // TODO: RA initialization?
+
 	if (teamplay == 4) {
 		armorplay = TRUE;
 	}
@@ -91,7 +87,7 @@ void InitParameters() {
 }
 
 void SetSkill() {
-	bprint_fb(2, va("%s changed to %s\n", "botskill", dig3(cvar("k_bot_skill"))));
+	bprint_fb(2, va("%s changed to %s\n", redtext("botskill"), dig3(cvar(FB_CVAR_SKILL))));
 }
 
 void CheckParameters() {
@@ -121,11 +117,13 @@ char* SetTeamNetName() {
 	      playersOnOtherTeams,
 	      frogbotsOnThisTeam;
 	char* attemptedName;
+	gedict_t* search_entity;
+
 	playersOnThisTeam = 0;
 	frogbotsOnThisTeam = 0;
 	playersOnOtherTeams = 0;
-	search_entity = first_client;
-	while (search_entity) {
+
+	for (search_entity = world; search_entity = find_plr (search_entity); ) {
 		if (!search_entity->isBot) {
 			if (search_entity->s.v.team == self->s.v.team) {
 				playersOnThisTeam = playersOnThisTeam + 1;
@@ -137,7 +135,6 @@ char* SetTeamNetName() {
 		else if (search_entity->s.v.team == self->s.v.team) {
 			frogbotsOnThisTeam = frogbotsOnThisTeam + 1;
 		}
-		search_entity = search_entity->fb.next;
 	}
 	if (playersOnOtherTeams > 0 && playersOnThisTeam == 0) {
 		attemptedName = EnemyTeamName();
@@ -156,22 +153,22 @@ char* SetTeamNetName() {
 
 char* EnemyTeamName() {
 	char* names[] = {
-		"Timber",
-		"Kane",
-		"Rix",
-		"Batch",
-		"Nikodemus",
-		"Paralyzer",
-		"Sujoy",
-		"Gollum",
-		"sCary",
-		"Xenon",
-		"Thresh",
-		"Frick",
-		"B2",
-		"Reptile",
-		"Unholy",
-		"Spice"
+		"::Timber",
+		"::Kane",
+		"::Rix",
+		"::Batch",
+		"::Nikodemus",
+		"::Paralyzer",
+		"::Sujoy",
+		"::Gollum",
+		"::sCary",
+		"::Xenon",
+		"::Thresh",
+		"::Frick",
+		"::B2",
+		"::Reptile",
+		"::Unholy",
+		"::Spice"
 	};
 
 	return names[(int)bound(0, self->fb.botnumber - 1, sizeof(names) / sizeof(names[0]) - 1)];
@@ -180,7 +177,7 @@ char* EnemyTeamName() {
 char* FriendTeamName() {
 	char* names[] = {
 		"Mr Justice",
-		"Paz",
+		"Parrais",
 		"Jon",
 		"Gaz",
 		"Jakey",
@@ -200,6 +197,7 @@ char* FriendTeamName() {
 	return names[(int)bound(0, self->fb.botnumber - 1, sizeof(names) / sizeof(names[0]) - 1)];
 }
 
+// FIXME
 char* SetNetName() {
 	char* names[] = {
 		"//boff",
@@ -212,20 +210,20 @@ char* SetNetName() {
 		"//chuckie",
 
 		"//grue",
-		"//machine",
-		"//lassie",
-		"//blue",
-		"//dave",
+		"//machina",
+		"//gudgie",
+		"//scoosh",
+		"//frazzle",
 		"//pressure",
 		"//junked",
-		"//overlord"
+		"//overload"
 	};
 
 	return names[(int)bound(0, self->fb.botnumber - 1, sizeof(names) / sizeof(names[0]) - 1)];
 }
 
 void ToggleGameMode(int value, char* s) {
-	new_gamemode = cvar("samelevel");
+	new_gamemode = cvar(FB_CVAR_GAMEMODE);
 	if (new_gamemode & value) {
 		new_gamemode = new_gamemode - value;
 		bprint_fb(2, s);
@@ -236,25 +234,25 @@ void ToggleGameMode(int value, char* s) {
 		bprint_fb(2, s);
 		bprint_fb(2, " enabled after restart\\");
 	}
-	cvar_fset("samelevel", new_gamemode);
+	cvar_fset(FB_CVAR_GAMEMODE, new_gamemode);
 }
 
 void ToggleGameModeNow(int value, char* s) {
-	int new_gamemode = cvar("k_bots_settings");
+	int new_gamemode = cvar(FB_CVAR_GAMEMODE);
 	if (gamemode & value) {
-		gamemode = gamemode - value;
-		new_gamemode = new_gamemode - (new_gamemode & value);
+		gamemode &= ~value;
+		new_gamemode &= ~value;
 		bprint_fb(2, s);
-		bprint_fb(2, " disabled\\");
+		bprint_fb(2, " disabled%s\\");
 	}
 	else  {
-		gamemode = gamemode | value;
-		new_gamemode = new_gamemode | value;
+		gamemode |= value;
+		new_gamemode |= value;
 		bprint_fb(2, s);
 		bprint_fb(2, " enabled\\");
 	}
-	cvar_fset("k_bots_settings", new_gamemode);
-	SetGame();
+	cvar_fset(FB_CVAR_GAMEMODE, new_gamemode);
+	//SetGame();
 }
 
 void print_boolean(int value, char* s) {

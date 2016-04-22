@@ -173,7 +173,7 @@ void frogbot_marker_touch() {
 	}
 	goalentity_marker = goalentity_->fb.touch_marker;
 	if (self->fb.state & RUNAWAY) {
-		goalentity_marker = world;
+		goalentity_marker = NULL;
 	}
 	if (linked_marker_ == touch_marker_) {
 		if (goalentity_ == touch_marker_) {
@@ -193,12 +193,8 @@ void frogbot_marker_touch() {
 		}
 	}
 	else  {
-		from_marker = self->fb.old_linked_marker;
-		to_marker = touch_marker_;
-		if (ExistsPath()) {
-			from_marker = touch_marker_;
-			to_marker = linked_marker_;
-			if (ExistsPath()) {
+		if (ExistsPath(self->fb.old_linked_marker, touch_marker_)) {
+			if (ExistsPath(touch_marker_, linked_marker_)) {
 				self->fb.path_state = new_path_state;
 				return;
 			}
@@ -211,7 +207,7 @@ void frogbot_marker_touch() {
 		if (enemy_touch_marker) {
 			int i = 0;
 
-			best_away_marker = world;
+			best_away_marker = NULL;
 			best_away_score = 0;
 			to_marker = touch_marker_;
 			enemy_touch_marker->fb.sight_from_time();
@@ -226,7 +222,7 @@ void frogbot_marker_touch() {
 				}
 			}
 
-			if (!best_away_marker || best_away_marker == world) {
+			if (!best_away_marker) {
 				best_away_marker = touch_marker_;
 			}
 			self->fb.goal_respawn_time = 0;
@@ -245,7 +241,7 @@ void frogbot_marker_touch() {
 							from_marker->fb.higher_sight_from_marker();
 							if (!look_marker) {
 								self->fb._highermarker = 0;
-								HigherSightMarker();
+								HigherSightMarker(from_marker);
 							}
 							if (look_marker) {
 								goalentity_marker = look_marker;
@@ -271,7 +267,7 @@ void frogbot_marker_touch() {
 								from_marker->fb.higher_sight_from_marker();
 								if (!look_marker) {
 									self->fb._highermarker = 0;
-									HigherSightMarker();
+									HigherSightMarker(from_marker);
 								}
 								if (look_marker) {
 									goalentity_marker = look_marker;
@@ -342,7 +338,7 @@ void frogbot_marker_touch() {
 
 		for (i = 0; i < sizeof(touch_marker_->fb.paths) / sizeof(touch_marker_->fb.paths[0]); ++i) {
 			gedict_t* test_marker = touch_marker_->fb.paths[i].next_marker;
-			if (test_marker && test_marker != world) {
+			if (test_marker) {
 				fb_path_eval_t eval = { 0 };
 
 				eval.description = touch_marker_->fb.paths[i].flags;
@@ -372,7 +368,7 @@ void frogbot_marker_touch() {
 								linked_marker_ = self->fb.linked_marker = touch_marker_;
 								self->fb.path_state = 0;
 								self->fb.linked_marker_time = g_globalvars.time + 5;
-								self->fb.old_linked_marker = world;
+								self->fb.old_linked_marker = NULL;
 							}
 						}
 					}
@@ -404,7 +400,7 @@ void frogbot_marker_touch() {
 		self->fb.linked_marker_time = g_globalvars.time + 5;
 	}
 	self->fb.old_linked_marker = touch_marker_;
-	if (goalentity_marker->fb.Z_ == 1) {
+	if (goalentity_marker && goalentity_marker->fb.Z_ == 1) {
 		if (touch_marker_->fb.zones[0].task & DM6_DOOR) {
 			if (dm6_door->s.v.takedamage) {
 				vec3_t temp, src;
@@ -415,7 +411,7 @@ void frogbot_marker_touch() {
 				VectorCopy(origin_, src);
 				src[2] += 16;
 				traceline(src[0], src[1], src[2], src[0] + direction[0] * 2048, src[1] + direction[1] * 2048, src[2] + direction[2] * 2048, FALSE, self);
-				if (g_globalvars.trace_ent == NUM_FOR_EDICT(dm6_door)) {
+				if (PROG_TO_EDICT(g_globalvars.trace_ent) == dm6_door) {
 					self->fb.path_state |= DM6_DOOR;
 				}
 			}
@@ -446,7 +442,7 @@ void frogbot_marker_touch() {
 		self->fb.look_object = look_object_;
 		return;
 	}
-	if (look_object_->ct == ctPlayer) {
+	if (look_object_ && look_object_->ct == ctPlayer) {
 		return;
 	}
 	if ((self->s.v.waterlevel == 2) || (self->s.v.waterlevel == 1)) {
@@ -468,7 +464,7 @@ void frogbot_marker_touch() {
 				look_traveltime = traveltime;
 			}
 			else  {
-				SightMarker();
+				SightMarker(from_marker);
 			}
 			if (look_marker) {
 				to_marker = from_marker;
@@ -478,7 +474,7 @@ void frogbot_marker_touch() {
 				to_marker->fb.sub_arrival_time();
 				if (look_traveltime < traveltime) {
 					self->fb.look_object = look_object_ = look_marker;
-					self->fb.predict_shoot = (qbool) true;
+					self->fb.predict_shoot = TRUE;
 					return;
 				}
 			}

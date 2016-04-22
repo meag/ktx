@@ -32,8 +32,11 @@ void UpdateGoalEntity(gedict_t* item) {
 
 // Evaluates a goal 
 static void EvalGoal(gedict_t* goal_entity) {
-	float goal_desire = goal_entity->fb.desire(self);
+	float goal_desire = goal_entity && goal_entity->fb.desire ? goal_entity->fb.desire (self) : 0;
 	
+	if (!goal_entity)
+		return;
+
 	goal_entity->fb.saved_goal_desire = goal_desire;
 	if (goal_desire > 0) {
 		// TODO: replace aerowalk dynamic_item (quad) with proper quad spawn
@@ -195,7 +198,8 @@ void UpdateGoal() {
 
 	if (enemy_touch_marker) {
 		virtual_enemy = enemy_;
-		enemy_->fb.desire();
+		enemy_desire = enemy_ && enemy_->fb.desire ? enemy_->fb.desire(self) : 0;
+		G_bprint (2, "Enemy %s, desire func %s, %f\n", enemy_ ? enemy_->s.v.classname : "?", enemy_ && enemy_->fb.desire ? "yes" : "no", enemy_desire);
 		if (enemy_desire > 0) {
 			from_marker = touch_marker_;
 			enemy_touch_marker->fb.zone_marker();
@@ -220,6 +224,7 @@ void UpdateGoal() {
 	else  {
 		virtual_enemy = dropper;
 	}
+	//G_bprint (2, "After enemy evaluation: best_goal %s, best_score %f\n", best_goal ? best_goal->s.v.classname : "(none)", best_score);
 
 	for (i = 0; i < sizeof(m->fb.goals) / sizeof(m->fb.goals[0]); ++i) {
 		EvalGoal(touch_marker_->fb.goals[i].next_marker->fb.virtual_goal);
@@ -297,5 +302,7 @@ void UpdateGoal() {
 	else  {
 		self->s.v.goalentity = NUM_FOR_EDICT(world);
 	}
+
+	G_bprint (2, "UpdateGoal() => %s\n", g_edicts[self->s.v.goalentity].s.v.classname);
 }
 

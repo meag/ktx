@@ -322,7 +322,7 @@ void map_amphi2() {
 	SetMarkerPathFlags(22, 1, ROCKET_JUMP);
 }
 
-void AMPHI2BotInLava() {
+void AMPHI2BotInLava(void) {
 	// TODO: rewrite... essentially if in lava and enemy isn't shafting, jump to target instead of walk
 	if ( self->isBot && streq(g_globalvars.mapname, "amphi2") ) {
 		if (g_globalvars.time > self->fb.arrow_time) {
@@ -332,8 +332,10 @@ void AMPHI2BotInLava() {
 					if ((int)self->s.v.flags & FL_ONGROUND) {
 						if (!enemy_shaft_attack()) {
 							if (!self->fb.rocketjumping) {
-								BestArrowForDirection();
-								VelocityForArrow();
+								vec3_t dir_move;
+								VectorCopy (self->fb.dir_move_, dir_move);
+								BestArrowForDirection(self, dir_move);
+								VelocityForArrow(self);
 								self->fb.jumping = true;
 							}
 						}

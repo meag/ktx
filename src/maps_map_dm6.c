@@ -776,7 +776,7 @@ void DM6CampLogic() {
 			if ((self->s.v.health > 80) && (self->s.v.armorvalue > 100)) {
 				if ((self->s.v.ammo_cells > 15) || (self->s.v.ammo_rockets > 3)) {
 					search_entity = ez_find(world, "item_armorInv");
-					if (search_entity != world) {
+					if (search_entity) {
 						if (search_entity->s.v.origin[2] <= self->s.v.origin[2] + 18) {
 							if (VectorDistance(search_entity->s.v.origin, self->s.v.origin) < 200) {
 								if (random() < 0.9) {

@@ -1901,7 +1901,7 @@ void DM3CampLogic() {
 				if ((self->s.v.health > 60) && (self->s.v.armorvalue > 80)) {
 					if ((self->s.v.ammo_cells > 15) || (self->s.v.ammo_rockets > 3)) {
 						search_entity = ez_find(world, "item_artifact_super_damage");
-						if (search_entity != world) {
+						if (search_entity) {
 							if (random() < 0.5) {
 								if (search_entity->s.v.origin[2] <= self->s.v.origin[2] + 18) {
 									vec3_t diff;

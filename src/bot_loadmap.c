@@ -3,17 +3,10 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
-typedef void (*fb_spawn_func_t)(gedict_t* ent);
-
 typedef struct fb_mapping_s {
 	char* name;
 	fb_void_func_t func;
 } fb_mapping_t;
-
-typedef struct fb_spawn_s {
-	char* name;
-	fb_spawn_func_t func;
-} fb_spawn_t;
 
 static fb_mapping_t maps[] = {
 	{ "dm6", map_dm6 },
@@ -40,33 +33,11 @@ void InvalidMap() {
 	G_sprint(self, 2, "dm3, dm4, dm6, e1m2, frobodm2, aerowalk, spinev2, pkeg1, ultrav, ztndm3, amphi2, povdmm4\n");
 }
 
-static fb_spawn_t itemSpawnFunctions[] = {
-	{ "item_health", fb_spawn_health },
-	{ "item_armor1", fb_spawn_armor },
-	{ "item_armor2", fb_spawn_armor },
-	{ "item_armorInv", fb_spawn_armor },
-	{ "weapon_supershotgun", fb_spawn_ssg },
-	{ "weapon_nailgun", fb_spawn_ng },
-	{ "weapon_supernailgun", fb_spawn_sng },
-	{ "weapon_grenadelauncher", fb_spawn_gl },
-	{ "weapon_rocketlauncher", fb_spawn_rl },
-	{ "weapon_lightning", fb_spawn_lg },
-	{ "item_shells", fb_spawn_shells },
-	{ "item_spikes", fb_spawn_spikes },
-	{ "item_rockets", fb_spawn_rockets },
-	{ "item_cells", fb_spawn_cells },
-	{ "item_weapon", fb_spawn_weapon },
-	{ "item_artifact_invulnerability", fb_spawn_pent },
-	{ "item_artifact_envirosuit", fb_spawn_biosuit },
-	{ "item_artifact_invisibility", fb_spawn_ring },
-	{ "item_artifact_super_damage", fb_spawn_quad }
-};
-
 static void fb_spawn_button(gedict_t* ent) {
 	AddToQue(ent);
 
 	if (ent->s.v.health) {
-		Add_takedamage(ent);
+		//Add_takedamage(ent);
 	}
 	else {
 		BecomeMarker(ent);
@@ -100,7 +71,7 @@ static void fb_spawn_door(gedict_t* ent) {
 	}
 	else {
 		if (ent->s.v.health) {
-			Add_takedamage(ent);
+			//Add_takedamage(ent);
 		}
 
 		adjust_view_ofs_z(ent);
@@ -117,7 +88,7 @@ static void fb_spawn_simple(gedict_t* ent) {
 	}
 	else {
 		if (ent->s.v.health) {
-			Add_takedamage(ent);
+			//Add_takedamage(ent);
 		}
 	}
 }
@@ -139,20 +110,20 @@ static fb_spawn_t stdSpawnFunctions[] = {
 	{ "trigger_push", fb_spawn_simple }
 };
 
-void CreateItemMarkers() {
+static void CreateItemMarkers() {
 	// Old frogbot method was to call during item spawns, we just 
 	//    catch up afterwards once we know the map is valid
 	gedict_t* item;
 
-	for (item = world; item; item = nextent(item)) {
+	for (item = world; item = nextent(item); ) {
 		int i = 0;
-		qbool found = (qbool) false;
+		qbool found = FALSE;
 
 		// check for item spawn
-		for (i = 0; i < sizeof(itemSpawnFunctions) / sizeof(itemSpawnFunctions[0]); ++i) {
+		for (i = 0; i < ItemSpawnFunctionCount(); ++i) {
 			if (streq(itemSpawnFunctions[i].name, item->s.v.classname)) {
 				itemSpawnFunctions[i].func(item);
-				found = (qbool) true;
+				found = TRUE;
 				break;
 			}
 		}
@@ -166,7 +137,21 @@ void CreateItemMarkers() {
 				}
 			}
 		}
+	}
+}
 
+// After all markers have been created, re-process items
+static void AssignVirtualGoals (void)
+{
+	for (item = world; item = nextent(item); ) {
+		int i = 0;
+
+		for (i = 0; i < ItemSpawnFunctionCount(); ++i) {
+			if (streq(itemSpawnFunctions[i].name, item->s.v.classname)) {
+				AssignVirtualGoal_apply (item);
+				break;
+			}
+		}
 	}
 }
 
@@ -177,6 +162,7 @@ void LoadMap() {
 		if (streq(g_globalvars.mapname, maps[i].name)) {
 			CreateItemMarkers();
 			maps[i].func();
+			AssignVirtualGoals ();
 			return;
 		}
 	}

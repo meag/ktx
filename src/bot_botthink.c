@@ -3,14 +3,14 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
-void POVDMM4LookDoor();
-void AMPHI2BotInLava();
+void POVDMM4LookDoor(void);
+void AMPHI2BotInLava(void);
 
 // Sets a client's last marker
 void SetMarker(gedict_t* client, gedict_t* marker) {
 	client->fb.touch_distance = 0;
 	client->fb.touch_marker = marker;
-	client->fb.Z_ = marker->fb.Z_;
+	client->fb.Z_ = marker ? marker->fb.Z_ : 0;
 	client->fb.touch_marker_time = g_globalvars.time + 5;
 	EnterZone(client->fb.Z_, client->s.v.team, client->fb.is_strong);
 }
@@ -22,7 +22,7 @@ void SetNextThinkTime(gedict_t* ent) {
 	}
 }
 
-void AvoidLookObjectsMissile() {
+static void AvoidLookObjectsMissile() {
 	// TODO: this is why bot is good at avoiding grenades unless you spam them round corner...  need to set movetarget when missile is fired...
 	/*
 	if (look_object_->fb.movetarget->s.v.owner == NUM_FOR_EDICT(look_object_)) {
@@ -30,7 +30,7 @@ void AvoidLookObjectsMissile() {
 	}*/
 }
 
-void LookingAtEnemyLogic() {
+static void LookingAtEnemyLogic() {
 	//UpdateEnemy
 	if (Visible_360(self, look_object_)) {
 		if (look_object_ == enemy_) {
@@ -39,27 +39,29 @@ void LookingAtEnemyLogic() {
 		else  {
 			if (g_globalvars.time >= self->fb.enemy_time) {
 				ClearLookObject(self);
-				look_object_ = world;
+				look_object_ = NULL;
 			}
 		}
 	}
 	else  {
 		ClearLookObject(self);
-		look_object_ = world;
+		look_object_ = NULL;
 	}
 }
 
-void NewlyPickedEnemyLogic() {
+static void NewlyPickedEnemyLogic() {
 	gedict_t* goalentity_ = &g_edicts[self->s.v.goalentity];
+
+	//G_bprint (2, "No look object, enemy is %s, goal is %s\n", enemy_->s.v.classname, goalentity_->s.v.classname);
 
 	visible_object = enemy_;
 	if (goalentity_ == enemy_) {
 		if (Visible_360(self, enemy_)) {
-			LookEnemy();
+			LookEnemy(self, enemy_);
 		}
 		else  {
 			if (g_globalvars.time >= self->fb.enemy_time) {
-				BestEnemy();
+				BestEnemy(self);
 				if (enemy_ != goalentity_) {
 					self->fb.goal_refresh_time = 0;
 				}
@@ -69,11 +71,11 @@ void NewlyPickedEnemyLogic() {
 	else  {
 		Visible_infront();
 		if (enemy_visible) {
-			LookEnemy();
+			LookEnemy(self, enemy_);
 		}
 		else  {
 			if (g_globalvars.time >= self->fb.enemy_time) {
-				BestEnemy();
+				BestEnemy(self);
 			}
 		}
 	}
@@ -81,7 +83,8 @@ void NewlyPickedEnemyLogic() {
 
 void TargetEnemyLogic() {
 	if (!(self->fb.state & NOTARGET_ENEMY)) {
-		if (look_object_->ct == ctPlayer) {
+		if (look_object_ && look_object_->ct == ctPlayer) {
+			// Interesting - they only avoid missiles from objects they can see / are locked onto?
 			AvoidLookObjectsMissile();
 
 			LookingAtEnemyLogic();
@@ -90,12 +93,12 @@ void TargetEnemyLogic() {
 			NewlyPickedEnemyLogic();
 		}
 		else  {
-			BestEnemy();
+			BestEnemy(self);
 		}
 	}
 }
 
-void BotDodgeMovement() {
+static void BotDodgeMovement(vec3_t dir_move) {
 	if (dodge_factor) {
 		if (dodge_factor < 0) {
 			dodge_factor = dodge_factor + 1;
@@ -108,7 +111,7 @@ void BotDodgeMovement() {
 	}
 }
 
-void BotOnGroundMovement() {
+static void BotOnGroundMovement(gedict_t* self, vec3_t dir_move) {
 	if ((int)self->s.v.flags & FL_ONGROUND) {
 		if (!(self->fb.path_state & NO_DODGE)) {
 			vec3_t temp;
@@ -123,10 +126,11 @@ void BotOnGroundMovement() {
 					}
 				}
 				else  {
-					dodge_missile = world;
+					dodge_missile = NULL;
 				}
 			}
-			if (look_object_->ct == ctPlayer) {
+
+			if (look_object_ && look_object_->ct == ctPlayer) {
 				if (!dodge_factor) {
 					VectorSubtract(origin_, look_object_->s.v.origin, rel_pos);
 					trap_makevectors(look_object_->s.v.v_angle);
@@ -137,12 +141,17 @@ void BotOnGroundMovement() {
 				}
 			}
 
-			BotDodgeMovement();
+			BotDodgeMovement(dir_move);
 		}
+	}
+
+	// If we're not in water, cannot have vertical direction (think of markers heading up stairs)
+	if (self->s.v.waterlevel <= 1) {
+		dir_move[2] = 0;
 	}
 }
 
-void BotMoveTowardsLinkedMarker() {
+static void BotMoveTowardsLinkedMarker(gedict_t* self, vec3_t dir_move) {
 	vec3_t temp;
 	gedict_t* goalentity_ = &g_edicts[self->s.v.goalentity];
 
@@ -161,7 +170,8 @@ void BotMoveTowardsLinkedMarker() {
 	}
 }
 
-void BotTouchMarkerLogic() {
+// Called when the bot touches a marker
+static void BotTouchMarkerLogic() {
 	TargetEnemyLogic();
 
 	if (g_globalvars.time >= self->fb.goal_refresh_time) {
@@ -169,7 +179,7 @@ void BotTouchMarkerLogic() {
 	}
 
 	if (g_globalvars.time >= self->fb.linked_marker_time) {
-		self->fb.old_linked_marker = world;
+		self->fb.old_linked_marker = NULL;
 	}
 
 	if (self->fb.old_linked_marker != touch_marker_) {
@@ -185,24 +195,22 @@ void BotTouchMarkerLogic() {
 			}
 		}
 	}
-	else  {
-		BotMoveTowardsLinkedMarker();
+	else {
+		vec3_t dir_move;
 
-		BotOnGroundMovement();
+		BotMoveTowardsLinkedMarker(self, dir_move);
 
-		// If we're not in water, cannot have vertical direction (think of markers heading up stairs)
-		if (self->s.v.waterlevel <= 1) {
-			dir_move[2] = 0;
-		}
+		BotOnGroundMovement(self, dir_move);
 
-		self->fb.arrow = BestArrowForDirection();
+		self->fb.arrow = BestArrowForDirection(self, dir_move);
 		VectorCopy(dir_move, self->fb.dir_move_);
 	}
 
 	SelectWeapon();
 }
 
-void HumanTouchMarkerLogic() {
+// Called when a human player touches a marker
+static void HumanTouchMarkerLogic() {
 	gedict_t* goalentity_ = &g_edicts[self->s.v.goalentity];
 
 	enemy_ = &g_edicts[self->s.v.enemy];
@@ -211,17 +219,18 @@ void HumanTouchMarkerLogic() {
 	VectorCopy(self->s.v.origin, origin_);
 	goalentity_ = &g_edicts[self->s.v.goalentity];
 	if (g_globalvars.time >= self->fb.enemy_time) {
-		BestEnemy();
+		BestEnemy(self);
 	}
 }
 
-void PeriodicAllClientLogic() {
+static void PeriodicAllClientLogic() {
 	SetNextThinkTime(self);
 
 	if (g_globalvars.time >= self->fb.weapon_refresh_time) {
 		UpdateWeapons();
 	}
 
+	// If we haven't touched a marker in a while, find closest marker
 	if (g_globalvars.time >= self->fb.touch_marker_time) {
 		SetMarker(self, LocateMarker(self->s.v.origin));
 	}
@@ -248,30 +257,51 @@ void PeriodicAllClientLogic() {
 		else  {
 			self->fb.goal_refresh_time = 0;
 			if (self->isBot) {
-				self->fb.old_linked_marker = world;
-				self->fb.state = self->fb.state | AWARE_SURROUNDINGS;
+				self->fb.old_linked_marker = NULL;
+				self->fb.state |= AWARE_SURROUNDINGS;
 			}
 			else if (markers_loaded) {
-				self->fb.state = self->fb.state | AWARE_SURROUNDINGS;
+				self->fb.state |= AWARE_SURROUNDINGS;
 			}
 		}
 	}
-
-	// Fixme: these are bot-only, move to PeriodicBotLogic()?
-	CheckCombatJump();
-	AMPHI2BotInLava();
 }
 
 static void BotStopFiring() {
 	qbool continuous = (qbool) ((int)self->s.v.weapon & IT_CONTINUOUS);
 
 	if (!(continuous || self->fb.rocketjumping)) {
-		self->fb.firing = (qbool) false;
+		self->fb.firing = FALSE;
 	}
+}
+
+static qbool PredictSpot(gedict_t* self, gedict_t* enemy_, vec3_t testplace, float rel_time) {
+	gedict_t* fallspot_self = self;
+	self = dropper;
+	VectorCopy(testplace, self->s.v.origin);
+	self->s.v.flags = FL_ONGROUND_PARTIALGROUND;
+	if (walkmove(self, 0, 0)) {
+		if (!(droptofloor(self))) {
+			self = fallspot_self;
+			testplace[2] = testplace[2] - 400 * (rel_time * rel_time) - 38;
+			return FALSE;
+		}
+		if (self->s.v.origin[2] < fallheight) {
+			self = fallspot_self;
+			testplace[2] = testplace[2] - 400 * (rel_time * rel_time) - 38;
+			return FALSE;
+		}
+		self = fallspot_self;
+		return TRUE;
+	}
+	self = fallspot_self;
+	VectorCopy(enemy_->s.v.origin, testplace);
+	return FALSE;
 }
 
 static void PredictEnemyLocationInFuture(gedict_t* enemy, float rel_time) {
 	vec3_t testplace;
+	qbool predict_spot;
 
 	enemy_->fb.oldsolid = enemy_->s.v.solid;
 	enemy_->s.v.solid = SOLID_NOT;
@@ -279,7 +309,7 @@ static void PredictEnemyLocationInFuture(gedict_t* enemy, float rel_time) {
 	VectorMA(enemy_->s.v.origin, rel_time, enemy_->s.v.velocity, testplace);
 	testplace[2] += 36;
 
-	PredictSpot();
+	predict_spot = PredictSpot(self, enemy_, testplace, rel_time);
 
 	if (predict_spot) {
 		VectorCopy(dropper->s.v.origin, self->fb.predict_origin);
@@ -295,10 +325,11 @@ static void PredictEnemyLocationInFuture(gedict_t* enemy, float rel_time) {
 }
 
 // This is when firing at buttons/doors etc
-static void BotsFireAtWorldLogic() {
+static void BotsFireAtWorldLogic(vec3_t rel_pos, float* rel_dist) {
 	VectorAdd(look_object_->s.v.absmin, look_object_->s.v.view_ofs, rel_pos);
 	VectorSubtract(rel_pos, origin_, rel_pos);
-	rel_dist = vlen(rel_pos);
+	*rel_dist = vlen(rel_pos);
+
 	if (self->fb.path_state & DM6_DOOR) {
 		if (dm6_door->s.v.takedamage) {
 			rel_pos[2] = rel_pos[2] - 38;
@@ -308,29 +339,29 @@ static void BotsFireAtWorldLogic() {
 			self->fb.state = self->fb.state & NOT_NOTARGET_ENEMY;
 		}
 	}
-	else if (rel_dist < 160) {
+	else if (*rel_dist < 160) {
 		rel_pos2[0] = rel_pos[0];
 		rel_pos2[1] = rel_pos[1];
 		VectorNormalize(rel_pos2);
 		VectorScale(rel_pos2, 160, rel_pos2);
 		rel_pos[0] = rel_pos2[0];
 		rel_pos[1] = rel_pos2[1];
-		rel_dist = 160;
+		*rel_dist = 160;
 	}
 }
 
 // When firing at another player
-static void BotsFireAtPlayerLogic() {
+static void BotsFireAtPlayerLogic(vec3_t rel_pos, float* rel_dist) {
 	VectorSubtract(look_object_->s.v.origin, origin_, rel_pos);
-	rel_dist = vlen(rel_pos);
+	*rel_dist = vlen(rel_pos);
 
 	// If (not a hitscan weapon)
 	if ((int)self->s.v.weapon & IT_VELOCITY) {
 		if ((int)self->s.v.weapon & IT_GRENADE_LAUNCHER) {
-			rel_time = rel_dist / 600;
+			rel_time = *rel_dist / 600;
 		}
 		else  {
-			rel_time = rel_dist / 1000;
+			rel_time = *rel_dist / 1000;
 			if ((int)self->ctf_flag & CTF_RUNE_HST) {
 				if ((int)self->s.v.weapon & IT_EITHER_NAILGUN) {
 					rel_time = rel_time * 0.5;
@@ -354,7 +385,7 @@ static void BotsFireLogic() {
 	if (g_globalvars.time >= self->fb.fire_nextthink) {
 		self->fb.fire_nextthink = self->fb.fire_nextthink + (self->fb.firing_reflex * (0.95 + (0.1 * random())));
 		if (self->fb.fire_nextthink <= g_globalvars.time) {
-			self->fb.fire_nextthink = g_globalvars.time + (self->fb.firing_reflex * (0.95 + (0.1 * random())));
+			self->fb.fire_nextthink = g_globalvars.time + 0.1f; //(self->fb.firing_reflex * (0.95 + (0.1 * random())));
 		}
 
 		look_object_ = self->fb.look_object;
@@ -362,10 +393,10 @@ static void BotsFireLogic() {
 		if (look_object_) {
 			VectorCopy(self->s.v.origin, origin_);
 			if (look_object_->ct == ctPlayer) {
-				BotsFireAtPlayerLogic();
+				BotsFireAtPlayerLogic(rel_pos, &rel_dist);
 			}
-			else  {
-				BotsFireAtWorldLogic();
+			else {
+				BotsFireAtWorldLogic(rel_pos, &rel_dist);
 			}
 
 			// Aim lower over longer distances?  (FIXME)
@@ -377,18 +408,30 @@ static void BotsFireLogic() {
 			}
 
 			normalize(rel_pos, rel_dir);
-			VectorCopy(rel_hor_dir, rel_pos);
+			VectorCopy(rel_pos, rel_hor_dir);
 			rel_hor_dir[2] = 0;
 			normalize(rel_hor_dir, rel_hor_dir);
 			hor_component = DotProduct(rel_dir, rel_hor_dir);
 			mouse_vel = 57.29578 / rel_dist;
+
+			// rel_hor_dir and '0 0 1' are an orthogonal axis
+			// hor_component is the rel_hor_dir (horizontal) component of rel_dir
+			// rel_dir_z is the '0 0 1' (vertical) component of rel_dir
 			VectorScale(rel_hor_dir, rel_dir[2], pitch_tangent);
 			pitch_tangent[2] = 0 - hor_component;
+
+			// pitch_tangent is the tangent normal vector to pitch angular velocity
 			VectorScale(pitch_tangent, mouse_vel, pitch_tangent);
+
+			// pitch_tangent has been scaled according to view object distance
 			yaw_tangent[0] = 0 - rel_hor_dir[1];
 			yaw_tangent[1] = rel_hor_dir[0];
 			yaw_tangent[2] = 0;
+
+			// yaw_tangent is the tangent normal vector to yaw angular velocity
 			VectorScale(yaw_tangent, mouse_vel, yaw_tangent);
+
+			// yaw_tangent has been scaled according to view object distance
 			{
 				vec3_t vdiff;
 				VectorSubtract(look_object_->s.v.velocity, self->s.v.velocity, vdiff);
@@ -396,30 +439,32 @@ static void BotsFireLogic() {
 				self->fb.track_pitchspeed = DotProduct(vdiff, pitch_tangent);
 				self->fb.track_yawspeed = DotProduct(vdiff, yaw_tangent);
 			}
-			vectoangles(rel_pos, desired_angle);
-			if (desired_angle[0] > 180) {
-				desired_angle[0] = 360 - desired_angle[0];
+
+			vectoangles(rel_pos, self->fb.desired_angle);
+			if (self->fb.desired_angle[0] > 180) {
+				self->fb.desired_angle[0] = 360 - self->fb.desired_angle[0];
 			}
-			else  {
-				desired_angle[0] = 0 - desired_angle[0];
-			}
-			desired_angle[0] = (rint(desired_angle[0] / 1.40625));
-			desired_angle[1] = (rint(desired_angle[1] / 1.40625));
-			VectorScale(desired_angle, 1.40625, desired_angle);
-			if (self->fb.state & HURT_SELF) {
-				desired_angle[0] = 180;
-			}
-			VectorSubtract(desired_angle, self->s.v.v_angle, angle_error);
-			angle_error[0] = angle_error[0] - (1 - self->fb.fast_aim) * (self->fb.pitchspeed * self->fb.firing_reflex);
-			angle_error[1] = angle_error[1] - (1 - self->fb.fast_aim) * (self->fb.yawspeed * self->fb.firing_reflex);
-			if (angle_error[1] >= 180) {
-				angle_error[1] = angle_error[1] - 360;
-			}
-			else if (angle_error[1] < -180) {
-				angle_error[1] = angle_error[1] + 360;
+			else {
+				self->fb.desired_angle[0] = 0 - self->fb.desired_angle[0];
 			}
 
-			//
+			self->fb.desired_angle[0] = (pr1_rint(self->fb.desired_angle[0] / 1.40625));
+			self->fb.desired_angle[1] = (pr1_rint(self->fb.desired_angle[1] / 1.40625));
+			VectorScale(self->fb.desired_angle, 1.40625, self->fb.desired_angle);
+			if (self->fb.state & HURT_SELF) {
+				self->fb.desired_angle[0] = 180;
+			}
+			VectorSubtract(self->fb.desired_angle, self->s.v.v_angle, self->fb.angle_error);
+			self->fb.angle_error[0] = self->fb.angle_error[0] - (1 - self->fb.fast_aim) * (self->fb.pitchspeed * self->fb.firing_reflex);
+			self->fb.angle_error[1] = self->fb.angle_error[1] - (1 - self->fb.fast_aim) * (self->fb.yawspeed * self->fb.firing_reflex);
+			if (self->fb.angle_error[1] >= 180) {
+				self->fb.angle_error[1] = self->fb.angle_error[1] - 360;
+			}
+			else if (self->fb.angle_error[1] < -180) {
+				self->fb.angle_error[1] = self->fb.angle_error[1] + 360;
+			}
+
+			/*
 			self->fb.track_pitchspeed = self->fb.track_pitchspeed + self->fb.fast_aim * angle_error[0] / self->fb.firing_reflex;
 			self->fb.track_yawspeed = self->fb.track_yawspeed + self->fb.fast_aim * angle_error[1] / self->fb.firing_reflex;
 			self->fb.pitchaccel = (1 - self->fb.fast_aim) * angle_error[0] / self->fb.firing_reflex;
@@ -436,20 +481,26 @@ static void BotsFireLogic() {
 			}
 			else if (self->fb.yawaccel < 0) {
 				self->fb.yawaccel = self->fb.yawaccel - 5400;
-			}
+			}*/
+
 			if (!self->fb.rocketjumping) {
-				SetFireButton();
+				SetFireButton(self);
 			}
 		}
 	}
 }
 
-void ThinkTime() {
+void ThinkTime(gedict_t* self) {
 	self->fb.jumping = false;
 
 	// Logic that gets called for every player
 	if (g_globalvars.time >= self->fb.frogbot_nextthink) {
 		PeriodicAllClientLogic();
+
+		if (self->isBot) {
+			CheckCombatJump();
+			AMPHI2BotInLava();
+		}
 	}
 
 	// Logic that gets called every frame for every frogbot
@@ -470,7 +521,7 @@ void ThinkTime() {
 }
 
 void BotEvadeLogic() {
-	self->fb.bot_evade = (qbool) false;
+	self->fb.bot_evade = FALSE;
 	if (deathmatch <= 3 && !isRA()) {
 		if (numberofclients == 2) {
 			if (random() < 0.08) {

@@ -33,6 +33,18 @@ void TookWeaponHandler( gedict_t *p, int new_wp );
 
 #define AUTOTRACK_POWERUPS_PREDICT_TIME 2
 
+static void ItemTouched (gedict_t* item, gedict_t* player)
+{
+	if (self->fb.item_touch)
+		self->fb.item_touch (item, player);
+}
+
+static void ItemTaken (gedict_t* item, gedict_t* player)
+{
+	if (self->fb.item_taken)
+		self->fb.item_taken (item, player);
+}
+
 void SUB_regen()
 {
 	if ( !deathmatch && skill < 3 )
@@ -380,6 +392,8 @@ void armor_touch()
 	else
 		return;
 
+	ItemTouched (self, other);
+
 	// check if we have more armor than we trying to pick up.
 	// We add 1.0e-6 so floaing point comparision is happy,
 	// not all systems require it but on some this bugs in your face.
@@ -437,6 +451,8 @@ void armor_touch()
 
 	activator = other;
 	SUB_UseTargets();	// fire all targets / killtargets
+
+	ItemTaken (self, other); 
 }
 
 /*QUAKED item_armor1 (0 .5 .8) (-16 -16 0) (16 16 32)

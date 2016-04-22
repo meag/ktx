@@ -174,6 +174,7 @@ void map_povdmm4() {
 	SetMarkerPath(3, 1, 15);
 }
 
+// FIXME: two doors... does this only work due to radius, and assuming path logic only finds nearest door?
 void POVDMM4LookDoor() {
 	gedict_t* search_item;
 

@@ -3,6 +3,8 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
+void SUB_regen ();
+
 void BecomeMarker(gedict_t* marker) {
 	marker->fb.fl_marker = TRUE;
 	marker->fb.marker_link = first_marker;
@@ -25,9 +27,9 @@ void spawn_marker(vec3_t org) {
 	marker_->s.v.classname = "marker";
 	marker_->s.v.flags = FL_ITEM;
 	BecomeMarker(marker_);
-	marker_->s.v.origin[0] = rint(org[0]);
-	marker_->s.v.origin[1] = rint(org[1]);
-	marker_->s.v.origin[2] = rint(org[2]);
+	marker_->s.v.origin[0] = pr1_rint(org[0]);
+	marker_->s.v.origin[1] = pr1_rint(org[1]);
+	marker_->s.v.origin[2] = pr1_rint(org[2]);
 	marker_->s.v.solid = SOLID_TRIGGER;
 	marker_->s.v.touch = (func_t) marker_touch;
 	VectorSet(marker_->s.v.view_ofs, 80, 80, 24);
@@ -68,7 +70,7 @@ void marker_touch() {
 }
 
 void adjust_view_ofs_z(gedict_t* ent) {
-	fallspot_self = ent;
+	gedict_t* fallspot_self = ent;
 	ent = dropper;
 	VectorSet(testplace, fallspot_self->s.v.absmin[0] + fallspot_self->s.v.view_ofs[0], fallspot_self->s.v.absmin[1] + fallspot_self->s.v.view_ofs[1], fallspot_self->s.v.absmin[2] + fallspot_self->s.v.view_ofs[2] + 1);
 	VectorCopy(testplace, ent->s.v.origin);
@@ -86,8 +88,8 @@ void adjust_view_ofs_z(gedict_t* ent) {
 
 gedict_t* LocateMarker(vec3_t org) {
 	shortest_distance = 1000000;
-	closest_marker = world;
-	for (marker_ = world; marker_ = trap_findradius(world, org, 1000); ) {
+	closest_marker = NULL;
+	for (marker_ = world; marker_ = trap_findradius(marker_, org, 1000); ) {
 		if (marker_->fb.fl_marker) {
 			vec3_t marker_pos;
 
@@ -98,7 +100,7 @@ gedict_t* LocateMarker(vec3_t org) {
 				distance = distance + 1000;
 			}
 			if (distance < shortest_distance) {
-				self->fb.near_teleport = world;
+				self->fb.near_teleport = NULL;
 				shortest_distance = distance;
 				closest_marker = marker_;
 			}
@@ -136,15 +138,18 @@ void AssignVirtualGoal_apply(gedict_t* marker_) {
 	}
 }
 
-void AssignVirtualGoal() {
+void AssignVirtualGoal(void) {
 	gedict_t* marker_;
 	for (marker_ = self->fb.Z_head; marker_ && marker_ != world; marker_ = marker_->fb.Z_next) {
 		AssignVirtualGoal_apply(marker_);
 	}
 }
 
-float ExistsPath() {
+float ExistsPath(gedict_t* from_marker, gedict_t* to_marker) {
 	int i = 0;
+
+	if (from_marker == NULL || to_marker == NULL)
+		return FALSE;
 
 	for (i = 0; i < sizeof(from_marker->fb.paths) / sizeof(from_marker->fb.paths[0]); ++i) {
 		if (from_marker->fb.paths[i].next_marker == to_marker) {

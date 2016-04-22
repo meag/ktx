@@ -16,7 +16,6 @@ void LookEnemy(gedict_t* player, gedict_t* enemy) {
 	self->fb.old_linked_marker = NULL;
 }
 
-// TODO: Call this when any player dies (see .qc)
 void ResetEnemy(gedict_t* self) {
 	gedict_t* test_enemy = NULL;
 
@@ -26,7 +25,7 @@ void ResetEnemy(gedict_t* self) {
 			test_enemy->s.v.enemy = NUM_FOR_EDICT(world);
 
 			// Clear look object as well
-			if (test_enemy->fb.look_object->ct == ctPlayer) {
+			if (test_enemy->fb.look_object && test_enemy->fb.look_object->ct == ctPlayer) {
 				ClearLookObject(test_enemy);
 				test_enemy->fb.look_object = NULL;
 			}
@@ -44,7 +43,7 @@ void ResetEnemy(gedict_t* self) {
 // FIXME: is called from combat.qc
 void CheckCombatEnemy(gedict_t* attacker) {
 	// if object we're looking at has less firepower than us...
-	if (targ->fb.look_object->fb.firepower < attacker->fb.firepower) {
+	if (targ->fb.look_object && targ->fb.look_object->fb.firepower < attacker->fb.firepower) {
 		// ?  targ would have to be looking 
 		if (attacker != targ) {
 			// look at the attacker
@@ -89,17 +88,19 @@ static void check_sound() {
 }
 
 // Evaluates a potential enemy (globals: path_normal)
-static void BestEnemy_apply(float* best_score, gedict_t** enemy_, float* predict_dist) {
+static void BestEnemy_apply(float* best_score, gedict_t** enemy_, float* predict_dist, gedict_t* from_marker) {
 	path_normal = true;
 
-	from_marker->fb.sight_from_marker();
+	look_marker = NULL;
+	if (from_marker)
+		from_marker->fb.sight_from_marker();
 	if (look_marker) {
 		look_marker->fb.zone_marker();
 		look_marker->fb.sub_arrival_time();
 		enemy_score = traveltime + random();
 	}
 	else  {
-		SightMarker();
+		SightMarker(from_marker);
 		enemy_score = look_traveltime + random();
 	}
 
@@ -121,7 +122,7 @@ static void BestEnemy_apply(float* best_score, gedict_t** enemy_, float* predict
 //   FIXME: evaluates in either direction (ease vs risk?  fix)
 void BestEnemy(gedict_t* self) {
 	float best_score = 1000000;
-	gedict_t* enemy_ = world;
+	gedict_t* enemy_ = NULL;
 	float predict_dist = 600;
 
 	for (test_enemy = world; test_enemy = find_plr(test_enemy); ) {
@@ -129,15 +130,15 @@ void BestEnemy(gedict_t* self) {
 			gedict_t* from_marker = test_enemy->fb.touch_marker;
 			if (from_marker) {
 				to_marker = touch_marker_;
-				BestEnemy_apply(&best_score, &enemy_, &predict_dist);
+				BestEnemy_apply(&best_score, &enemy_, &predict_dist, from_marker);
 				to_marker = from_marker;
 				from_marker = touch_marker_;
-				BestEnemy_apply(&best_score, &enemy_, &predict_dist);
+				BestEnemy_apply(&best_score, &enemy_, &predict_dist, from_marker);
 			}
 		}
 	}
 
 	self->fb.enemy_time = g_globalvars.time + 1;
-	self->s.v.enemy = NUM_FOR_EDICT(enemy_);
+	self->s.v.enemy = (enemy_ == NULL ? 0 : NUM_FOR_EDICT(enemy_));
 	self->fb.enemy_dist = predict_dist;
 }

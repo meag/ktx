@@ -28,6 +28,7 @@
 //
 //===========================================================================
 #include "g_local.h"
+#include "fb_globals.h"
 vec3_t          VEC_ORIGIN = { 0, 0, 0 };
 vec3_t          VEC_HULL_MIN = { -16, -16, -24 };
 vec3_t          VEC_HULL_MAX = { 16, 16, 32 };
@@ -52,6 +53,9 @@ void race_start( qbool restart, const char *fmt, ... );
 void race_stoprecord( qbool cancel );
 
 void del_from_specs_favourites(gedict_t *rm);
+
+// bot functions
+void BotWaterJumpFix(void);
 
 extern int g_matchstarttime;
 
@@ -1365,6 +1369,10 @@ void ClientConnect()
 	}
 
 	MakeMOTD();
+
+	if (bots_enabled()) {
+		BotClientConnectedEvent (self);
+	}
 }
 
 ////////////////
@@ -1694,10 +1702,14 @@ void PutClientInServer( void )
 	{
 		teleport_player( self, self->s.v.origin, self->s.v.angles, tele_flags );
 	}
-  g_globalvars.msg_entity = EDICT_TO_PROG(self);
-  WriteByte(MSG_ONE, 38 /*svc_updatestatlong*/);
-  WriteByte(MSG_ONE, 18 /*STAT_MATCHSTARTTIME*/);
-  WriteLong(MSG_ONE, g_matchstarttime);
+	g_globalvars.msg_entity = EDICT_TO_PROG(self);
+	WriteByte(MSG_ONE, 38 /*svc_updatestatlong*/);
+	WriteByte(MSG_ONE, 18 /*STAT_MATCHSTARTTIME*/);
+	WriteLong(MSG_ONE, g_matchstarttime);
+
+	if (self->isBot) {
+		BotClientEntersEvent (self, spot);
+	}
 }
 
 /*
@@ -1775,6 +1787,10 @@ void PlayerDeathThink()
 
     if( k_standby )
         return;
+
+	if (self->isBot) {
+		BotDeathThink();
+	}
 
 	if ( ( ( int ) ( self->s.v.flags ) ) & FL_ONGROUND )
 	{
@@ -1920,6 +1936,9 @@ void WaterMove()
 
 	if ( self->s.v.waterlevel != 3 )
 	{
+		if (self->isBot)
+			BotWaterJumpFix();
+
 		if ( self->air_finished < g_globalvars.time )
 			sound( self, CHAN_VOICE, "player/gasp2.wav", 1, ATTN_NORM );
 		else if ( self->air_finished < g_globalvars.time + 9 )
@@ -1928,8 +1947,12 @@ void WaterMove()
 		self->air_finished = g_globalvars.time + 12;
 		self->dmg = 2;
 
-	} else if ( self->air_finished < g_globalvars.time )
-	{			// drown!
+		if (self->isBot)
+			BotOutOfWater(self);
+	} 
+	else if ( self->air_finished < g_globalvars.time )
+	{
+		// drown!
 		if ( self->pain_finished < g_globalvars.time )
 		{
 			self->dmg = self->dmg + 2;
@@ -1944,6 +1967,11 @@ void WaterMove()
 			T_Damage( self, world, world, self->dmg );
 			self->pain_finished = g_globalvars.time + 1;
 		}
+	}
+
+	if ( self->isBot )
+	{
+		BotWaterMove (self);
 	}
 
 	if ( !self->s.v.waterlevel )
@@ -2561,6 +2589,10 @@ void PlayerPreThink()
 		self->was_jump = false;
 	}
 
+	if ( self->isBot ) {
+		BotPreThink (self);
+	}
+
 // ILLEGALFPS[
 
 	self->fAverageFrameTime += g_globalvars.frametime;
@@ -2623,7 +2655,7 @@ void PlayerPreThink()
             	G_bprint(PRINT_HIGH, "%s gets kicked for potential cheat\n", self->s.v.netname );
 							G_sprint(self, PRINT_HIGH, "Please reboot your machine to try to get rid of the problem\n");
             	stuffcmd(self, "disconnect\n"); // FIXME: stupid way
-       }
+			}
 		}
 
 		zeroFps = true;
@@ -2673,8 +2705,8 @@ void PlayerPreThink()
         // invoked on death for some reason (couldn't figure out why). This leads to a
         // state when the player stands still after dying and can't respawn or even
         // suicide and has to reconnect. This is checked and fixed here
-	        if( g_globalvars.time > (self->dead_time + 0.1)
-			&& ( self->s.v.frame < 41 || self->s.v.frame > 102 ) // FIXME: hardcoded range of dead frames
+		if ( g_globalvars.time > (self->dead_time + 0.1) &&
+			 ( self->s.v.frame < 41 || self->s.v.frame > 102 ) // FIXME: hardcoded range of dead frames
 		) {
 			StartDie();
 		}
@@ -3007,7 +3039,7 @@ void BothPostThink ()
 	if ( !self->sc_stats && self->sc_stats_time && self->sc_stats_time <= g_globalvars.time )
 		self->sc_stats_time = 0;
 
-	if (     self->need_clearCP
+	if (  self->need_clearCP
 		 && !self->shownick_time
          && !self->wp_stats_time
          && !self->sc_stats_time
@@ -3205,6 +3237,8 @@ void PlayerPostThink()
 	mv_record();
 
 	W_WeaponFrame();
+
+	ThinkTime (self);
 
 	if ( isRACE() )
 	{

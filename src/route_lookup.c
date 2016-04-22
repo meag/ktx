@@ -307,7 +307,7 @@ ZONE_PATH_MARKER_FUNCTION(23)
 ZONE_PATH_MARKER_FUNCTION(24)
 
 // 
-void SightMarker() {
+void SightMarker(gedict_t* from_marker) {
 	look_traveltime = 1000000;
 	middle_marker = from_marker;
 	zone_time = 0;
@@ -334,7 +334,7 @@ void SightMarker() {
 	}
 }
 
-void HigherSightMarker() {
+void HigherSightMarker(gedict_t* from_marker) {
 	look_traveltime = 1000000;
 	middle_marker = from_marker;
 	zone_time = 0;

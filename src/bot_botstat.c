@@ -5,16 +5,12 @@
 
 // TODO: Call this every time the player's statistics change (item pickups etc)
 void UpdateTotalDamage(gedict_t* client) {
+	float min_first = client->s.v.health / (1 - client->s.v.armortype);
+	float min_second = client->s.v.health + client->s.v.armorvalue;
 	client->fb.total_armor = client->s.v.armortype * client->s.v.armorvalue;
-	min_first = client->s.v.health / (1 - client->s.v.armortype);
-	min_second = client->s.v.health + client->s.v.armorvalue;
-	if (min_first <= min_second) {
-		client->fb.total_damage = min_first;
-	}
-	else  {
-		client->fb.total_damage = min_second;
-	}
+	client->fb.total_damage = min (min_first, min_second);
 
+	// 160 = 200RA
 	if (client->fb.total_armor == 160) {
 		client->fb.desire_armor1 = client->fb.desire_armor2 = client->fb.desire_armorInv = 0;
 	}
@@ -61,20 +57,10 @@ void UpdateTotalDamage(gedict_t* client) {
 		}
 	}
 	if (client->s.v.health < 250) {
-		if (client->s.v.health < 150) {
-			new_health = client->s.v.health + 100;
-		}
-		else  {
-			new_health = 250;
-		}
+		new_health = min (client->s.v.health + 100, 250);
 		min_first = new_health / (1 - client->s.v.armortype);
 		min_second = new_health + client->s.v.armorvalue;
-		if (min_first <= min_second) {
-			client->fb.desire_health2 = min_first - client->fb.total_damage;
-		}
-		else  {
-			client->fb.desire_health2 = min_second - client->fb.total_damage;
-		}
+		client->fb.desire_health2 = min (min_first, min_second) - client->fb.total_damage;
 		if (client->s.v.health < 100) {
 			if (client->s.v.health < 75) {
 				new_health = client->s.v.health + 25;
@@ -100,7 +86,7 @@ void UpdateTotalDamage(gedict_t* client) {
 	}
 
 	if ((int)client->ctf_flag & CTF_RUNE_RES) {
-		client->fb.total_damage = client->fb.total_damage * 2;
+		client->fb.total_damage *= 2;
 	}
 }
 
