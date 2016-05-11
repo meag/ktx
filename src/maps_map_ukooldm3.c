@@ -42,8 +42,6 @@ void map_ukooldm3() {
 	N(132, 702, 156);
 	N(752, 557, 280);
 
-	AllMarkersLoaded();
-
 	SetGoal(1, 51);
 	SetGoal(10, 14);
 	SetGoal(11, 10);

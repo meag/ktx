@@ -85,18 +85,18 @@ static void check_sound() {
 }
 
 // Evaluates a potential enemy (globals: path_normal)
-static void BestEnemy_apply(float* best_score, gedict_t** enemy_, float* predict_dist, gedict_t* from_marker) {
+static void BestEnemy_apply(float* best_score, gedict_t** enemy_, float* predict_dist) {
 	path_normal = true;
 
 	look_marker = NULL;
-	if (from_marker)
-		from_marker->fb.sight_from_marker();
-	if (look_marker) {
+	from_marker->fb.sight_from_marker();
+
+	if (look_marker != NULL) {
 		look_marker->fb.zone_marker();
 		look_marker->fb.sub_arrival_time();
 		enemy_score = traveltime + random();
 	}
-	else  {
+	else {
 		SightMarker(from_marker);
 		enemy_score = look_traveltime + random();
 	}
@@ -124,13 +124,13 @@ void BestEnemy(gedict_t* self) {
 
 	for (test_enemy = world; test_enemy = find_plr(test_enemy); ) {
 		if ( ! SameTeam(self, test_enemy) ) {
-			gedict_t* from_marker = test_enemy->fb.touch_marker;
+			from_marker = test_enemy->fb.touch_marker;
 			if (from_marker) {
 				to_marker = touch_marker_;
-				BestEnemy_apply(&best_score, &enemy_, &predict_dist, from_marker);
+				BestEnemy_apply(&best_score, &enemy_, &predict_dist);
 				to_marker = from_marker;
 				from_marker = touch_marker_;
-				BestEnemy_apply(&best_score, &enemy_, &predict_dist, from_marker);
+				BestEnemy_apply(&best_score, &enemy_, &predict_dist);
 			}
 		}
 	}

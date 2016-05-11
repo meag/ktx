@@ -55,9 +55,9 @@ void check_marker() {
 		}
 		other->fb.touch_distance = distance;
 
-		if (other->fb.touch_marker != self) {
-			G_bprint (2, "Set touch_marker: %d\n", self->fb.index);
-		}
+		//if (other->fb.touch_marker != self) {
+			//G_bprint (2, "Set touch_marker: %d\n", self->fb.index);
+		//}
 
 		other->fb.touch_marker = self;
 		other->fb.Z_ = self->fb.Z_;

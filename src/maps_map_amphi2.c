@@ -71,8 +71,6 @@ void map_amphi2() {
 	N(-275, 752, -360);
 	N(752, 261, -360);
 
-	AllMarkersLoaded();
-
 	SetZone(9, 71);
 	SetZone(8, 70);
 	SetZone(8, 69);
@@ -334,7 +332,7 @@ void AMPHI2BotInLava(void) {
 							if (!self->fb.rocketjumping) {
 								vec3_t dir_move;
 								VectorCopy (self->fb.dir_move_, dir_move);
-								BestArrowForDirection(self, dir_move);
+								self->fb.arrow = BestArrowForDirection(self, dir_move);
 								VelocityForArrow(self);
 								self->fb.jumping = true;
 							}

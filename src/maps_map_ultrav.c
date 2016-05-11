@@ -57,8 +57,6 @@ void map_ultrav() {
 	N(-161, 124, 24);
 	N(-301, 210, 216);
 
-	AllMarkersLoaded();
-
 	SetZone(3, 97);
 	SetZone(10, 96);
 	SetZone(10, 95);

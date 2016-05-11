@@ -239,8 +239,6 @@ void map_dm3() {
 	N(668, 141, 56);
 	N(1135, 1010, -296);
 
-	AllMarkersLoaded();
-
 	SetZone(16, 299);
 	SetZone(5, 298);
 	SetZone(11, 297);

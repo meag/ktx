@@ -65,8 +65,6 @@ void map_dm4() {
 	N(286, -376, -296);
 	N(163, -40, -296);
 
-	AllMarkersLoaded();
-
 	SetZone(2, 114);
 	SetZone(2, 113);
 	SetZone(6, 112);

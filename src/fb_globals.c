@@ -480,7 +480,7 @@ static qbool HasRLOrLG (gedict_t* self)
 static qbool EnemyHasRLorLG (gedict_t* self)
 {
 	gedict_t* enemy = &g_edicts[self->s.v.enemy];
-	if (enemy == world)
+	if (self->s.v.enemy == 0)
 		return FALSE;
 
 	return ((((int)enemy->s.v.items & IT_ROCKET_LAUNCHER) && (enemy->s.v.ammo_rockets > 1)) || (((int)enemy->s.v.items & IT_LIGHTNING) && (enemy->s.v.ammo_cells > 5)));
@@ -489,7 +489,7 @@ static qbool EnemyHasRLorLG (gedict_t* self)
 static qbool IsDanger (gedict_t* self)
 {
 	gedict_t* enemy = &g_edicts[self->s.v.enemy];
-	if (enemy == world)
+	if (self->s.v.enemy == 0)
 		return FALSE;
 	
 	if ((self->s.v.health < enemy->s.v.health) && 

@@ -36,8 +36,6 @@ void map_ztndm6() {
 	N(-674, 374, -616);
 	N(416, -160, -88);
 
-	AllMarkersLoaded();
-
 	SetGoal(1, 1);
 	SetGoal(10, 28);
 	SetGoal(11, 29);

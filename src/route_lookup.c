@@ -8,9 +8,87 @@ void S_time_error() {
 }
 
 #define SUBZONE_TIME_FUNCTION(x) \
-	void S ## x ## _time_() { \
-		traveltime = zone_time + middle_marker->fb.subzones[x - 1].time; \
-	}
+void S ## x ## _time_() { \
+	traveltime = zone_time + middle_marker->fb.subzones[x - 1].time; \
+}
+
+void S_path_marker_error() {
+	next_marker = NULL;
+}
+
+#define SUBZONE_PATH_MARKER_FUNCTION(x) \
+void S ## x ##_path_marker() { \
+	next_marker = from_marker->fb.subzones[x - 1].next_marker; \
+}
+
+void Z_next_zone_marker_error() {
+	next_marker = NULL;
+}
+
+// TODO: remove
+#define NEXT_ZONE_FUNCTION(x) \
+void Z ## x ## _next_zone_marker() { \
+	next_marker = from_marker->fb.zones[x - 1].next_zone; \
+}
+
+void Z_sight_from_marker_error() {
+	look_marker = NULL;
+}
+
+#define ZONE_SIGHT_FROM_FUNCTION(x) \
+void Z ## x ## _sight_from_marker() { \
+	look_marker = to_marker->fb.zones[x - 1].sight_from; \
+}
+
+void Z_higher_sight_from_marker_error() {
+	look_marker = NULL;
+}
+
+#define ZONE_HIGHER_SIGHT_FROM_FUNCTION(x) \
+void Z ## x ## _higher_sight_from_marker() { \
+	look_marker = to_marker->fb.zones[x - 1].higher_sight_from; \
+}
+
+void Z_sight_from_time_error() {
+	look_traveltime = 1000000;
+}
+
+#define ZONE_SIGHT_FROM_TIME_FUNCTION(x) \
+void Z ## x ## _sight_from_time() { \
+	look_traveltime = to_marker->fb.zones[x - 1].sight_from_time; \
+}
+
+void Z_marker_error() {
+	middle_marker = dropper;
+	zone_time = 1000000;
+}
+
+#define ZONE_MARKER_FUNCTION(x) \
+void Z ## x ## _marker() { \
+	if (path_normal) { \
+		middle_marker = from_marker->fb.zones[x - 1].marker; \
+		zone_time = from_marker->fb.zones[x - 1].time; \
+		return; \
+	} \
+	else  { \
+		middle_marker = from_marker->fb.zones[x - 1].reverse_marker; \
+		zone_time = from_marker->fb.zones[x - 1].reverse_time; \
+	} \
+}
+
+void Z_path_marker_error() {
+	next_marker = NULL;
+}
+
+#define ZONE_PATH_MARKER_FUNCTION(x) \
+void Z ## x ## _path_marker() { \
+	if (path_normal) { \
+		next_marker = from_marker->fb.zones[x - 1].next; \
+	} \
+	else  { \
+		next_marker = from_marker->fb.zones[x - 1].reverse_next; \
+	} \
+}
 
 SUBZONE_TIME_FUNCTION(1)
 SUBZONE_TIME_FUNCTION(2)
@@ -45,15 +123,6 @@ SUBZONE_TIME_FUNCTION(30)
 SUBZONE_TIME_FUNCTION(31)
 SUBZONE_TIME_FUNCTION(32)
 
-void S_path_marker_error() {
-	next_marker = world;
-}
-
-#define SUBZONE_PATH_MARKER_FUNCTION(x) \
-	void S ## x ##_path_marker() { \
-		next_marker = from_marker->fb.subzones[x - 1].next_marker; \
-	}
-
 SUBZONE_PATH_MARKER_FUNCTION(1)
 SUBZONE_PATH_MARKER_FUNCTION(2)
 SUBZONE_PATH_MARKER_FUNCTION(3)
@@ -87,16 +156,6 @@ SUBZONE_PATH_MARKER_FUNCTION(30)
 SUBZONE_PATH_MARKER_FUNCTION(31)
 SUBZONE_PATH_MARKER_FUNCTION(32)
 
-void Z_next_zone_marker_error() {
-	next_marker = world;
-}
-
-// TODO: remove
-#define NEXT_ZONE_FUNCTION(x) \
-	void Z ## x ## _next_zone_marker() { \
-		next_marker = from_marker->fb.zones[x - 1].next_zone; \
-	}
-
 NEXT_ZONE_FUNCTION(1)
 NEXT_ZONE_FUNCTION(2)
 NEXT_ZONE_FUNCTION(3)
@@ -121,15 +180,6 @@ NEXT_ZONE_FUNCTION(21)
 NEXT_ZONE_FUNCTION(22)
 NEXT_ZONE_FUNCTION(23)
 NEXT_ZONE_FUNCTION(24)
-
-void Z_sight_from_marker_error() {
-	look_marker = world;
-}
-
-#define ZONE_SIGHT_FROM_FUNCTION(x) \
-	void Z ## x ## _sight_from_marker() { \
-		look_marker = to_marker->fb.zones[x - 1].sight_from; \
-	}
 
 ZONE_SIGHT_FROM_FUNCTION(1)
 ZONE_SIGHT_FROM_FUNCTION(2)
@@ -156,15 +206,6 @@ ZONE_SIGHT_FROM_FUNCTION(22)
 ZONE_SIGHT_FROM_FUNCTION(23)
 ZONE_SIGHT_FROM_FUNCTION(24)
 
-void Z_higher_sight_from_marker_error() {
-	look_marker = world;
-}
-
-#define ZONE_HIGHER_SIGHT_FROM_FUNCTION(x) \
-	void Z ## x ## _higher_sight_from_marker() { \
-		look_marker = to_marker->fb.zones[x - 1].higher_sight_from; \
-	}
-
 ZONE_HIGHER_SIGHT_FROM_FUNCTION(1)
 ZONE_HIGHER_SIGHT_FROM_FUNCTION(2)
 ZONE_HIGHER_SIGHT_FROM_FUNCTION(3)
@@ -189,15 +230,6 @@ ZONE_HIGHER_SIGHT_FROM_FUNCTION(21)
 ZONE_HIGHER_SIGHT_FROM_FUNCTION(22)
 ZONE_HIGHER_SIGHT_FROM_FUNCTION(23)
 ZONE_HIGHER_SIGHT_FROM_FUNCTION(24)
-
-void Z_sight_from_time_error() {
-	look_traveltime = 1000000;
-}
-
-#define ZONE_SIGHT_FROM_TIME_FUNCTION(x) \
-	void Z ## x ## _sight_from_time() { \
-		look_traveltime = to_marker->fb.zones[x - 1].sight_from_time; \
-	}
 
 ZONE_SIGHT_FROM_TIME_FUNCTION(1)
 ZONE_SIGHT_FROM_TIME_FUNCTION(2)
@@ -224,24 +256,6 @@ ZONE_SIGHT_FROM_TIME_FUNCTION(22)
 ZONE_SIGHT_FROM_TIME_FUNCTION(23)
 ZONE_SIGHT_FROM_TIME_FUNCTION(24)
 
-void Z_marker_error() {
-	middle_marker = dropper;
-	zone_time = 1000000;
-}
-
-#define ZONE_MARKER_FUNCTION(x) \
-	void Z ## x ## _marker() { \
-		if (path_normal) { \
-			middle_marker = from_marker->fb.zones[x - 1].marker; \
-			zone_time = from_marker->fb.zones[x - 1].time; \
-			return; \
-		} \
-		else  { \
-			middle_marker = from_marker->fb.zones[x - 1].reverse_marker; \
-			zone_time = from_marker->fb.zones[x - 1].reverse_time; \
-		} \
-	}
-
 ZONE_MARKER_FUNCTION(1)
 ZONE_MARKER_FUNCTION(2)
 ZONE_MARKER_FUNCTION(3)
@@ -266,20 +280,6 @@ ZONE_MARKER_FUNCTION(21)
 ZONE_MARKER_FUNCTION(22)
 ZONE_MARKER_FUNCTION(23)
 ZONE_MARKER_FUNCTION(24)
-
-void Z_path_marker_error() {
-	next_marker = world;
-}
-
-#define ZONE_PATH_MARKER_FUNCTION(x) \
-	void Z ## x ## _path_marker() { \
-		if (path_normal) { \
-			next_marker = from_marker->fb.zones[x - 1].next; \
-		} \
-		else  { \
-			next_marker = from_marker->fb.zones[x - 1].reverse_next; \
-		} \
-	}
 
 ZONE_PATH_MARKER_FUNCTION(1)
 ZONE_PATH_MARKER_FUNCTION(2)
@@ -308,6 +308,8 @@ ZONE_PATH_MARKER_FUNCTION(24)
 
 // 
 void SightMarker(gedict_t* from_marker) {
+	assert (from_marker);
+
 	look_traveltime = 1000000;
 	middle_marker = from_marker;
 	zone_time = 0;
@@ -323,7 +325,7 @@ void SightMarker(gedict_t* from_marker) {
 				if (strneq(marker_->s.v.classname, "trigger_teleport")) {
 					look_traveltime = traveltime;
 					look_marker = marker_;
-					marker_->fb.near_teleport = world;
+					marker_->fb.near_teleport = NULL;
 				}
 				else if (streq(marker_->s.v.classname, "trigger_teleport")) {
 					marker_->fb.near_teleport = marker_;
@@ -355,7 +357,7 @@ void HigherSightMarker(gedict_t* from_marker) {
 						if (strneq(marker_->s.v.classname, "trigger_teleport")) {
 							look_traveltime = traveltime;
 							look_marker = marker_;
-							marker_->fb.near_teleport = world;
+							marker_->fb.near_teleport = NULL;
 						}
 						else if (streq(marker_->s.v.classname, "trigger_teleport")) {
 							marker_->fb.near_teleport = marker_;

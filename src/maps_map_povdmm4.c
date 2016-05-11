@@ -28,8 +28,6 @@ void map_povdmm4() {
 	N(215, -585, -152);
 	N(166, 87, -152);
 
-	AllMarkersLoaded();
-
 	SetZone(2, 33);
 	SetZone(2, 32);
 	SetZone(2, 31);

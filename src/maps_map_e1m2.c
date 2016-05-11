@@ -112,8 +112,6 @@ void map_e1m2() {
 	N(585, 330, 92);
 	N(-428, 312, 332);
 
-	AllMarkersLoaded();
-
 	SetZone(9, 234);
 	SetZone(11, 233);
 	SetZone(11, 232);

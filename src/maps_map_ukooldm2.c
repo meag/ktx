@@ -37,8 +37,6 @@ void map_ukooldm2() {
 	N(-749, 413, -8);
 	N(-735, 650, -120);
 	
-	AllMarkersLoaded();
-
 	SetZone(1, 13);
 	SetZone(1, 17);
 	SetZone(1, 23);

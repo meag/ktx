@@ -199,7 +199,6 @@ static void BotTouchMarkerLogic() {
 		vec3_t dir_move;
 
 		BotMoveTowardsLinkedMarker(self, dir_move);
-
 		BotOnGroundMovement(self, dir_move);
 
 		self->fb.arrow = BestArrowForDirection(self, dir_move);

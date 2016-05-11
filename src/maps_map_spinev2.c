@@ -71,8 +71,6 @@ void map_spinev2() {
 	N(390, -270, 248);
 	N(831, -102, 24);
 
-	AllMarkersLoaded();
-
 	SetZone(5, 117);
 	SetZone(5, 116);
 	SetZone(5, 115);

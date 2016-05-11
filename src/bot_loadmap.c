@@ -163,6 +163,7 @@ void LoadMap() {
 			CreateItemMarkers();
 			maps[i].func();
 			AssignVirtualGoals ();
+			AllMarkersLoaded();
 			return;
 		}
 	}

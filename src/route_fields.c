@@ -3,32 +3,6 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
-void SetGoalForMarker(int goal, gedict_t* marker) {
-	--goal;
-
-	if (goal < 0 || goal >= NUMBER_GOALS)
-		return;
-
-	marker->fb.goals[goal].next_marker = marker;
-	marker->fb.G_ = goal;
-}
-
-void SetGoal(int goal, int marker_number) {
-	gedict_t* marker = NULL;
-	
-	--marker_number;
-	--goal;
-
-	if (marker_number < 0 || marker_number >= NUMBER_MARKERS)
-		return;
-	if (goal < 0 || goal >= NUMBER_GOALS)
-		return;
-
-	marker = markers[marker_number];
-	marker->fb.goals[goal].next_marker = marker;
-	marker->fb.G_ = goal;
-}
-
 #define SUBZONEFUNCTIONS(name) \
 	S1_ ## name, \
 	S2_ ## name, \
@@ -63,18 +37,6 @@ void SetGoal(int goal, int marker_number) {
 	S31_ ## name, \
 	S32_ ## name
 
-void Set_sub_arrival_time(gedict_t* marker, int index) {
-	fb_void_func_t sub_arrival_time_functions[] = { SUBZONEFUNCTIONS (time_) };
-	fb_void_func_t sub_path_marker_functions[] = { SUBZONEFUNCTIONS (path_marker) };
-
-	marker->fb.S_ = index;
-
-	if (index < sizeof(sub_arrival_time_functions) / sizeof(sub_arrival_time_functions[0])) {
-		marker->fb.sub_arrival_time = sub_arrival_time_functions[index];
-		marker->fb.sub_path_marker = sub_path_marker_functions[index];
-	}
-}
-
 #define ZONEFUNCTIONS(name) \
 	Z1_ ## name, \
 	Z2_ ## name, \
@@ -100,6 +62,44 @@ void Set_sub_arrival_time(gedict_t* marker, int index) {
 	Z22_ ## name, \
 	Z23_ ## name, \
 	Z24_ ## name
+
+void SetGoalForMarker(int goal, gedict_t* marker) {
+	--goal;
+
+	if (goal < 0 || goal >= NUMBER_GOALS)
+		return;
+
+	marker->fb.goals[goal].next_marker = marker;
+	marker->fb.G_ = goal;
+}
+
+void SetGoal(int goal, int marker_number) {
+	gedict_t* marker = NULL;
+
+	--marker_number;
+	--goal;
+
+	if (marker_number < 0 || marker_number >= NUMBER_MARKERS)
+		return;
+	if (goal < 0 || goal >= NUMBER_GOALS)
+		return;
+
+	marker = markers[marker_number];
+	marker->fb.goals[goal].next_marker = marker;
+	marker->fb.G_ = goal;
+}
+
+void Set_sub_arrival_time(gedict_t* marker, int index) {
+	fb_void_func_t sub_arrival_time_functions[] = { SUBZONEFUNCTIONS (time_) };
+	fb_void_func_t sub_path_marker_functions[] = { SUBZONEFUNCTIONS (path_marker) };
+
+	marker->fb.S_ = index;
+
+	if (index < sizeof(sub_arrival_time_functions) / sizeof(sub_arrival_time_functions[0])) {
+		marker->fb.sub_arrival_time = sub_arrival_time_functions[index];
+		marker->fb.sub_path_marker = sub_path_marker_functions[index];
+	}
+}
 
 void SetZone(int zone, int marker_number) {
 	gedict_t* marker;
@@ -155,21 +155,19 @@ void SetMarkerFlag(int marker_number, int flags) {
 
 void NameZone(float zoneNumber, char* name) {
 	gedict_t* m;
-	m = first_marker;
-	while (m) {
+
+	for (m = first_marker; m; m = m->fb.marker_link) {
 		if (m->fb.Z_ == zoneNumber) {
 			m->s.v.netname = name;
 		}
-		m = m->fb.marker_link;
 	}
-	m = zone_stack_head;
 }
 
 void AdjustZone(gedict_t* zoneHead, float teamNumber, float strong, float adjust) {
 	if (!zoneHead) {
 		return;
 	}
-	zoneHead->fb.total_players = zoneHead->fb.total_players + adjust;
+	zoneHead->fb.total_players += adjust;
 	/*
 	if (teamNumber == 1) {
 		zoneHead->fb.team1_zone_players = zoneHead->fb.team1_zone_players + adjust;

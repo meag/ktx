@@ -130,7 +130,11 @@ static void EvalGoal(gedict_t* goal_entity) {
 	}
 }
 
+// FIXME: parameters
 void EvalGoal2() {
+	if (goal_entity == NULL)
+		return;
+
 	goal_desire = goal_entity->fb.saved_goal_desire;
 	if (goal_desire > 0) {
 		goal_time2 = goal_entity->fb.saved_goal_time;
@@ -205,7 +209,7 @@ void UpdateGoal() {
 			enemy_touch_marker->fb.sub_arrival_time();
 			enemy_->fb.saved_respawn_time = 0;
 			enemy_->fb.saved_goal_time = traveltime;
-			G_bprint (2, "Enemy %s/%d, traveltime %f, lookahead_time_ %f, zone_time %f\n", enemy_ ? enemy_->s.v.classname : "?", enemy_touch_marker->fb.index, traveltime, lookahead_time_, zone_time);
+			//G_bprint (2, "Enemy %s/%d, traveltime %f, lookahead_time_ %f, zone_time %f\n", enemy_ ? enemy_->s.v.classname : "?", enemy_touch_marker->fb.index, traveltime, lookahead_time_, zone_time);
 			if (traveltime < lookahead_time_) {
 				goal_score = enemy_desire * (lookahead_time_ - traveltime) / (traveltime + 5);
 				if (goal_score > best_score) {

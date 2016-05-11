@@ -82,8 +82,6 @@ void map_dm6() {
 	N(1497, -308, 168);
 	N(1023, -1093, 96);
 
-	AllMarkersLoaded();
-
 	SetGoal(1, 51);
 	SetGoal(10, 20);
 	SetGoal(10, 26);
