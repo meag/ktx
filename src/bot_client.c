@@ -92,17 +92,20 @@ void BotSetCommand(gedict_t* self) {
 		}
 	}
 	*/
+
+	trap_makevectors (self->fb.desired_angle);
+
 	trap_SetBotCMD (
 		NUM_FOR_EDICT (self),
 		msec,
 		self->fb.desired_angle[0],
 		self->fb.desired_angle[1],
 		0,
-		self->fb.dir_move_[0] * 800,
-		self->fb.dir_move_[1] * 800,
-		self->fb.dir_move_[2] * 800,
+		DotProduct (g_globalvars.v_forward, self->fb.dir_move_) * 800,
+		DotProduct (g_globalvars.v_right, self->fb.dir_move_) * 800,
+		DotProduct (g_globalvars.v_up, self->fb.dir_move_) * 800,
 		//0, 0, 0, 
-		(self->fb.firing ? 1 : 0) + (self->fb.jumping ? 2 : 0),
+		(self->fb.firing ? 1 : 0) | (self->fb.jumping ? 2 : 0),
 		(self->fb.botchose ? self->fb.next_impulse : 0)
 	);
 	//G_bprint (2, "Setting angles: %f %f\n", self->fb.desired_angle[0], self->fb.desired_angle[1]);
@@ -145,6 +148,8 @@ static float goal_client6(gedict_t* self) {
 // client.qc
 // This is called whenever a client connects (not just bots)
 // TODO: any preferences stored against the specific bot to be restored here?
+void PlayerReady ();
+
 void BotClientConnectedEvent(gedict_t* self) {
 	self->fb.desire = (deathmatch <= 3 ? goal_client : goal_client6);
 	self->fb.T = UNREACHABLE;
@@ -152,6 +157,10 @@ void BotClientConnectedEvent(gedict_t* self) {
 	self->fb.k_stuff = g_globalvars.parm15;
 	self->fb.lookahead_time = 30;
 	self->fb.prediction_error = 0;
+
+	if (self->isBot) {
+		PlayerReady ();
+	}
 }
 
 // client.qc
