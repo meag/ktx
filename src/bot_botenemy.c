@@ -41,10 +41,9 @@ void ResetEnemy(gedict_t* self) {
 }
 
 // FIXME: is called from combat.qc
-void CheckCombatEnemy(gedict_t* attacker) {
+void CheckCombatEnemy(gedict_t* attacker, gedict_t* targ) {
 	// if object we're looking at has less firepower than us...
 	if (targ->fb.look_object && targ->fb.look_object->fb.firepower < attacker->fb.firepower) {
-		// ?  targ would have to be looking 
 		if (attacker != targ) {
 			// look at the attacker
 			targ->fb.look_object = attacker;
@@ -57,7 +56,7 @@ void CheckCombatEnemy(gedict_t* attacker) {
 				targ->fb.enemy_time = g_globalvars.time + 1;
 				targ->s.v.enemy = NUM_FOR_EDICT(attacker);
 			}
-			else  {
+			else {
 				targ->fb.enemy_time = g_globalvars.time + 2.5;
 			}
 		}
@@ -67,17 +66,15 @@ void CheckCombatEnemy(gedict_t* attacker) {
 // FIXME: not called at present
 static void check_sound() {
 	if (enemy_->ct == ctPlayer) {
-		self_sound = self;
-		for (self = find_plr(world); self; self = find_plr(self)) {
+		gedict_t* self_sound = self;
+		for (self = world; self = find_plr (self); ) {
 			if (!(self->fb.state & NOTARGET_ENEMY)) {
 				if (NUM_FOR_EDICT(enemy_) == self->s.v.enemy) {
 					if (enemy_ != self->fb.look_object) {
 						vec3_t temp;
 						VectorSubtract(enemy_->s.v.origin, self->s.v.origin, temp);
-						if (VectorLength(temp) < 1000) {
-							if (Visible_360(self, enemy_)) {
-								self->fb.look_object = enemy_;
-							}
+						if (VectorLength(temp) < 1000 && Visible_360(self, enemy_)) {
+							self->fb.look_object = enemy_;
 						}
 					}
 				}

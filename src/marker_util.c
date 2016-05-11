@@ -32,6 +32,7 @@ void spawn_marker(vec3_t org) {
 	marker_->s.v.origin[2] = pr1_rint(org[2]);
 	marker_->s.v.solid = SOLID_TRIGGER;
 	marker_->s.v.touch = (func_t) marker_touch;
+	setmodel( marker_, "progs/w_g_key.mdl" );
 	VectorSet(marker_->s.v.view_ofs, 80, 80, 24);
 	setsize(marker_, -65, -65, -24, 65, 65, 32);
 }
@@ -47,17 +48,20 @@ void check_marker() {
 	VectorAdd(self->s.v.absmin, self->s.v.view_ofs, temp);
 	VectorSubtract(temp, other->s.v.origin, temp);
 	distance = vlen(temp);
-	if (distance < other->fb.touch_distance) {
-		if (self->s.v.absmin[2] - 20 < other->s.v.absmin[2]) {
-			if (other->fb.Z_ != self->fb.Z_) {
-				LeaveZone(other->fb.Z_, other->s.v.team, other->fb.is_strong);
-				EnterZone(self->fb.Z_, self->s.v.team, self->fb.is_strong);
-			}
-			other->fb.touch_distance = distance;
-			other->fb.touch_marker = self;
-			other->fb.Z_ = self->fb.Z_;
-			other->fb.touch_marker_time = g_globalvars.time + 5;
+	if (distance < other->fb.touch_distance && self->s.v.absmin[2] - 20 < other->s.v.absmin[2]) {
+		if (other->fb.Z_ != self->fb.Z_) {
+			LeaveZone(other->fb.Z_, other->s.v.team, other->fb.is_strong);
+			EnterZone(self->fb.Z_, self->s.v.team, self->fb.is_strong);
 		}
+		other->fb.touch_distance = distance;
+
+		if (other->fb.touch_marker != self) {
+			G_bprint (2, "Set touch_marker: %d\n", self->fb.index);
+		}
+
+		other->fb.touch_marker = self;
+		other->fb.Z_ = self->fb.Z_;
+		other->fb.touch_marker_time = g_globalvars.time + 5;
 	}
 }
 
@@ -87,8 +91,11 @@ void adjust_view_ofs_z(gedict_t* ent) {
 }
 
 gedict_t* LocateMarker(vec3_t org) {
-	shortest_distance = 1000000;
-	closest_marker = NULL;
+	gedict_t* marker_ = NULL;
+	float shortest_distance = 1000000;
+	gedict_t* closest_marker = NULL;
+	float distance = 0;
+
 	for (marker_ = world; marker_ = trap_findradius(marker_, org, 1000); ) {
 		if (marker_->fb.fl_marker) {
 			vec3_t marker_pos;
@@ -109,6 +116,7 @@ gedict_t* LocateMarker(vec3_t org) {
 			}
 		}
 	}
+
 	return closest_marker;
 }
 

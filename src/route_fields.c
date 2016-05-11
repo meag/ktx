@@ -29,77 +29,44 @@ void SetGoal(int goal, int marker_number) {
 	marker->fb.G_ = goal;
 }
 
-fb_void_func_t sub_arrival_time_functions[] = {
-	S1_time_, 
-	S2_time_, 
-	S3_time_, 
-	S4_time_, 
-	S5_time_, 
-	S6_time_, 
-	S7_time_, 
-	S8_time_, 
-	S9_time_, 
-	S10_time_, 
-	S11_time_, 
-	S12_time_, 
-	S13_time_, 
-	S14_time_, 
-	S15_time_, 
-	S16_time_, 
-	S17_time_, 
-	S18_time_, 
-	S19_time_, 
-	S20_time_, 
-	S21_time_, 
-	S22_time_, 
-	S23_time_, 
-	S24_time_,
-	S25_time_,
-	S26_time_,
-	S27_time_,
-	S28_time_,
-	S29_time_,
-	S30_time_,
-	S31_time_,
-	S32_time_
-};
-
-fb_void_func_t sub_path_marker_functions[] = {
-	S1_path_marker,
-	S2_path_marker,
-	S3_path_marker,
-	S4_path_marker,
-	S5_path_marker,
-	S6_path_marker,
-	S7_path_marker,
-	S8_path_marker,
-	S9_path_marker,
-	S10_path_marker,
-	S11_path_marker,
-	S12_path_marker,
-	S13_path_marker,
-	S14_path_marker,
-	S15_path_marker,
-	S16_path_marker,
-	S17_path_marker,
-	S18_path_marker,
-	S19_path_marker,
-	S20_path_marker,
-	S21_path_marker,
-	S22_path_marker,
-	S23_path_marker,
-	S24_path_marker,
-	S25_path_marker,
-	S26_path_marker,
-	S27_path_marker,
-	S28_path_marker,
-	S29_path_marker,
-	S30_path_marker,
-	S31_path_marker,
-	S32_path_marker
-};
+#define SUBZONEFUNCTIONS(name) \
+	S1_ ## name, \
+	S2_ ## name, \
+	S3_ ## name, \
+	S4_ ## name, \
+	S5_ ## name, \
+	S6_ ## name, \
+	S7_ ## name, \
+	S8_ ## name, \
+	S9_ ## name, \
+	S10_ ## name, \
+	S11_ ## name, \
+	S12_ ## name, \
+	S13_ ## name, \
+	S14_ ## name, \
+	S15_ ## name, \
+	S16_ ## name, \
+	S17_ ## name, \
+	S18_ ## name, \
+	S19_ ## name, \
+	S20_ ## name, \
+	S21_ ## name, \
+	S22_ ## name, \
+	S23_ ## name, \
+	S24_ ## name, \
+	S25_ ## name, \
+	S26_ ## name, \
+	S27_ ## name, \
+	S28_ ## name, \
+	S29_ ## name, \
+	S30_ ## name, \
+	S31_ ## name, \
+	S32_ ## name
 
 void Set_sub_arrival_time(gedict_t* marker, int index) {
+	fb_void_func_t sub_arrival_time_functions[] = { SUBZONEFUNCTIONS (time_) };
+	fb_void_func_t sub_path_marker_functions[] = { SUBZONEFUNCTIONS (path_marker) };
+
 	marker->fb.S_ = index;
 
 	if (index < sizeof(sub_arrival_time_functions) / sizeof(sub_arrival_time_functions[0])) {

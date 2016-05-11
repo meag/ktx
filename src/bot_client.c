@@ -10,17 +10,15 @@ void BotPlayerDeathEvent(gedict_t* self) {
 }
 
 // Was: PutClientInServer_apply()
+void SetMarker (gedict_t* client, gedict_t* marker);
+
 void BotClientEntersEvent(gedict_t* self, gedict_t* spawn_pos) {
 	self->fb.oldwaterlevel = self->fb.oldwatertype = 0;
 	self->fb.real_pitch = self->s.v.angles[0];
 	self->fb.real_yaw = self->s.v.angles[1];
 	self->fb.state = 0;
 
-	//set_marker(self, spawn_pos);
-	self->fb.touch_distance = distance;
-	self->fb.touch_marker = spawn_pos;
-	self->fb.Z_ = spawn_pos->fb.Z_;
-	self->fb.touch_marker_time = g_globalvars.time + 5;
+	SetMarker(self, spawn_pos);
 
 	self->fb.arrow = 0;
 	ClearLookObject(self);
@@ -191,7 +189,11 @@ void BotOutOfWater(gedict_t* self) {
 }
 
 void BotPreThink(gedict_t* self) {
-	self->fb.firing = self->s.v.button0;
-	self->fb.jumping = self->s.v.button2;
+	if (self->isBot) {
+		self->fb.firing = self->s.v.button0;
+		self->fb.jumping = self->s.v.button2;
+	}
+
+	self->fb.touch_distance = 1000000;
 }
 

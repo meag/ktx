@@ -73,10 +73,6 @@ extern float next_hazard_time;
 #ifndef CLIENTKILL
 #define CLIENTKILL 11
 #endif
-extern char* str;
-extern float team_index;
-extern float current_team;
-extern float current_frogbot;
 extern char* deathtype;
 extern float armorplay;
 extern int gamemode;
@@ -135,7 +131,6 @@ extern vec3_t inflictor_origin;
 extern gedict_t* inflictor;
 extern float damage_radius;
 extern float inflictor_dist;
-extern gedict_t* self_sound;
 #ifndef FORWARD
 #define FORWARD 1
 #endif
@@ -468,8 +463,6 @@ extern float nr;
 extern float best_weapon;
 extern float score_count;
 extern vec3_t item_pos;
-extern gedict_t* closest_marker;
-extern float shortest_distance;
 extern vec3_t marker_pos;
 extern gedict_t* marker_;
 extern gedict_t* marker2;

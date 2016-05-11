@@ -64,21 +64,21 @@ void FrogbotsRemovebot() {
 	memset(lastbot, 0, sizeof(bot_t));
 }
 
-void BotStartFrame(int time) {
+void BotStartFrame(int time_) {
 	int i = 0;
 
-	marker_time = (time >= next_marker_time);
+	marker_time = (g_globalvars.time >= next_marker_time);
 	if (marker_time) {
 		next_marker_time = next_marker_time + 0.1;
-		if (next_marker_time <= time)
-			next_marker_time = time + 0.1;
+		if (next_marker_time <= g_globalvars.time)
+			next_marker_time = g_globalvars.time + 0.1;
 	}
 
-	hazard_time = (time >= next_hazard_time);
+	hazard_time = (g_globalvars.time >= next_hazard_time);
 	if (hazard_time) {
 		next_hazard_time = next_hazard_time + 0.025;
-		if (next_hazard_time <= time)
-			next_hazard_time = time + 0.025;
+		if (next_hazard_time <= g_globalvars.time)
+			next_hazard_time = g_globalvars.time + 0.025;
 	}
 
 	FrogbotPrePhysics1 ();

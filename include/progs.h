@@ -397,14 +397,14 @@ typedef struct fb_entvars_s {
 	float arrow_time2;
 	float linked_marker_time;
 	float touch_marker_time;
-	float index;
+	int index;
 
 	vec3_t oldvelocity;
 	vec3_t obstruction_normal;
 	vec3_t velocity_normal;
 
 	struct gedict_s* marker_link;           // linked list, this points to next marker
-	float fl_marker;                        // true if the current item is considered a marker
+	qbool fl_marker;                        // true if the current item is considered a marker
 	struct gedict_s* previous;
 	struct gedict_s* next;
 	struct gedict_s* next_load;

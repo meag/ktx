@@ -199,13 +199,13 @@ void UpdateGoal() {
 	if (enemy_touch_marker) {
 		virtual_enemy = enemy_;
 		enemy_desire = enemy_ && enemy_->fb.desire ? enemy_->fb.desire(self) : 0;
-		G_bprint (2, "Enemy %s, desire func %s, %f\n", enemy_ ? enemy_->s.v.classname : "?", enemy_ && enemy_->fb.desire ? "yes" : "no", enemy_desire);
 		if (enemy_desire > 0) {
 			from_marker = touch_marker_;
 			enemy_touch_marker->fb.zone_marker();
 			enemy_touch_marker->fb.sub_arrival_time();
 			enemy_->fb.saved_respawn_time = 0;
 			enemy_->fb.saved_goal_time = traveltime;
+			G_bprint (2, "Enemy %s/%d, traveltime %f, lookahead_time_ %f, zone_time %f\n", enemy_ ? enemy_->s.v.classname : "?", enemy_touch_marker->fb.index, traveltime, lookahead_time_, zone_time);
 			if (traveltime < lookahead_time_) {
 				goal_score = enemy_desire * (lookahead_time_ - traveltime) / (traveltime + 5);
 				if (goal_score > best_score) {
@@ -215,20 +215,19 @@ void UpdateGoal() {
 				}
 			}
 		}
-		else  {
-			if (enemy_->s.v.enemy == NUM_FOR_EDICT(self)) {
-				enemy_repel = enemy_desire;
-			}
+		else if (enemy_->s.v.enemy == NUM_FOR_EDICT(self)) {
+			enemy_repel = enemy_desire;
 		}
 	}
 	else  {
 		virtual_enemy = dropper;
 	}
-	//G_bprint (2, "After enemy evaluation: best_goal %s, best_score %f\n", best_goal ? best_goal->s.v.classname : "(none)", best_score);
 
+	//G_bprint (2, "After enemy evaluation: best_goal %s, best_score %f\n", best_goal ? best_goal->s.v.classname : "(none)", best_score);
 	for (i = 0; i < sizeof(m->fb.goals) / sizeof(m->fb.goals[0]); ++i) {
 		EvalGoal(touch_marker_->fb.goals[i].next_marker->fb.virtual_goal);
 	}
+	//G_bprint (2, "After evaling goals: best_goal %s, best_score %f\n", best_goal ? best_goal->s.v.classname : "(none)", best_score);
 
 	for (goal_entity = world; goal_entity = ez_find(goal_entity, "dynamic_item"); ) {
 		if (goal_entity->fb.touch_marker) {

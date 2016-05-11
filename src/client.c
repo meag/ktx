@@ -2589,7 +2589,7 @@ void PlayerPreThink()
 		self->was_jump = false;
 	}
 
-	if ( self->isBot ) {
+	if ( bots_enabled() ) {
 		BotPreThink (self);
 	}
 
