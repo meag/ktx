@@ -3,6 +3,8 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
+void DM6SelectWeaponToOpenDoor (gedict_t* self);
+
 static qbool WaterCombat(void) {
 	if (self->s.v.waterlevel < 2) {
 		return TRUE;
@@ -83,7 +85,7 @@ void AttackRespawns(void) {
 	}
 }
 
-static void CheckNewWeapon(int desired_weapon) {
+void CheckNewWeapon(int desired_weapon) {
 	int weapons[] = { 
 		IT_AXE, IT_SHOTGUN, IT_SUPER_SHOTGUN, IT_NAILGUN, IT_SUPER_NAILGUN, IT_GRENADE_LAUNCHER, IT_ROCKET_LAUNCHER, IT_LIGHTNING
 	};
@@ -106,6 +108,7 @@ static qbool ShotForLuck(vec3_t object) {
 }
 
 void SetFireButton(gedict_t* self) {
+	/*
 	if (match_in_progress != 2) {
 		if (! match_in_progress) {
 			if ((g_globalvars.time + random()) < enemy_->attack_finished) {
@@ -117,7 +120,7 @@ void SetFireButton(gedict_t* self) {
 			self->fb.firing = false;
 			return;
 		}
-	}
+	}*/
 	if (self->fb.firing) {
 		if (look_object_ == enemy_) {
 			if (random() < 0.666667) {
@@ -130,42 +133,21 @@ void SetFireButton(gedict_t* self) {
 			self->fb.firing = false;
 		}
 	}
-	else  {
-		if (g_globalvars.time < self->attack_finished) {
-			return;
-		}
+	else if (g_globalvars.time < self->attack_finished) {
+		return;
 	}
+
 	if (self->fb.next_impulse) {
 		return;
 	}
 	if (! SameTeam(look_object_, self)) {
-		// FIXME: Move to DM6 file & make more generic (it's picking weapon to trigger a door/button with)
-		if (self->fb.path_state & DM6_DOOR) {
-			int items_ = (int) self->s.v.items;
-			int desired_weapon = 0;
-			if (self->s.v.ammo_shells) {
-				desired_weapon = IT_SHOTGUN;
-			}
-			else if ((items_ & IT_NAILGUN) && (self->s.v.ammo_nails)) {
-				desired_weapon = IT_NAILGUN;
-			}
-			else if ((items_ & IT_SUPER_NAILGUN) && (self->s.v.ammo_nails)) {
-				desired_weapon = IT_SUPER_NAILGUN;
-			}
-			else if ((items_ & IT_LIGHTNING) && (self->s.v.ammo_cells)) {
-				desired_weapon = IT_LIGHTNING;
-			}
-			CheckNewWeapon( desired_weapon );
-			self->fb.firing |= (self->s.v.weapon == desired_weapon);
-		}
+		DM6SelectWeaponToOpenDoor (self);
 
 		// FIXME: what is this referring to?
 		if (self->fb.state & HURT_SELF) {
-			if (self->s.v.weapon == IT_ROCKET_LAUNCHER) {
-				if (self->fb.real_pitch == 78.75) {
-					self->fb.firing = true;
-					self->fb.state &= ~HURT_SELF;
-				}
+			if (self->s.v.weapon == IT_ROCKET_LAUNCHER && self->fb.real_pitch == 78.75) {
+				self->fb.firing = true;
+				self->fb.state &= ~HURT_SELF;
 			}
 			return;
 		}
@@ -174,45 +156,40 @@ void SetFireButton(gedict_t* self) {
 			if (enemy_->fb.touch_marker) {
 				traceline(origin_[0], origin_[1], origin_[2] + 16, origin_[0] + rel_pos[0], origin_[1] + rel_pos[1], origin_[2] + rel_pos[2] + 16, FALSE, self);
 				if (g_globalvars.trace_fraction == 1) {
-					if (self->s.v.weapon != IT_ROCKET_LAUNCHER) {
-						if (look_object_ != enemy_) {
-							return;
-						}
+					if (self->s.v.weapon != IT_ROCKET_LAUNCHER && look_object_ != enemy_) {
+						return;
 					}
 				}
-				else  {
-					if (g_globalvars.trace_ent != NUM_FOR_EDICT(look_object_)) {
-						gedict_t* traced = PROG_TO_EDICT(g_globalvars.trace_ent);
-						if (traced->ct == ctPlayer) {
-							if (!SameTeam(traced, self)) {
-								if (!((int)self->s.v.flags & FL_WATERJUMP)) {
-									self->s.v.enemy = NUM_FOR_EDICT( traced );
-									enemy_ = traced;
-									LookEnemy(self, enemy_);
-								}
+				else if (PROG_TO_EDICT(g_globalvars.trace_ent) != look_object_) {
+					gedict_t* traced = PROG_TO_EDICT(g_globalvars.trace_ent);
+					if (traced->ct == ctPlayer) {
+						if (!SameTeam(traced, self)) {
+							if (!((int)self->s.v.flags & FL_WATERJUMP)) {
+								self->s.v.enemy = NUM_FOR_EDICT( traced );
+								enemy_ = traced;
+								LookEnemy(self, enemy_);
 							}
-							return;
 						}
-						else  {
-							if (look_object_ == enemy_) {
-								if (!self->s.v.waterlevel) {
-									if (self->fb.allowedMakeNoise) {
-										if ((int)self->s.v.flags & FL_ONGROUND) {
-											traceline(origin_[0], origin_[1], origin_[2] + 32, origin_[0] + rel_pos[0], origin_[1] + rel_pos[1], origin_[2] + rel_pos[2] + 32 , FALSE, self);
-											self->fb.jumping |= (g_globalvars.trace_fraction == 1);
-										}
+						return;
+					}
+					else {
+						if (look_object_ == enemy_) {
+							if (!self->s.v.waterlevel) {
+								if (self->fb.allowedMakeNoise) {
+									if ((int)self->s.v.flags & FL_ONGROUND) {
+										traceline(origin_[0], origin_[1], origin_[2] + 32, origin_[0] + rel_pos[0], origin_[1] + rel_pos[1], origin_[2] + rel_pos[2] + 32 , FALSE, self);
+										self->fb.jumping |= (g_globalvars.trace_fraction == 1);
 									}
 								}
 							}
-							return;
 						}
+						return;
 					}
 				}
 
-				if (self->s.v.weapon == IT_LIGHTNING) {
-					if (self->s.v.waterlevel > 1) {
-						return;
-					}
+				// Deal with bot deciding to discharge elsewhere
+				if (self->s.v.weapon == IT_LIGHTNING && self->s.v.waterlevel > 1) {
+					return;
 				}
 
 				risk_factor = 0.5;
@@ -252,6 +229,7 @@ void SetFireButton(gedict_t* self) {
 						}
 					}
 				}
+
 				if (self->s.v.weapon == IT_ROCKET_LAUNCHER) {
 					hit_radius = 160;
 					VectorCopy(origin_, rocket_origin);
@@ -324,7 +302,7 @@ void SetFireButton(gedict_t* self) {
 																					if (g_globalvars.trace_fraction == 1) {
 																						rel_pos[2] = rel_pos[2] - 38;
 																					}
-																					self->fb.state = self->fb.state | SHOT_FOR_LUCK;
+																					self->fb.state |= SHOT_FOR_LUCK;
 																					self->fb.botchose = 1;
 																					self->fb.next_impulse = 7;
 																					self->fb.firing = true;
@@ -376,6 +354,7 @@ void SetFireButton(gedict_t* self) {
 					}
 					return;
 				}
+
 				VectorSubtract(self->fb.desired_angle, self->s.v.v_angle, self->fb.angle_error);
 				if (self->fb.angle_error[1] >= 180) {
 					self->fb.angle_error[1] -= 360;
@@ -452,7 +431,7 @@ static int DesiredWeapon() {
 	}
 
 	if (!fb_lg_disabled()) {
-		if ((self->s.v.waterlevel <= 1) || ((int)self->s.v.items & IT_INVULNERABILITY)) {
+		if (self->s.v.waterlevel <= 1 || ((int)self->s.v.items & IT_INVULNERABILITY)) {
 			if (items_ & IT_LIGHTNING) {
 				if (self->s.v.ammo_cells) {
 					if (self->fb.enemy_dist <= 600) {

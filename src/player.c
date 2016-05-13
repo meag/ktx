@@ -997,10 +997,7 @@ void PlayerDie()
 		PlayerDropFlag( self, false );
 	}
 
-	if ( self->isBot )
-	{
-		BotPlayerDeathEvent(self);
-	}
+	BotPlayerDeathEvent(self);
 
 	self->s.v.items -= ( int ) self->s.v.items & IT_INVISIBILITY;
 	self->invisible_finished = 0;	// don't die as eyes

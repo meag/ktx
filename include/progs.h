@@ -357,7 +357,7 @@ typedef struct fb_entvars_s {
 
 	float wait;
 	float fl_ontrain;                    // FIXME: never set (used for frogbot train movement)
-	float teamflag;                      // FIXME: think this is used to add a teamflag to a goal entity, so it isn't hoarded by bots?
+	int   teamflag;                      // FIXME: think this is used to add a teamflag to a goal entity, so it isn't hoarded by bots?
 	float oldwaterlevel;                 // used to detect FL_WATERJUMP waterjump...  may not be required?  server will set...
 	float oldwatertype;                  // FIXME: may no longer be required?  server will set, this is in MOVETYPE_STEP code...
 

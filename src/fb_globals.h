@@ -1154,6 +1154,7 @@ void adjust_view_ofs_z(gedict_t* ent);
 void ClearLookObject(gedict_t* client);
 void LookEnemy(gedict_t* player, gedict_t* enemy);
 void BestEnemy(gedict_t* self);
+void CheckCombatEnemy(gedict_t* attacker, gedict_t* targ);
 
 // botjump.qc
 void CheckCombatJump(void);

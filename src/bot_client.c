@@ -3,6 +3,9 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
+void PlayerReady ();
+void SetMarker (gedict_t* client, gedict_t* marker);
+
 // Called whenever a player dies
 void BotPlayerDeathEvent(gedict_t* self) {
 	ResetGoalEntity(self);
@@ -10,8 +13,6 @@ void BotPlayerDeathEvent(gedict_t* self) {
 }
 
 // Was: PutClientInServer_apply()
-void SetMarker (gedict_t* client, gedict_t* marker);
-
 void BotClientEntersEvent(gedict_t* self, gedict_t* spawn_pos) {
 	self->fb.oldwaterlevel = self->fb.oldwatertype = 0;
 	self->fb.real_pitch = self->s.v.angles[0];
@@ -108,11 +109,9 @@ void BotSetCommand(gedict_t* self) {
 		(self->fb.firing ? 1 : 0) | (self->fb.jumping ? 2 : 0),
 		(self->fb.botchose ? self->fb.next_impulse : 0)
 	);
-	//G_bprint (2, "Setting angles: %f %f\n", self->fb.desired_angle[0], self->fb.desired_angle[1]);
 	self->fb.next_impulse = 0;
 	self->fb.botchose = false;
 	self->fb.last_cmd_sent = g_globalvars.time;
-	//SetViewAngle(self, self->s.v.v_angle);
 }
 
 static float goal_client(gedict_t* self) {
@@ -148,8 +147,6 @@ static float goal_client6(gedict_t* self) {
 // client.qc
 // This is called whenever a client connects (not just bots)
 // TODO: any preferences stored against the specific bot to be restored here?
-void PlayerReady ();
-
 void BotClientConnectedEvent(gedict_t* self) {
 	self->fb.desire = (deathmatch <= 3 ? goal_client : goal_client6);
 	self->fb.T = UNREACHABLE;

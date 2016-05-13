@@ -270,7 +270,7 @@ static void BotStopFiring() {
 	qbool continuous = (qbool) ((int)self->s.v.weapon & IT_CONTINUOUS);
 
 	if (!(continuous || self->fb.rocketjumping)) {
-		self->fb.firing = FALSE;
+		self->fb.firing = false;
 	}
 }
 
@@ -384,18 +384,26 @@ static void BotsFireLogic() {
 	if (g_globalvars.time >= self->fb.fire_nextthink) {
 		self->fb.fire_nextthink = self->fb.fire_nextthink + (self->fb.firing_reflex * (0.95 + (0.1 * random())));
 		if (self->fb.fire_nextthink <= g_globalvars.time) {
-			self->fb.fire_nextthink = g_globalvars.time + 0.1f; //(self->fb.firing_reflex * (0.95 + (0.1 * random())));
+			self->fb.fire_nextthink = g_globalvars.time + (self->fb.firing_reflex * (0.95 + (0.1 * random())));
 		}
 
 		look_object_ = self->fb.look_object;
 		enemy_ = &g_edicts[self->s.v.enemy];
+
+		// a_attackfix()
+		if (!self->fb.rocketjumping && enemy_ == world && !(self->state & SHOT_FOR_LUCK)) {
+			self->fb.firing = false;
+		}
+
 		if (look_object_) {
 			VectorCopy(self->s.v.origin, origin_);
 			if (look_object_->ct == ctPlayer) {
 				BotsFireAtPlayerLogic(rel_pos, &rel_dist);
+				//G_bprint (2, "Firing @ %s @ rel(%f %f %f)\n", look_object_->s.v.netname, PASSVEC3 (rel_pos));
 			}
 			else {
 				BotsFireAtWorldLogic(rel_pos, &rel_dist);
+				//G_bprint (2, "Firing @ world @ rel(%f %f %f)\n", PASSVEC3 (rel_pos));
 			}
 
 			// Aim lower over longer distances?  (FIXME)
@@ -454,8 +462,8 @@ static void BotsFireLogic() {
 				self->fb.desired_angle[0] = 180;
 			}
 			VectorSubtract(self->fb.desired_angle, self->s.v.v_angle, self->fb.angle_error);
-			self->fb.angle_error[0] = self->fb.angle_error[0] - (1 - self->fb.fast_aim) * (self->fb.pitchspeed * self->fb.firing_reflex);
-			self->fb.angle_error[1] = self->fb.angle_error[1] - (1 - self->fb.fast_aim) * (self->fb.yawspeed * self->fb.firing_reflex);
+			self->fb.angle_error[0] -= (1 - self->fb.fast_aim) * (self->fb.pitchspeed * self->fb.firing_reflex);
+			self->fb.angle_error[1] -= (1 - self->fb.fast_aim) * (self->fb.yawspeed * self->fb.firing_reflex);
 			if (self->fb.angle_error[1] >= 180) {
 				self->fb.angle_error[1] = self->fb.angle_error[1] - 360;
 			}

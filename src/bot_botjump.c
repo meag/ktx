@@ -166,11 +166,10 @@ void a_rocketjump(gedict_t* self) {
 	self->fb.real_pitch = 78.75;
 	self->fb.pitchspeed = 0;
 	self->fb.pitchaccel = 0;
-	self->fb.rocketjumping = TRUE;
-	self->fb.botchose = TRUE;
+	self->fb.rocketjumping = true;
+	self->fb.botchose = true;
 	self->fb.next_impulse = 7;
-	self->fb.firing = TRUE;
-	self->fb.jumping = TRUE;
+	self->fb.firing = self->fb.jumping = true;
 }
 
 // TODO: FIX THIS

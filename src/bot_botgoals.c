@@ -5,11 +5,11 @@
 
 static float best_score;
 
-// FIXME: Called during client.qc[ResetItems], maybe when player dies?
+// Called by BotPlayerDeathEvent
 void ResetGoalEntity(gedict_t* self) {
 	if (self->s.v.goalentity) {
 		gedict_t* ent = &g_edicts[self->s.v.goalentity];
-		ent->fb.teamflag = ent->fb.teamflag - ((int)ent->fb.teamflag & (int)self->fb.teamflag);
+		ent->fb.teamflag -= (ent->fb.teamflag & self->fb.teamflag);
 		self->s.v.goalentity = NUM_FOR_EDICT(world);
 	}
 }
@@ -306,6 +306,6 @@ void UpdateGoal() {
 		self->s.v.goalentity = NUM_FOR_EDICT(world);
 	}
 
-	G_bprint (2, "UpdateGoal() => %s\n", g_edicts[self->s.v.goalentity].s.v.classname);
+	//G_bprint (2, "UpdateGoal() => %s\n", g_edicts[self->s.v.goalentity].s.v.classname);
 }
 

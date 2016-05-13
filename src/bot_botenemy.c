@@ -40,7 +40,6 @@ void ResetEnemy(gedict_t* self) {
 	self->s.v.enemy = NUM_FOR_EDICT(world);
 }
 
-// FIXME: is called from combat.qc
 void CheckCombatEnemy(gedict_t* attacker, gedict_t* targ) {
 	// if object we're looking at has less firepower than us...
 	if (targ->fb.look_object && targ->fb.look_object->fb.firepower < attacker->fb.firepower) {

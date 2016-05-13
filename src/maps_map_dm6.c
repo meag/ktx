@@ -792,3 +792,25 @@ void DM6CampLogic() {
 		}
 	}
 }
+
+void DM6SelectWeaponToOpenDoor (gedict_t* self)
+{
+	if (self->fb.path_state & DM6_DOOR) {
+		int items_ = (int) self->s.v.items;
+		int desired_weapon = 0;
+		if (self->s.v.ammo_shells) {
+			desired_weapon = IT_SHOTGUN;
+		}
+		else if ((items_ & IT_NAILGUN) && (self->s.v.ammo_nails)) {
+			desired_weapon = IT_NAILGUN;
+		}
+		else if ((items_ & IT_SUPER_NAILGUN) && (self->s.v.ammo_nails)) {
+			desired_weapon = IT_SUPER_NAILGUN;
+		}
+		else if ((items_ & IT_LIGHTNING) && (self->s.v.ammo_cells)) {
+			desired_weapon = IT_LIGHTNING;
+		}
+		CheckNewWeapon( desired_weapon );
+		self->fb.firing |= (self->s.v.weapon == desired_weapon);
+	}
+}

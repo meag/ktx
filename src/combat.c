@@ -24,6 +24,7 @@
  */
 
 #include "g_local.h"
+#include "fb_globals.h"
 
 void	ClientObituary( gedict_t * e1, gedict_t * e2 );
 void	bloodfest_killed_hook( gedict_t * killed, gedict_t * attacker );
@@ -730,7 +731,11 @@ void T_Damage( gedict_t * targ, gedict_t * inflictor, gedict_t * attacker, float
 		{
 			targ->s.v.flags = (int)targ->s.v.flags & ~FL_ONGROUND;		
 		}
+
+		targ->fb.path_state |= AIR_ACCELERATION;
 	}
+
+	CheckCombatEnemy (attacker, targ);
 
 	if ( match_in_progress == 2 && (int)cvar("k_dmgfrags") )
 	{

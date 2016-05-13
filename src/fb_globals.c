@@ -466,10 +466,7 @@ qbool bots_enabled() {
 }
 
 qbool SameTeam(gedict_t* p1, gedict_t* p2) {
-	if (! teamplay)
-		return FALSE;
-
-	return (qbool) streq( ezinfokey(p1, "team"), ezinfokey(p2, "team") );
+	return p1 == p2 || (teamplay && streq( ezinfokey(p1, "team"), ezinfokey(p2, "team") ));
 }
 
 static qbool HasRLOrLG (gedict_t* self)
