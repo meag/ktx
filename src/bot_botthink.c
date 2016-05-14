@@ -471,11 +471,10 @@ static void BotsFireLogic() {
 				self->fb.angle_error[1] = self->fb.angle_error[1] + 360;
 			}
 
-			/*
-			self->fb.track_pitchspeed = self->fb.track_pitchspeed + self->fb.fast_aim * angle_error[0] / self->fb.firing_reflex;
-			self->fb.track_yawspeed = self->fb.track_yawspeed + self->fb.fast_aim * angle_error[1] / self->fb.firing_reflex;
-			self->fb.pitchaccel = (1 - self->fb.fast_aim) * angle_error[0] / self->fb.firing_reflex;
-			self->fb.yawaccel = (1 - self->fb.fast_aim) * angle_error[1] / self->fb.firing_reflex;
+			self->fb.track_pitchspeed += self->fb.fast_aim * self->fb.angle_error[0] / self->fb.firing_reflex;
+			self->fb.track_yawspeed += self->fb.fast_aim * self->fb.angle_error[1] / self->fb.firing_reflex;
+			self->fb.pitchaccel = (1 - self->fb.fast_aim) * self->fb.angle_error[0] / self->fb.firing_reflex;
+			self->fb.yawaccel = (1 - self->fb.fast_aim) * self->fb.angle_error[1] / self->fb.firing_reflex;
 
 			if (self->fb.pitchaccel > 0) {
 				self->fb.pitchaccel = self->fb.pitchaccel + 5400;
@@ -488,7 +487,7 @@ static void BotsFireLogic() {
 			}
 			else if (self->fb.yawaccel < 0) {
 				self->fb.yawaccel = self->fb.yawaccel - 5400;
-			}*/
+			}
 
 			if (!self->fb.rocketjumping) {
 				SetFireButton(self);

@@ -2,7 +2,9 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
-#define MAX_BOTS 32
+#define MAX_BOTS          32
+#define MIN_FROGBOT_SKILL  0
+#define MAX_FROGBOT_SKILL 20
 
 typedef struct botcmd_s {
 	int msec;
@@ -21,8 +23,20 @@ typedef struct bot_s {
 
 bot_t            bots[MAX_BOTS] = { 0 };
 
-void FrogbotsAddbot() {
+void SetAttribs (gedict_t* self);
+
+int FrogbotSkillLevel (void)
+{
+	return (int)cvar ("k_fb_skill");
+}
+
+void FrogbotsAddbot(void) {
 	int i = 0;
+
+	if (!bots_enabled ()) {
+		G_sprint (self, 2, "Bots are disabled by the server.\n");
+		return;
+	}
 
 	for (i = 0; i < sizeof(bots) / sizeof(bots[0]); ++i) {
 		if (bots[i].entity == 0) {
@@ -38,7 +52,9 @@ void FrogbotsAddbot() {
 			memset(&bots[i], 0, sizeof(bot_t));
 			bots[i].entity = entity;
 			memset(&bots[i].command, 0, sizeof(bots[i].command));
-			self->fb.last_cmd_sent = g_globalvars.time;
+			g_edicts[entity].fb.last_cmd_sent = g_globalvars.time;
+			g_edicts[entity].fb.bot_skill = FrogbotSkillLevel();
+			SetAttribs (&g_edicts[entity]);
 			return;
 		}
 	}
@@ -46,7 +62,7 @@ void FrogbotsAddbot() {
 	G_sprint(self, 2, "Bot limit reached\n");
 }
 
-void FrogbotsRemovebot() {
+void FrogbotsRemovebot(void) {
 	int i = 0;
 	bot_t* lastbot = NULL;
 
@@ -62,6 +78,33 @@ void FrogbotsRemovebot() {
 
 	trap_RemoveBot(lastbot->entity);
 	memset(lastbot, 0, sizeof(bot_t));
+}
+
+void FrogbotsSetSkill (void)
+{
+	if (!bots_enabled ()) {
+		G_sprint (self, 2, "Bots are disabled by the server.\n");
+		return;
+	}
+
+	if (trap_CmdArgc () <= 1) {
+		G_sprint (self, 2, "Usage: /botskill <skill>\n");
+		G_sprint (self, 2, "       <skill> must be in range %d and %d\n", MIN_FROGBOT_SKILL, MAX_FROGBOT_SKILL);
+		G_sprint (self, 2, "bot skill is currently \"%d\"\n", FrogbotSkillLevel());
+	}
+	else {
+		char argument[32];
+		int new_skill = 0;
+		int old_skill = FrogbotSkillLevel();
+		
+		trap_CmdArgv (1, argument, sizeof (argument));
+		new_skill = bound(MIN_FROGBOT_SKILL, atoi (argument), MAX_FROGBOT_SKILL);
+
+		if (new_skill != old_skill) {
+			cvar_fset ("k_fb_skill", new_skill);
+			G_sprint (self, 2, "bot skill changed to \"%d\"\n", FrogbotSkillLevel());
+		}
+	}
 }
 
 void BotStartFrame(int time_) {

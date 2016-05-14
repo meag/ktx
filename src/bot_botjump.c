@@ -120,10 +120,11 @@ qbool able_rj() {
 }
 
 // Performs rocket jump [TODO: rename]
+// FIXME: Very basic rocket jumps, needs a lot more work
 void a_rocketjump(gedict_t* self) {
 	qbool has_rl = (qbool) (self->s.v.ammo_rockets && ((int)self->s.v.items & IT_ROCKET_LAUNCHER));
 
-	self->fb.rocketjumping = true;
+	self->fb.rocketjumping = false;
 	if (match_in_progress != 2 || !has_rl) {
 		return;
 	}

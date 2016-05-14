@@ -7,14 +7,12 @@ void SetSkill();
 void LoadTemp1();
 void AddBot();
 
-void SetAttribs() {
+void SetAttribs(gedict_t* self) {
 	float smartness;
 	int skill_ = self->fb.bot_skill;
 
 	smartness = 10;
-	bprint_fb(2, "skill &cf00");
-	bprint_g(2, skill_);
-	bprint_fb(2, "&r\n");
+	G_bprint (2, "skill &cf00%d&r\n", self->fb.bot_skill);
 	if (skill_ > 10) {
 		self->fb.fast_aim = (skill_ - 10) * 0.1;
 		skill_ = 10;

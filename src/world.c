@@ -849,6 +849,10 @@ void FirstFrame	( )
 
 // }
 
+// { frogbots support
+	RegisterCvarEx ("k_fb_skill", "20");
+// }
+
 // below globals changed only here
 
 	k_matchLess = cvar( "k_matchless" );

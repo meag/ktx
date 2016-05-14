@@ -400,30 +400,7 @@ void bprint_ftos(int level, float value)
 
 void bprint_g(int lev, float f)
 {
-	float n,
-	      d,
-	      g;
-	if (f > 999 || f < -999) {
-		bprint_ftos(lev, f);
-		return;
-	}
-	f = floor(f);
-	if (f < 0) {
-		f = f * -1;
-		bprint_fb(lev, "-");
-	}
-	n = pr1_rint(f);
-	d = floor(n / 100);
-	if (d) {
-		bprint_ftos(lev, d);
-	}
-	n = n - d * 100;
-	g = floor(n / 10);
-	if (g || d) {
-		bprint_ftos(lev, g);
-	}
-	n = n - g * 10;
-	bprint_ftos(lev, n);
+	G_bprint (lev, "%d", (int)f);
 }
 
 // weapons.qc

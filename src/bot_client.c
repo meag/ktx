@@ -10,6 +10,8 @@ void SetMarker (gedict_t* client, gedict_t* marker);
 void BotPlayerDeathEvent(gedict_t* self) {
 	ResetGoalEntity(self);
 	ResetEnemy(self);
+
+	ar_time = g_globalvars.time + 3;
 }
 
 // Was: PutClientInServer_apply()
@@ -39,7 +41,6 @@ void BotDeathThink(void) {
 void BotSetCommand(gedict_t* self) {
 	float msec = min ((g_globalvars.time - self->fb.last_cmd_sent) * 1000, 255);
 
-	/*
 	float pitchspeed_ = self->fb.pitchspeed + self->fb.pitchaccel * g_globalvars.frametime;
 	float yawspeed_ = self->fb.yawspeed + self->fb.yawaccel * g_globalvars.frametime;
 	float total_pitchspeed = 0;
@@ -60,10 +61,11 @@ void BotSetCommand(gedict_t* self) {
 
 	a_rocketjump(self);
 
+	/*
 	if (yawspeed_ > 0) {
 		yawspeed_ = max(yawspeed_ - mouse_friction, 0);
 	}
-	else  {
+	else {
 		yawspeed_ = min(yawspeed_ + mouse_friction, 0);
 	}
 	total_yawspeed = yawspeed_ + self->fb.track_yawspeed;
@@ -88,12 +90,16 @@ void BotSetCommand(gedict_t* self) {
 		if (new_pitch < -2.8125) {
 			new_pitch = new_pitch + 2.8125;
 		}
-		else  {
+		else {
 			new_pitch = 0;
 		}
 	}
-	*/
 
+	G_bprint (2, "Desired[%f %f] vs [%f %f]\n", self->fb.desired_angle[0], self->fb.desired_angle[1], new_pitch * -1, new_yaw);
+
+	self->fb.desired_angle[0] = new_pitch * -1;
+	self->fb.desired_angle[1] = new_yaw;
+	self->fb.desired_angle[2] = 0;*/
 	trap_makevectors (self->fb.desired_angle);
 
 	trap_SetBotCMD (

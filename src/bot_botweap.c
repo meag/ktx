@@ -35,11 +35,13 @@ static qbool RocketSafe(void) {
 
 // When duelling, try and spawn frag.  FIXME: ar_time not set in player.qc
 void AttackRespawns(void) {
-	if (isRA() || numberofclients != 2) {
+	gedict_t* enemy_ = &g_edicts[self->s.v.enemy];
+
+	if (isRA() || isHoonyMode() || !isDuel()) {
 		return;
 	}
 
-	if (enemy_->s.v.health < 1) {
+	if (enemy_ != world && enemy_->s.v.health < 1) {
 		if (ar_time > g_globalvars.time) {
 			if (self->fb.bot_skill >= 15) {
 				if ((int)self->s.v.items & IT_ROCKET_LAUNCHER) {
