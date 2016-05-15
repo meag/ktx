@@ -733,6 +733,10 @@ void sound( gedict_t * ed, int channel, char *samp, float vol, float att )
 	if ( isRACE() && ed->muted )
 		return;
 
+	if (bots_enabled ()) {
+		BotsSoundMade (ed);
+	}
+
 	trap_sound( NUM_FOR_EDICT( ed ), channel, samp, vol, att );
 }
 

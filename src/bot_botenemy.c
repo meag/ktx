@@ -62,24 +62,39 @@ void CheckCombatEnemy(gedict_t* attacker, gedict_t* targ) {
 	}
 }
 
-// FIXME: not called at present
-static void check_sound() {
-	if (enemy_->ct == ctPlayer) {
-		gedict_t* self_sound = self;
-		for (self = world; self = find_plr (self); ) {
-			if (!(self->fb.state & NOTARGET_ENEMY)) {
-				if (NUM_FOR_EDICT(enemy_) == self->s.v.enemy) {
-					if (enemy_ != self->fb.look_object) {
-						vec3_t temp;
-						VectorSubtract(enemy_->s.v.origin, self->s.v.origin, temp);
-						if (VectorLength(temp) < 1000 && Visible_360(self, enemy_)) {
-							self->fb.look_object = enemy_;
+// TODO: length of sound is also important?  Can hear direction someone is jumping...
+void BotsSoundMade(gedict_t* entity) {
+	if (entity && entity->ct == ctPlayer) {
+		gedict_t* plr;
+
+		// Find all bots which has this entity as enemy
+		for (plr = world; plr = find_plr (plr); ) {
+			if (plr->isBot && !(plr->fb.state & NOTARGET_ENEMY)) {
+				if (NUM_FOR_EDICT(entity) == plr->s.v.enemy && entity != plr->fb.look_object) {
+					vec3_t temp;
+					VectorSubtract(entity->s.v.origin, plr->s.v.origin, temp);
+
+					// Did the bot hear it?
+					if (VectorLength(temp) < 1000) {
+						if (Visible_360 (plr, entity)) {
+							// Look directly at the player
+							plr->fb.look_object = entity;
+						}
+						else if (isDuel()) {
+							if (entity->fb.touch_marker && Visible_360 (plr, entity->fb.touch_marker)) {
+								plr->fb.look_object = entity->fb.touch_marker;
+							}
+							else {
+								// TODO: Look at the closest possible point
+								//   (think of picking up mega on DM4, humans would look at mega exit)
+								//   (find route from noise -> player, look at first visible marker?)
+							}
+							
 						}
 					}
 				}
 			}
 		}
-		self = self_sound;
 	}
 }
 
