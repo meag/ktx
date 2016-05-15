@@ -1545,8 +1545,17 @@ void EndMatch ( float skip_log )
 	if (isHoonyMode()) {
 		if ( HM_current_point_type() != HM_PT_FINAL ) {
 			match_over = 0;
-			for ( p = world; (p = find_plr( p )); )
-				stuffcmd(p, "ready\n");
+
+			// All bots ready first
+			for (p = world; (p = find_plr (p)); ) {
+				if (p->isBot) {
+					p->ready = true;
+				}
+			}
+
+			for (p = world; (p = find_plr (p)); ) {
+				stuffcmd (p, "ready\n");
+			}
 		}
 		else {
 			for ( p = world; (p = find_plr( p )); )

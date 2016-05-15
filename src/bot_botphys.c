@@ -236,7 +236,7 @@ void VelocityForArrow(gedict_t* self) {
 void FrogbotPrePhysics1(void) {
 	// Set all players to non-solid so we can avoid rockets easier
 	if (hazard_time) {
-		for (self = find_plr(world); self; self = find_plr(self)) {
+		for (self = world; self = find_plr(self); ) {
 			self->fb.oldsolid = self->s.v.solid;
 			self->s.v.solid = SOLID_NOT;
 		}

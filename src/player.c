@@ -26,6 +26,7 @@
 #include "g_local.h"
 
 void            bubble_bob();
+void            BotPlayerDeathEvent (gedict_t* player);
 
 /*
 ==============================================================================

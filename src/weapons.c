@@ -30,6 +30,10 @@ void AdminImpBot();
 void CaptainPickPlayer();
 void ChasecamToggleButton( void );
 
+// Bots support
+void BotsRocketSpawned (gedict_t* newmis);
+void BotsGrenadeSpawned (gedict_t* newmis);
+
 // called by SP_worldspawn
 void W_Precache()
 {
@@ -968,6 +972,8 @@ void W_FireRocket()
 
 	// midair 
 	VectorCopy( self->s.v.origin, newmis->s.v.oldorigin );
+
+	BotsRocketSpawned (newmis);
 }
 
 /*
@@ -1259,6 +1265,8 @@ void W_FireGrenade()
 	setmodel( newmis, "progs/grenade.mdl" );
 	setsize( newmis, 0, 0, 0, 0, 0, 0 );
 	setorigin( newmis, PASSVEC3( self->s.v.origin ) );
+
+	BotsGrenadeSpawned (newmis);
 }
 
 //=============================================================================

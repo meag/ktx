@@ -20,13 +20,14 @@ void SetAttribs(gedict_t* self) {
 	else  {
 		self->fb.fast_aim = 0;
 	}
+	/*
 	self->fb.firing_reflex = 0.5 - (skill_ * 0.04);
 	self->fb.accuracy = 45 - (skill_ * 2.25);
 	self->fb.stop_turn_speed = 135 + (smartness * 40.5);
 	self->fb.dodge_amount = smartness * 0.1;
 	self->fb.look_anywhere = smartness * 0.1;
 	self->fb.lookahead_time = 5 + (smartness * 2.5);
-	self->fb.prediction_error = 1 - (smartness * 0.1);
+	self->fb.prediction_error = 1 - (smartness * 0.1);*/
 }
 
 void CalculatePhysicsVariables() {

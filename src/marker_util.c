@@ -37,7 +37,7 @@ void spawn_marker(vec3_t org) {
 	setsize(marker_, -65, -65, -24, 65, 65, 32);
 }
 
-void check_marker() {
+void check_marker(void) {
 	vec3_t temp;
 
 	if (random() < 0.25) {
@@ -120,35 +120,38 @@ gedict_t* LocateMarker(vec3_t org) {
 	return closest_marker;
 }
 
+// If the current item is a goal but has been taken and waiting to respawn, set a virtual goal
 void AssignVirtualGoal_apply(gedict_t* marker_) {
-	goal_number = marker_->fb.G_;
+	int goal_number = marker_->fb.G_;
 	if (goal_number) {
-		test_goal = marker_;
+		gedict_t* test_goal = marker_;
+
 		if (test_goal->s.v.nextthink) {
 			int i = 0;
-			for (i = 0; i < sizeof(marker_->fb.paths) / sizeof(marker_->fb.paths[0]); ++i) {
-				test_goal = marker_->fb.paths[0].next_marker;
-				if ((test_goal->fb.G_ != goal_number) || (test_goal->s.v.nextthink))
+			for (i = 0; i < NUMBER_PATHS; ++i) {
+				test_goal = marker_->fb.paths[i].next_marker;
+				if (test_goal && ((test_goal->fb.G_ != goal_number) || (test_goal->s.v.nextthink)))
 					break;
 			}
 
-			if (i >= sizeof(marker_->fb.paths) / sizeof(marker_->fb.paths[0])) {
+			if (i >= NUMBER_PATHS) {
+				// Waiting to respawn...
 				if ((marker_->s.v.nextthink > 0) && (marker_->s.v.think == (func_t) SUB_regen)) {
 					test_goal = marker_;
 				}
-				else  {
+				else {
 					test_goal = dropper;
 				}
 			}
 		}
 		marker_->fb.virtual_goal = test_goal;
-		return;
 	}
 }
 
 void AssignVirtualGoal(void) {
 	gedict_t* marker_;
-	for (marker_ = self->fb.Z_head; marker_ && marker_ != world; marker_ = marker_->fb.Z_next) {
+
+	for (marker_ = zone_head[self->fb.Z_]; marker_; marker_ = marker_->fb.Z_next) {
 		AssignVirtualGoal_apply(marker_);
 	}
 }

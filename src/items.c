@@ -326,6 +326,9 @@ void item_megahealth_rot()
 			other->s.v.health -= 1;
 
 		self->s.v.nextthink = g_globalvars.time + 1;
+		if (self->fb.item_affect) {
+			self->fb.item_affect (other, self);
+		}
 		return;
 	}
 
@@ -337,6 +340,10 @@ void item_megahealth_rot()
 	{
 		self->s.v.nextthink = g_globalvars.time + 20;
 		self->s.v.think = ( func_t ) SUB_regen;
+	}
+
+	if (self->fb.item_affect) {
+		self->fb.item_affect (other, self);
 	}
 }
 

@@ -438,7 +438,6 @@ extern float risk_factor;
 extern float risk_strength;
 extern vec3_t rocket_origin;
 extern vec3_t enemy_angles;
-extern gedict_t* grenade_marker;
 extern gedict_t* bot;
 extern float rnd;
 extern gedict_t* spawn_pos;

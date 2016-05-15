@@ -4,6 +4,8 @@
 
 // Goal functions
 
+void check_marker (void);
+
 static float goal_health0(gedict_t* self) {
 	return self->fb.desire_health0;
 }
@@ -233,7 +235,6 @@ static void StartItemFB(gedict_t* ent) {
 		ent->s.v.touch = (func_t) marker_touch;
 		ent->s.v.nextthink = -1;
 	}
-	//first_item = AddToList(first_item, ent);
 	//ent->s.v.solid = SOLID_TRIGGER;
 	//ent->s.v.flags = FL_ITEM;
 	BecomeMarker(ent);
@@ -241,7 +242,6 @@ static void StartItemFB(gedict_t* ent) {
 
 //
 // Health
-
 static void fb_health_taken (gedict_t* item, gedict_t* player)
 {
 	if ((int)item->s.v.spawnflags & H_MEGA)
@@ -256,8 +256,9 @@ static void fb_health_taken (gedict_t* item, gedict_t* player)
 
 static void fb_health_touch (gedict_t* item, gedict_t* player)
 {
-	if (marker_time)
-		check_marker();
+	if (marker_time) {
+		check_marker ();
+	}
 }
 
 static void fb_health_rot (gedict_t* item, gedict_t* player)
@@ -266,7 +267,7 @@ static void fb_health_rot (gedict_t* item, gedict_t* player)
 
 	if (player->s.v.health <= 100)
 	{
-
+		AssignVirtualGoal ();
 	}
 }
 
@@ -282,6 +283,7 @@ static void fb_spawn_health(gedict_t* ent) {
 
 	ent->fb.item_taken = fb_health_taken;
 	ent->fb.item_touch = fb_health_touch;
+	ent->fb.item_affect = fb_health_rot;
 	StartItemFB(ent);
 }
 

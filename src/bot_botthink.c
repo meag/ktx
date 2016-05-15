@@ -23,11 +23,17 @@ void SetNextThinkTime(gedict_t* ent) {
 }
 
 static void AvoidLookObjectsMissile() {
-	// TODO: this is why bot is good at avoiding grenades unless you spam them round corner...  need to set movetarget when missile is fired...
-	/*
-	if (look_object_->fb.movetarget->s.v.owner == NUM_FOR_EDICT(look_object_)) {
-		dodge_missile = look_object_->fb.movetarget;
-	}*/
+	gedict_t* rocket;
+
+	dodge_missile = NULL;
+	if (look_object_ && look_object_->ct == ctPlayer) {
+		for (rocket = world; rocket = ez_find (rocket, "rocket"); ) {
+			if (rocket->s.v.owner == EDICT_TO_PROG (look_object_)) {
+				dodge_missile = rocket;
+				break;
+			}
+		}
+	}
 }
 
 static void LookingAtEnemyLogic() {
@@ -82,6 +88,8 @@ static void NewlyPickedEnemyLogic() {
 }
 
 void TargetEnemyLogic() {
+	dodge_missile = NULL;
+
 	if (!(self->fb.state & NOTARGET_ENEMY)) {
 		if (look_object_ && look_object_->ct == ctPlayer) {
 			// Interesting - they only avoid missiles from objects they can see / are locked onto?
@@ -101,10 +109,10 @@ void TargetEnemyLogic() {
 static void BotDodgeMovement(vec3_t dir_move) {
 	if (dodge_factor) {
 		if (dodge_factor < 0) {
-			dodge_factor = dodge_factor + 1;
+			++dodge_factor;
 		}
 		else  {
-			dodge_factor = dodge_factor - 1;
+			--dodge_factor;
 		}
 		trap_makevectors(self->s.v.v_angle);
 		VectorMA(dir_move, random() * self->fb.dodge_amount * dodge_factor, g_globalvars.v_right, dir_move);
@@ -116,9 +124,10 @@ static void BotOnGroundMovement(gedict_t* self, vec3_t dir_move) {
 		if (!(self->fb.path_state & NO_DODGE)) {
 			vec3_t temp;
 
+			// Dodge a rocket our enemy is firing at us
 			dodge_factor = 0;
 			if (dodge_missile) {
-				if (g_edicts[dodge_missile->s.v.owner].ct == ctPlayer) {
+				if (PROG_TO_EDICT(dodge_missile->s.v.owner)->ct == ctPlayer) {
 					VectorSubtract(origin_, dodge_missile->s.v.origin, rel_pos);
 					if (DotProduct(rel_pos, dodge_missile->fb.missile_forward) > 0.7071067) {
 						normalize(rel_pos, temp);
@@ -130,6 +139,7 @@ static void BotOnGroundMovement(gedict_t* self, vec3_t dir_move) {
 				}
 			}
 
+			// Not dodging a missile, dodge away from the player instead
 			if (look_object_ && look_object_->ct == ctPlayer) {
 				if (!dodge_factor) {
 					VectorSubtract(origin_, look_object_->s.v.origin, rel_pos);

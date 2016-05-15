@@ -3,6 +3,8 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
+void CheckNewWeapon (int weapon);
+
 void map_dm6() {
 	N(152, -841, 171);
 	N(1522, -1090, 40);

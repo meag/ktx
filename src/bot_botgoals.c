@@ -5,6 +5,8 @@
 
 static float best_score;
 
+#define BACKPACK_CLASSNAME "backpack"
+
 // Called by BotPlayerDeathEvent
 void ResetGoalEntity(gedict_t* self) {
 	if (self->s.v.goalentity) {
@@ -228,7 +230,7 @@ void UpdateGoal() {
 	}
 
 	//G_bprint (2, "After enemy evaluation: best_goal %s, best_score %f\n", best_goal ? best_goal->s.v.classname : "(none)", best_score);
-	for (i = 0; i < sizeof(m->fb.goals) / sizeof(m->fb.goals[0]); ++i) {
+	for (i = 0; i < NUMBER_GOALS; ++i) {
 		EvalGoal(touch_marker_->fb.goals[i].next_marker->fb.virtual_goal);
 	}
 	//G_bprint (2, "After evaling goals: best_goal %s, best_score %f\n", best_goal ? best_goal->s.v.classname : "(none)", best_score);
@@ -289,12 +291,14 @@ void UpdateGoal() {
 			}
 		}
 
-		for (i = 0; i < sizeof(m->fb.goals) / sizeof(m->fb.goals[0]); ++i) {
-			goal_entity = touch_marker_->fb.goals[i].next_marker->fb.virtual_goal;
-			EvalGoal2();
+		for (i = 0; i < NUMBER_GOALS; ++i) {
+			if (touch_marker_->fb.goals[i].next_marker) {
+				goal_entity = touch_marker_->fb.goals[i].next_marker->fb.virtual_goal;
+				EvalGoal2 ();
+			}
 		}
 
-		for (goal_entity = world; goal_entity = ez_find(goal_entity, "dynamic_item"); ) {
+		for (goal_entity = world; goal_entity = ez_find(goal_entity, BACKPACK_CLASSNAME); ) {
 			if (goal_entity->fb.touch_marker) {
 				EvalGoal2();
 			}

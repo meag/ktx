@@ -26,46 +26,52 @@ void HazardTeleport() {
 	}
 }
 
-void ExplodeAlert(vec3_t org) {
-	for (grenade_marker = world; grenade_marker = trap_findradius(grenade_marker, org, 256); ) {
-		if (grenade_marker->fb.fl_marker) {
-			traceline(org[0], org[1], org[2], grenade_marker->s.v.absmin[0] + grenade_marker->s.v.view_ofs[0], grenade_marker->s.v.absmin[1] + grenade_marker->s.v.view_ofs[1], grenade_marker->s.v.absmin[2] + grenade_marker->s.v.view_ofs[2], TRUE, grenade_marker);
+// This sets arrow_time on closest markers, to indicate danger
+static void ExplodeAlert(vec3_t org, float next_time) {
+	gedict_t* marker;
+	gedict_t* tele;
+
+	// Find all map markers close to this point
+	for (marker = world; marker = trap_findradius(marker, org, 256); ) {
+		if (marker->fb.fl_marker) {
+			// Would the grenade hurt the marker?
+			traceline(org[0], org[1], org[2], marker->s.v.absmin[0] + marker->s.v.view_ofs[0], marker->s.v.absmin[1] + marker->s.v.view_ofs[1], marker->s.v.absmin[2] + marker->s.v.view_ofs[2], TRUE, marker);
 			if (g_globalvars.trace_fraction == 1) {
-				grenade_marker->fb.arrow_time = nextthink_;
-				test_enemy = first_teleport;
-				while (test_enemy) {
-					if (test_enemy->s.v.enemy == NUM_FOR_EDICT(grenade_marker)) {
-						if (test_enemy->fb.arrow_time < nextthink_) {
-							test_enemy->fb.arrow_time = nextthink_;
-						}
+				// Mark the current time
+				marker->fb.arrow_time = next_time;
+
+				for (tele = world; tele = ez_find (tele, "trigger_teleport"); ) {
+					// If this teleport takes us to the marker close to the grenade, set arrow_time
+					if (tele->s.v.enemy == NUM_FOR_EDICT(marker)) {
+						tele->fb.arrow_time = max (tele->fb.arrow_time, next_time);
 					}
-					test_enemy = test_enemy->fb.next;
 				}
 			}
 		}
 	}
 }
 
-// FIXME: called from weapons.qc[W_Attack]
-void GrenadeAlert() {
-	nextthink_ = self->s.v.nextthink = g_globalvars.time + 0.05;
+// This is essentially just to call ExplodeAlert(origin) every 0.05s, until the grenade explodes
+static void GrenadeAlert(void) {
+	self->s.v.nextthink = g_globalvars.time + 0.05;
 	self->s.v.think = (func_t) GrenadeAlert;
 	if (self->fb.frogbot_nextthink <= g_globalvars.time) {
 		self->s.v.think = (func_t) GrenadeExplode;
 		self->s.v.nextthink = g_globalvars.time;
 	}
-	ExplodeAlert(self->s.v.origin);
+	ExplodeAlert(self->s.v.origin, self->s.v.nextthink);
 }
 
-// FIXME: called from weapons.qc[W_Attack]
-void RocketAlert() {
-	nextthink_ = self->s.v.nextthink = g_globalvars.time + 0.5;
-	if (nextthink_ >= self->fb.frogbot_nextthink) {
+static void RocketAlert(void) {
+	vec3_t end_point;
+
+	self->s.v.nextthink = g_globalvars.time + 0.5;
+	if (self->fb.frogbot_nextthink <= g_globalvars.time) {
 		self->s.v.think = (func_t) Missile_Remove;
 	}
-	VectorCopy(self->s.v.origin, src);
-	traceline(src[0], src[1], src[2], src[0] + self->s.v.velocity[0] * 600, src[1] + self->s.v.velocity[1] * 600, src[2] + self->s.v.velocity[2] * 600, TRUE, &g_edicts[self->s.v.owner]);
-	ExplodeAlert(g_globalvars.trace_endpos);
+	VectorMA (self->s.v.origin, 600, self->s.v.velocity, end_point);
+	traceline(PASSVEC3(self->s.v.origin), PASSVEC3(end_point), TRUE, PROG_TO_EDICT(self->s.v.owner));
+	ExplodeAlert(g_globalvars.trace_endpos, 0.5);
 }
 
 void NewVelocityForArrow(gedict_t* self, vec3_t dir_move) {
@@ -547,5 +553,35 @@ void AvoidEdge() {
 		NewVelocityForArrow(self, dir_move);
 		self->fb.arrow_time2 = self->fb.arrow_time;
 	}
+}
+
+
+
+// Called after a grenade has been spawned
+void BotsGrenadeSpawned (gedict_t* newmis)
+{
+	if (!bots_enabled ())
+		return;
+
+	// Call GrenadeAlert() repeatedly so we can avoid the grenade
+	newmis->fb.frogbot_nextthink = newmis->s.v.nextthink;
+	newmis->s.v.nextthink = g_globalvars.time + 0.05; // New
+	newmis->s.v.think = (func_t) GrenadeAlert;
+}
+
+// Called after a rocket has been spawned
+void BotsRocketSpawned (gedict_t* newmis)
+{
+	if (!bots_enabled ())
+		return;
+
+	// Call RocketAlert() repeatedly so we can avoid the rocket
+	newmis->fb.frogbot_nextthink = newmis->s.v.nextthink;
+	newmis->s.v.think = (func_t) RocketAlert;
+	newmis->s.v.nextthink = 0.001;
+
+	// Store rocket direction
+	VectorCopy(g_globalvars.v_forward, newmis->fb.missile_forward);
+	VectorCopy(g_globalvars.v_right, newmis->fb.missile_right);
 }
 

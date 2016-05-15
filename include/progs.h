@@ -393,7 +393,7 @@ typedef struct fb_entvars_s {
 	float arrow;
 	float wasinwater;
 	float swim_arrow;
-	float arrow_time;                       // If set in future, bots will avoid this path
+	float arrow_time;                       // If set in future, bots will avoid this path.  Used to detect grenade/rocket at teleport exit.
 	float arrow_time2;
 	float linked_marker_time;
 	float touch_marker_time;
@@ -404,7 +404,7 @@ typedef struct fb_entvars_s {
 	vec3_t velocity_normal;
 
 	struct gedict_s* marker_link;           // linked list, this points to next marker
-	qbool fl_marker;                        // true if the current item is considered a marker
+	qbool fl_marker;                        // true if the current item is considered a marker (used when finding all objects in given radius)
 	struct gedict_s* previous;
 	struct gedict_s* next;
 	struct gedict_s* next_load;
@@ -484,8 +484,6 @@ typedef struct fb_entvars_s {
 	vec3_t dir_move_;
 	float ledge_backup_time;
 
-	struct gedict_s* movetarget;
-
 	// TODO: stored directions for missile
 	vec3_t missile_forward;
 	vec3_t missile_right;
@@ -534,9 +532,10 @@ typedef struct fb_entvars_s {
 	qbool botchose;
 	int next_impulse;
 
-	// For each bot
+	// Item functions
 	fb_touch_func_t item_touch;      // called whenever an item is touched
 	fb_touch_func_t item_taken;      // called whenever an item is taken
+	fb_touch_func_t item_affect;     // called whenever an item affects a player (mega-health)
 } fb_entvars_t;
 
 //typedef (void(*)(gedict_t *)) one_edict_func;
