@@ -5,6 +5,8 @@
 // Goal functions
 
 void check_marker (void);
+void HazardTeleport (gedict_t* self, gedict_t* other);
+void SetMarker (gedict_t* client, gedict_t* marker);
 
 static float goal_health0(gedict_t* self) {
 	return self->fb.desire_health0;
@@ -543,4 +545,57 @@ fb_spawn_t itemSpawnFunctions[] = {
 int ItemSpawnFunctionCount (void)
 {
 	return sizeof (itemSpawnFunctions) / sizeof (itemSpawnFunctions[0]);
+}
+
+qbool NoItemTouch(gedict_t* self, gedict_t* other)
+{
+	if (other->s.v.origin[0] <= self->fb.virtual_maxs[0] &&
+	    other->s.v.origin[1] <= self->fb.virtual_maxs[1] &&
+	    other->s.v.origin[2] <= self->fb.virtual_maxs[2])
+	{
+		if (other->s.v.origin[0] >= self->fb.virtual_mins[0] &&
+			other->s.v.origin[1] >= self->fb.virtual_mins[1] &&
+		    other->s.v.origin[2] >= self->fb.virtual_mins[2])
+		{
+			if (other->s.v.goalentity == NUM_FOR_EDICT(self))
+				other->fb.goal_refresh_time = 0;
+			return false;
+		}
+	}
+	return true;
+}
+
+qbool BotsPreTeleport (gedict_t* self, gedict_t* other)
+{
+	if (NoItemTouch(self, other)) {
+		other->fb.near_teleport = self;
+		if (marker_time) {
+			HazardTeleport (self, other);
+		}
+		return true;
+	}
+
+	return false;
+}
+
+void BotsPostTeleport (gedict_t* self, gedict_t* other, gedict_t* teleport_destination)
+{
+	if (other->isBot)
+	{
+		//if (teamplay != 0)
+		//	say_team_report_teleport(other, t);
+
+		// other.angles holds crosshair position
+		other->fb.real_pitch = other->s.v.angles[0];
+		other->fb.real_yaw = other->s.v.angles[1];
+	}
+
+	other->fb.frogbot_nextthink = g_globalvars.time;
+
+	if (other->fb.linked_marker == self) {
+		other->fb.linked_marker = teleport_destination;
+	}
+
+	HazardTeleport(self, other);
+	SetMarker(other, teleport_destination);
 }

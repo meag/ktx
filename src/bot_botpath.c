@@ -59,7 +59,9 @@ static void EvalPath(fb_path_eval_t* eval) {
 	}
 
 	// if it's a rocket jump, calculate path time (TODO: fix this for horizontal rocket jumps, also precalculate)
-	if (eval->description & ROCKET_JUMP && self->fb.willRocketJumpThisTic) {
+	if ((eval->description & ROCKET_JUMP) && self->fb.willRocketJumpThisTic) {
+		vec3_t m_P_pos, m_pos;
+
 		VectorAdd(eval->touch_marker->s.v.absmin, eval->touch_marker->s.v.view_ofs, m_pos);
 		VectorAdd(eval->test_marker->s.v.absmin, eval->test_marker->s.v.view_ofs, m_P_pos);
 		eval->path_time = ((VectorDistance(m_P_pos, m_pos) / sv_maxspeed));

@@ -6,8 +6,7 @@
 // A lot of this is the bot cheating?..
 void AvoidEdge();
 
-// FIXME: called in triggers.qc[TeleportTouch]
-void HazardTeleport() {
+void HazardTeleport(gedict_t* self, gedict_t* other) {
 	gedict_t* plr;
 
 	if (self->fb.arrow_time < g_globalvars.time + 0.5) {
@@ -15,13 +14,11 @@ void HazardTeleport() {
 	}
 
 	for (plr = world; plr = find_plr(plr); ) {
-		if (test_enemy != other) {
-			if (test_enemy->fb.linked_marker == self) {
-				test_enemy->fb.old_linked_marker = NULL;
-				test_enemy->fb.linked_marker = LocateMarker(test_enemy->s.v.origin);
-				test_enemy->fb.path_state = 0;
-				test_enemy->fb.linked_marker_time = g_globalvars.time + 5;
-			}
+		if (plr != other && plr->fb.linked_marker == self) {
+			plr->fb.old_linked_marker = NULL;
+			plr->fb.linked_marker = LocateMarker(plr->s.v.origin);
+			plr->fb.path_state = 0;
+			plr->fb.linked_marker_time = g_globalvars.time + 5;
 		}
 	}
 }
@@ -221,6 +218,7 @@ static void CanJumpOver() {
 						if (test_enemy->fb.T & UNREACHABLE) {
 							test_enemy = NULL;
 							do_jump = FALSE;
+							break;
 						}
 					}
 

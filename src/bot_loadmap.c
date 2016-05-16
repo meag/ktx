@@ -93,6 +93,28 @@ static void fb_spawn_simple(gedict_t* ent) {
 	}
 }
 
+static void fb_spawn_trigger_teleport (gedict_t* ent)
+{
+	AddToQue (ent);
+
+	VectorSet (ent->fb.virtual_mins, ent->s.v.mins[0] - 18, ent->s.v.mins[1] - 18, ent->s.v.mins[2] - 34);
+	VectorSet (ent->fb.virtual_maxs, ent->s.v.maxs[0] + 18, ent->s.v.maxs[1] + 18, ent->s.v.maxs[2] + 26);
+
+	VectorSet (ent->s.v.view_ofs, 0.5 * (ent->s.v.absmax[0] - ent->s.v.absmin[0]), 0.5 * (ent->s.v.absmax[1] - ent->s.v.absmin[1]), 0.5 * (ent->s.v.absmax[2] - ent->s.v.absmin[2]));
+	adjust_view_ofs_z(ent);
+	BecomeMarker(ent);
+}
+
+static void fb_spawn_teleport_destination (gedict_t* ent)
+{
+	AddToQue (ent);
+
+	BecomeMarker (ent);
+	ent->fb.pickup = pickup_true;
+	VectorSet(ent->s.v.view_ofs, 80, 80, 24);
+	adjust_view_ofs_z (ent);
+}
+
 static fb_spawn_t stdSpawnFunctions[] = {
 	{ "func_button", fb_spawn_button },
 	{ "trigger_changelevel", fb_spawn_simple },
@@ -102,8 +124,8 @@ static fb_spawn_t stdSpawnFunctions[] = {
 	{ "trigger_once", fb_spawn_simple },
 	{ "trigger_secret", fb_spawn_simple },
 	{ "trigger_counter", fb_spawn_simple },
-	{ "info_teleport_destination", fb_spawn_simple },
-	{ "trigger_teleport", fb_spawn_simple },
+	{ "info_teleport_destination", fb_spawn_teleport_destination },
+	{ "trigger_teleport", fb_spawn_trigger_teleport },
 	{ "trigger_setskill", fb_spawn_simple },
 	{ "trigger_onlyregistered", fb_spawn_simple },
 	{ "trigger_hurt", fb_spawn_simple },
@@ -117,13 +139,13 @@ static void CreateItemMarkers() {
 
 	for (item = world; item = nextent(item); ) {
 		int i = 0;
-		qbool found = FALSE;
+		qbool found = false;
 
 		// check for item spawn
 		for (i = 0; i < ItemSpawnFunctionCount(); ++i) {
 			if (streq(itemSpawnFunctions[i].name, item->s.v.classname)) {
 				itemSpawnFunctions[i].func(item);
-				found = TRUE;
+				found = true;
 				break;
 			}
 		}

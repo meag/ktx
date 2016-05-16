@@ -28,14 +28,17 @@
 void Sc_Stats(float on);
 void race_stoprecord( qbool cancel );
 
+void BotsSoundMade (gedict_t* entity);
+
 int NUM_FOR_EDICT( gedict_t * e )
 {
 	int     b;
 
 	b = e - g_edicts;
 
-	if ( b < 0 || b >= MAX_EDICTS )
-		DebugTrap( "NUM_FOR_EDICT: bad pointer" );
+	if (b < 0 || b >= MAX_EDICTS) {
+		DebugTrap ("NUM_FOR_EDICT: bad pointer");
+	}
 	return b;
 }
 

@@ -172,7 +172,6 @@ extern vec3_t delta_velocity;
 extern gedict_t* current_waiting_bot;
 extern gedict_t* first_item;
 extern gedict_t* first_ent;
-extern gedict_t* first_teleport;
 extern gedict_t* first_marker;
 extern float takedamage_exists;
 #ifndef FALL_FALSE
@@ -299,10 +298,6 @@ extern float nextthink_;
 extern float try_shoot;
 extern qbool markers_loaded;
 extern float goal_index;
-extern gedict_t* m;
-extern gedict_t* m_2;
-extern vec3_t m_pos;
-extern vec3_t m_P_pos;
 extern gedict_t* current_load_position;
 extern gedict_t* load_position;
 
@@ -874,7 +869,6 @@ float T_Damage2(void);
 float a_item(void);
 float TeamArmorDam(void);
 gedict_t* LocateMarker(vec3_t org);
-float NoItemTouch(void);
 float RankForWeapon(float w);
 float WeaponCode(float w);
 #ifndef WEAPON_BIG2
@@ -1225,6 +1219,8 @@ typedef struct fb_spawn_s {
 
 extern fb_spawn_t itemSpawnFunctions[];
 int ItemSpawnFunctionCount(void);
+qbool NoItemTouch (gedict_t* self, gedict_t* other);
+qbool BotsPreTeleport (gedict_t* self, gedict_t* other);
 
 #define FB_CVAR_GAMEMODE "k_fb_gamemode"
 #define FB_CVAR_SKILL "k_fb_skill"

@@ -26,6 +26,8 @@
 #include "g_local.h"
 gedict_t       *stemp, *otemp, *old;
 
+qbool BotsPreTeleport (gedict_t* self, gedict_t* other);
+void BotsPostTeleport (gedict_t* self, gedict_t* other, gedict_t* teleport_destination);
 
 void trigger_reactivate()
 {
@@ -667,8 +669,17 @@ void teleport_touch()
 		return;
 	}
 
+	if (bots_enabled ()) {
+		if (BotsPreTeleport (self, other))
+			return;
+	}
+
 	teleport_player( other, t->s.v.origin, t->mangle,
 			 TFLAGS_FOG_SRC | TFLAGS_FOG_DST | TFLAGS_SND_SRC | TFLAGS_SND_DST | TFLAGS_VELOCITY_ADJUST );
+
+	if (bots_enabled ()) {
+		BotsPostTeleport (self, other, t);
+	}
 }
 
 /*QUAKED info_teleport_destination (.5 .5 .5) (-8 -8 -8) (8 8 32)

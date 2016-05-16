@@ -76,7 +76,11 @@ void marker_touch() {
 void adjust_view_ofs_z(gedict_t* ent) {
 	gedict_t* fallspot_self = ent;
 	ent = dropper;
-	VectorSet(testplace, fallspot_self->s.v.absmin[0] + fallspot_self->s.v.view_ofs[0], fallspot_self->s.v.absmin[1] + fallspot_self->s.v.view_ofs[1], fallspot_self->s.v.absmin[2] + fallspot_self->s.v.view_ofs[2] + 1);
+	VectorSet(
+		testplace, 
+		fallspot_self->s.v.absmin[0] + fallspot_self->s.v.view_ofs[0], 
+		fallspot_self->s.v.absmin[1] + fallspot_self->s.v.view_ofs[1], 
+		fallspot_self->s.v.absmin[2] + fallspot_self->s.v.view_ofs[2] + 1);
 	VectorCopy(testplace, ent->s.v.origin);
 	ent->s.v.flags = FL_ONGROUND_PARTIALGROUND;
 	if (walkmove(ent, 0, 0)) {

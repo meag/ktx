@@ -21,26 +21,31 @@ typedef struct frogbots_s {
 
 frogbots_t frogbots;
 */
-static void TravelTime(void) {
-	if (m_D & ROCKET_JUMP) {
-		traveltime = 100000;
-		return;
+static float TravelTime(gedict_t* m, gedict_t* m_P, int* m_D) {
+	vec3_t m_pos;
+
+	VectorAdd(m->s.v.absmin, m->s.v.view_ofs, m_pos);
+
+	if (*m_D & ROCKET_JUMP) {
+		return 100000;
 	}
-	if (m_D & JUMP_LEDGE) {
-		m_D |= NO_DODGE;
+	if (*m_D & JUMP_LEDGE) {
+		*m_D |= NO_DODGE;
 	}
 	if (streq(m->s.v.classname, "trigger_teleport")) {
 		m_P->fb.near_teleport = m;
-		traveltime = 0;
+		return 0;
 	}
 	else {
+		vec3_t m_P_pos;
+
 		VectorAdd(m_P->s.v.absmin, m_P->s.v.view_ofs, m_P_pos);
 		if ((m->fb.T & T_WATER) || (m_P->fb.T & T_WATER)) {
-			m_D = m_D | WATER_PATH;
-			traveltime = ((VectorDistance(m_P_pos, m_pos) / sv_maxwaterspeed));
+			*m_D |= WATER_PATH;
+			return ((VectorDistance(m_P_pos, m_pos) / sv_maxwaterspeed));
 		}
 		else  {
-			traveltime = ((VectorDistance(m_P_pos, m_pos) / sv_maxspeed));
+			return ((VectorDistance(m_P_pos, m_pos) / sv_maxspeed));
 		}
 	}
 }
@@ -380,6 +385,8 @@ static void Calc_G_time_12(void) {
 	gedict_t* runaway_dest;
 
 	for (m = first_marker; m && m != world; m = m->fb.marker_link) {
+		vec3_t m_pos;
+
 		middle_marker = m;
 		zone_time = 0;
 		VectorAdd(m->s.v.absmin, m->s.v.view_ofs, m_pos);
@@ -415,10 +422,12 @@ static void Calc_G_time_12(void) {
 }
 
 void InitialiseMarkerRoutes(void) {
+	gedict_t* m;
+
 	// This calculates water columns (if marker is in water, can the player go straight up to get air?)
 	self = dropper;
 	for (m = first_marker; m && m != world; m = m->fb.marker_link) {
-		vec3_t point;
+		vec3_t point, m_pos;
 
 		VectorAdd(m->s.v.absmin, m->s.v.view_ofs, m_pos);
 		m->fb.touch_marker = m;
@@ -435,21 +444,14 @@ void InitialiseMarkerRoutes(void) {
 		}
 	}
 
-	m = dropper;
-
 	// Calc_G_time_2();
 	for (m = first_marker; m && m != world; m = m->fb.marker_link) {
 		int i = 0;
 
-		VectorAdd(m->s.v.absmin, m->s.v.view_ofs, m_pos);
-
 		for (i = 0; i < NUMBER_PATHS; ++i) {
 			m_P = m->fb.paths[i].next_marker;
 			if (m_P && m_P->fb.fl_marker) {
-				m_D = m->fb.paths[i].flags;
-				TravelTime();
-				m->fb.paths[i].time = traveltime;
-				m->fb.paths[i].flags = m_D;
+				m->fb.paths[i].time = TravelTime(m, m_P, &m->fb.paths[i].flags);
 			}
 			else {
 				m->fb.paths[i].next_marker = 0;

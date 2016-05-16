@@ -28,7 +28,6 @@ void N(float x, float y, float z) {
 
 void AllMarkersLoaded() {
 	self = NULL;
-	m = m_2 = first_marker;
 	m_zone = zone_stack_head;
 	path_normal = TRUE;
 
