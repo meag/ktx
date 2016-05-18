@@ -252,9 +252,7 @@ void ToggleCArena();
 // }
 
 // { Frogbots
-void FrogbotsAddbot(void);
-void FrogbotsRemovebot(void);
-void FrogbotsSetSkill(void);
+void FrogbotsCommand(void);
 // }
 
 // Save the first 5 demo markers to print at the end.
@@ -596,9 +594,7 @@ const char CD_NODESC[] = "no desc";
 
 #define CD_DEMOMARK     "put mark in the demo"
 
-#define CD_ADDBOT       (CD_NODESC)  // todo
-#define CD_REMOVEBOT    (CD_NODESC)  // todo
-#define CD_BOTSKILL     (CD_NODESC)  // todo
+#define CD_BOTCOMMAND   "bot configuration"
 
 void dummy() {}
 void redirect();
@@ -919,9 +915,7 @@ cmd_t cmds[] = {
 	{ "demomark",	 DemoMark,                  0    , CF_BOTH, CD_DEMOMARK },
 
 // { FROGBOTS
-	{ "addbot",      FrogbotsAddbot,            0    , CF_PLAYER, CD_ADDBOT },
-	{ "removebot",   FrogbotsRemovebot,         0    , CF_PLAYER, CD_REMOVEBOT },
-	{ "botskill",    FrogbotsSetSkill,          0    , CF_PLAYER | CF_PARAMS, CD_BOTSKILL }
+	{ "botcmd",      FrogbotsCommand,           0    , CF_PLAYER | CF_PARAMS, CD_BOTCOMMAND }
 // }
 };
 

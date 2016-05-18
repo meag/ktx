@@ -3,6 +3,8 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
+static qbool door_open = false;
+
 void map_povdmm4() {
 	N(557, -345, 88);
 	N(580, -172, 88);
@@ -173,12 +175,24 @@ void map_povdmm4() {
 }
 
 // FIXME: two doors... does this only work due to radius, and assuming path logic only finds nearest door?
-void POVDMM4LookDoor() {
+// FIXME: This is called for every bot, rather than for every frame (or ideally, when the doors open/close)
+void POVDMM4LookDoor(gedict_t* self) {
 	gedict_t* search_item;
 
 	for (search_item = world; search_item = trap_findradius(search_item, self->s.v.origin, 300); ) {
 		if (streq( search_item->s.v.classname, "door" )) {
 			door_open = ! (search_item->fb.state == STATE_BOTTOM);
+			return;
+		}
+	}
+}
+
+// FIXME: saved_goal_desire set to 0 for both yellow armours if door is closed
+void POVDMM4DontWalkThroughDoor (gedict_t* goal_entity)
+{
+	if (!door_open) {
+		if (streq(goal_entity->s.v.classname, "item_armor2")) {
+			goal_entity->fb.saved_goal_desire = 0;
 			return;
 		}
 	}

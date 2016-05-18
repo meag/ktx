@@ -64,12 +64,10 @@
 	Z24_ ## name
 
 void SetGoalForMarker(int goal, gedict_t* marker) {
-	--goal;
-
-	if (goal < 0 || goal >= NUMBER_GOALS)
+	if (goal <= 0 || goal > NUMBER_GOALS)
 		return;
 
-	marker->fb.goals[goal].next_marker = marker;
+	marker->fb.goals[goal - 1].next_marker = marker;
 	marker->fb.G_ = goal;
 }
 
@@ -77,16 +75,12 @@ void SetGoal(int goal, int marker_number) {
 	gedict_t* marker = NULL;
 
 	--marker_number;
-	--goal;
 
 	if (marker_number < 0 || marker_number >= NUMBER_MARKERS)
 		return;
-	if (goal < 0 || goal >= NUMBER_GOALS)
-		return;
 
 	marker = markers[marker_number];
-	marker->fb.goals[goal].next_marker = marker;
-	marker->fb.G_ = goal;
+	SetGoalForMarker (goal, marker);
 }
 
 void Set_sub_arrival_time(gedict_t* marker, int index) {

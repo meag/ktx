@@ -669,9 +669,8 @@ void teleport_touch()
 		return;
 	}
 
-	if (bots_enabled ()) {
-		if (BotsPreTeleport (self, other))
-			return;
+	if (bots_enabled () && BotsPreTeleport (self, other)) {
+		return;
 	}
 
 	teleport_player( other, t->s.v.origin, t->mangle,

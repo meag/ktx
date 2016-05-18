@@ -7,6 +7,9 @@ static float best_score;
 
 #define BACKPACK_CLASSNAME "backpack"
 
+void POVDMM4DontWalkThroughDoor (gedict_t* goal_entity);
+qbool DM6DoorLogic (gedict_t* self, gedict_t* goal_entity);
+
 // Called by BotPlayerDeathEvent
 void ResetGoalEntity(gedict_t* self) {
 	if (self->s.v.goalentity) {
@@ -17,7 +20,6 @@ void ResetGoalEntity(gedict_t* self) {
 }
 
 // If an item is picked up, all bots heading for that item should re-evaluate their goals
-// FIXME: Called during items.qc[{pickup functions}]
 void UpdateGoalEntity(gedict_t* item) {
 	gedict_t* plr;
 	int item_entity = NUM_FOR_EDICT(item);
@@ -32,6 +34,20 @@ void UpdateGoalEntity(gedict_t* item) {
 	}
 }
 
+static qbool GoalLeaveForTeammate (gedict_t* self, gedict_t* goal_entity)
+{
+	if (g_globalvars.time < goal_entity->fb.touchPlayerTime) {
+		if (goal_entity->s.v.nextthink > 0 && SameTeam(goal_entity, self) ) {
+			if (goal_entity->fb.touchPlayer != self) {
+				goal_entity->fb.saved_goal_desire = 0;
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
 // Evaluates a goal 
 static void EvalGoal(gedict_t* goal_entity) {
 	float goal_desire = goal_entity && goal_entity->fb.desire ? goal_entity->fb.desire (self) : 0;
@@ -41,37 +57,14 @@ static void EvalGoal(gedict_t* goal_entity) {
 
 	goal_entity->fb.saved_goal_desire = goal_desire;
 	if (goal_desire > 0) {
-		// TODO: replace aerowalk dynamic_item (quad) with proper quad spawn
-		if (streq(g_globalvars.mapname, "aerowalk")) {
-			if (! match_in_progress) {
-				if (streq(goal_entity->s.v.classname, "dynamic_item")) {
-					goal_entity->fb.saved_goal_desire = 0;
-					return;
-				}
-			}
-		}
-
 		// TODO: there are two doors open? :)
 		if (streq(g_globalvars.mapname, "povdmm4")) {
-			if (!door_open) {
-				if (streq(goal_entity->s.v.classname, "item_armor2")) {
-					goal_entity->fb.saved_goal_desire = 0;
-					return;
-				}
-			}
+			POVDMM4DontWalkThroughDoor (goal_entity);
 		}
 
-		// If one person on a team is sitting waiting for an item, assume that they
-		//   are going to take it 
-		if (g_globalvars.time < goal_entity->fb.touchPlayerTime) {
-			if (goal_entity->s.v.nextthink > 0) {
-				if ( SameTeam(goal_entity, self) ) {
-					if (goal_entity->fb.touchPlayer != self) {
-						goal_entity->fb.saved_goal_desire = 0;
-						return;
-					}
-				}
-			}
+		// If one person on a team is sitting waiting for an item to respawn
+		if (GoalLeaveForTeammate (self, goal_entity)) {
+			return;
 		}
 
 		from_marker = touch_marker_;
@@ -91,20 +84,11 @@ static void EvalGoal(gedict_t* goal_entity) {
 				}
 			}
 		}
-		if (goal_entity->fb.Z_ == 1) {
-			if (touch_marker_->fb.zones[0].task & DM6_DOOR) {
-				if (dm6_door->s.v.takedamage) {
-					if (enemy_ == look_object_) {
-						if (!self->invincible_time) {
-							if (enemy_->fb.firepower >= 50) {
-								goal_entity->fb.saved_goal_desire = 0;
-								return;
-							}
-						}
-					}
-				}
-			}
+
+		if (DM6DoorLogic (self, goal_entity)) {
+			return;
 		}
+
 		goal_entity->fb.saved_respawn_time = goal_entity->fb.goal_respawn_time + (goal_time * prediction_error_ * random()) - g_globalvars.time;
 		if (goal_time < goal_entity->fb.saved_respawn_time) {
 			goal_time = goal_entity->fb.saved_respawn_time;
@@ -235,7 +219,7 @@ void UpdateGoal() {
 	}
 	//G_bprint (2, "After evaling goals: best_goal %s, best_score %f\n", best_goal ? best_goal->s.v.classname : "(none)", best_score);
 
-	for (goal_entity = world; goal_entity = ez_find(goal_entity, "dynamic_item"); ) {
+	for (goal_entity = world; goal_entity = ez_find(goal_entity, BACKPACK_CLASSNAME); ) {
 		if (goal_entity->fb.touch_marker) {
 			EvalGoal(goal_entity);
 		}

@@ -55,5 +55,7 @@ void SetMarkerPath(int source_marker, int path_index, int next_marker) {
 		return;
 	}
 
+	if (source_marker == 32)
+		Com_Printf ("SetMarkerPath(%d, %d, %d) = %d\n", source_marker, path_index, next_marker, markers[next_marker] == 0 ? -1 : markers[next_marker]->fb.index);
 	markers[source_marker]->fb.paths[path_index].next_marker = markers[next_marker];
 }

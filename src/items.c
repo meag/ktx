@@ -30,13 +30,13 @@ void            SP_item_artifact_super_damage();
 void			SP_item_artifact_invulnerability();
 
 void TookWeaponHandler( gedict_t *p, int new_wp );
+void BecomeMarker(gedict_t* self);
 
 #define AUTOTRACK_POWERUPS_PREDICT_TIME 2
 
-static void ItemTouched (gedict_t* item, gedict_t* player)
+static qbool ItemTouched (gedict_t* item, gedict_t* player)
 {
-	if (self->fb.item_touch)
-		self->fb.item_touch (item, player);
+	return (self->fb.item_touch && self->fb.item_touch (item, player));
 }
 
 static void ItemTaken (gedict_t* item, gedict_t* player)
@@ -54,6 +54,9 @@ void SUB_regen()
 	self->s.v.solid = SOLID_TRIGGER;	// allow it to be touched again
 	sound( self, CHAN_VOICE, "items/itembk2.wav", 1, ATTN_NORM );	// play respawn sound
 	setorigin( self, PASSVEC3( self->s.v.origin ) );
+
+	if (self->fb.item_respawned)
+		self->fb.item_respawned (self);
 }
 
 void SUB_regen_powerups()
@@ -66,6 +69,8 @@ void SUB_regen_powerups()
 	self->s.v.think = ( func_t ) SUB_regen;
 	self->s.v.nextthink = g_globalvars.time + AUTOTRACK_POWERUPS_PREDICT_TIME;
 }
+
+void PlaceItemFB (gedict_t* ent);
 
 void PlaceItem()
 {
@@ -99,6 +104,11 @@ void PlaceItem()
 			self->s.v.solid = SOLID_NOT;
 		}
 	}
+
+	//if (self->fb.item_placed) {
+	//	self->fb.item_placed (self);
+	//}
+	PlaceItemFB (self);
 }
 
 /*
@@ -140,6 +150,8 @@ void StartItem()
 
 	self->s.v.nextthink = g_globalvars.time + 0.2;	// items start after other solids
 	self->s.v.think = ( func_t ) PlaceItem;
+
+	BecomeMarker(self);
 }
 
 /*
@@ -399,7 +411,9 @@ void armor_touch()
 	else
 		return;
 
-	ItemTouched (self, other);
+	if (ItemTouched (self, other)) {
+		return;
+	}
 
 	// check if we have more armor than we trying to pick up.
 	// We add 1.0e-6 so floaing point comparision is happy,
@@ -630,6 +644,9 @@ void weapon_touch()
 	else
 		leave = 0;
 
+	if (ItemTouched (self, other))
+		return;
+
 	if ( !strcmp( self->s.v.classname, "weapon_nailgun" ) )
 	{
 		if ( leave && ( ( int ) other->s.v.items & IT_NAILGUN ) )
@@ -766,6 +783,8 @@ void weapon_touch()
 	}
 	activator = other;
 	SUB_UseTargets();	// fire all targets / killtargets
+
+	ItemTaken (self, other);
 }
 
 /*QUAKED weapon_supershotgun (0 .5 .8) (-16 -16 0) (16 16 32)
@@ -890,6 +909,9 @@ void ammo_touch()
 
     if ( match_in_progress != 2 || !readytostart() )
         return;
+
+	if ( self->fb.item_touch && self->fb.item_touch (self, other) )
+		return;
 
 // if the player was using his best weapon, change up to the new one if better          
 	stemp = self;

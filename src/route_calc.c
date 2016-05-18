@@ -44,7 +44,11 @@ static float TravelTime(gedict_t* m, gedict_t* m_P, int* m_D) {
 			*m_D |= WATER_PATH;
 			return ((VectorDistance(m_P_pos, m_pos) / sv_maxwaterspeed));
 		}
-		else  {
+		else {
+			if (m->fb.index == 1 && m_P->fb.index == 2) {
+				Com_Printf ("1 => 2 = [%f %f %f] => [%f %f %f] = %f / %f = %f seconds\n", PASSVEC3(m_pos), PASSVEC3(m_P_pos), VectorDistance (m_P_pos, m_pos), sv_maxspeed, VectorDistance (m_P_pos, m_pos) / sv_maxspeed);
+			}
+
 			return ((VectorDistance(m_P_pos, m_pos) / sv_maxspeed));
 		}
 	}
@@ -71,24 +75,6 @@ static qbool IdentifyFastestSubzoneRoute(gedict_t* m, gedict_t* m_P /* next */, 
 	}
 
 	return no_change;
-}
-
-// Repeatedly calls func(x, y) until func returns true for every path in the system
-static void PathCalculation(fb_path_calc_func_t func) {
-	// Keep going until no changes detected (hmm...)
-	qbool no_change = FALSE;
-	while (!no_change) {
-		gedict_t* m;
-
-		no_change = TRUE;
-		for (m = first_marker; m && m != world; m = m->fb.marker_link) {
-			int i = 0;
-
-			for (i = 0; i < sizeof(from_marker->fb.paths) / sizeof(from_marker->fb.paths[0]); ++i) {
-				no_change &= func(m, m->fb.paths[i].next_marker, m->fb.paths[i].time);
-			}
-		}
-	}
 }
 
 // Calc_G_time_4_path_apply
@@ -118,15 +104,16 @@ static qbool IdentifyFastestZoneRoute(gedict_t* m, gedict_t* m_P, int x, float P
 		m->fb.zones[x].time = P_time + m_P->fb.zones[x].time; 
 		m->fb.zones[x].next = m_P; 
 		m->fb.zones[x].next_zone = (m->fb.Z_ == m_P->fb.Z_ ? m_P->fb.zones[x].next_zone : m_P); 
-		m->fb.zones[x].task |= m_D; 
-		return FALSE;
+		if (x == 0)
+			m->fb.zones[x].task |= m_D; 
+		return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 static qbool Calc_G_time_5_path_apply(gedict_t* m, gedict_t* m_P, float P_time) {
-	qbool no_change = TRUE;
+	qbool no_change = true;
 	int i = 0;
 
 	if (!m || m == world || !m_P || m_P == world) {
@@ -143,10 +130,10 @@ static qbool Calc_G_time_5_path_apply(gedict_t* m, gedict_t* m_P, float P_time) 
 static qbool ZoneFromTimeAdjust(gedict_t* m, gedict_t* m_P, int x, float P_time) {
 	if (m_P->fb.zones[x].from_time > (m->fb.zones[x].from_time + P_time)) { 
 		m_P->fb.zones[x].from_time = m->fb.zones[x].from_time + P_time; 
-		return FALSE;
+		return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 // was: Calc_G_time_6_path_apply
@@ -421,6 +408,23 @@ static void Calc_G_time_12(void) {
 	}
 }
 
+// Repeatedly calls func(x, y) until func returns true for every path in the system
+static void PathCalculation(fb_path_calc_func_t func) {
+	int i = 0, j = 0;
+	qbool no_change = false;
+
+	while (!no_change) {
+		gedict_t* m;
+
+		no_change = true;
+		for (m = first_marker; m && m != world; m = m->fb.marker_link) {
+			for (i = 0; i < NUMBER_PATHS; ++i) {
+				no_change &= func(m, m->fb.paths[i].next_marker, m->fb.paths[i].time);
+			}
+		}
+	}
+}
+
 void InitialiseMarkerRoutes(void) {
 	gedict_t* m;
 
@@ -490,6 +494,54 @@ void InitialiseMarkerRoutes(void) {
 	Calc_G_time_9();
 	PathCalculation(Calc_G_time_10_path_apply);
 	Calc_G_time_11();
+
+	{
+		int i = 0, j = 0;
+		for (i = 0; i < NUMBER_MARKERS; ++i) {
+			if (markers[i]) {
+				// Debug zone times
+				/*
+				Com_Printf ("M %d %s = %f %f %f %f %f %f %f %f %f %f %f %f %f %f\n", markers[i]->fb.index,
+					markers[i]->s.v.classname,
+					markers[i]->fb.zones[0].time,
+					markers[i]->fb.zones[1].time,
+					markers[i]->fb.zones[2].time,
+					markers[i]->fb.zones[3].time,
+					markers[i]->fb.zones[4].time,
+					markers[i]->fb.zones[5].time,
+					markers[i]->fb.zones[6].time,
+					markers[i]->fb.zones[7].time,
+					markers[i]->fb.zones[8].time,
+					markers[i]->fb.zones[9].time,
+					markers[i]->fb.zones[10].time,
+					markers[i]->fb.zones[11].time,
+					markers[i]->fb.zones[12].time,
+					markers[i]->fb.zones[13].time
+				);*/
+
+				Com_Printf ("M %d %s = %d %f / %d %f / %d %f / %d %f / %d %f / %d %f / %d %f / %d %f\n",
+					markers[i]->fb.index,
+					markers[i]->s.v.classname,
+					(markers[i]->fb.paths[0].next_marker ? markers[i]->fb.paths[0].next_marker->fb.index : -1),
+					markers[i]->fb.paths[0].time,
+					(markers[i]->fb.paths[1].next_marker ? markers[i]->fb.paths[1].next_marker->fb.index : -1),
+					markers[i]->fb.paths[1].time,
+					(markers[i]->fb.paths[2].next_marker ? markers[i]->fb.paths[2].next_marker->fb.index : -1),
+					markers[i]->fb.paths[2].time,
+					(markers[i]->fb.paths[3].next_marker ? markers[i]->fb.paths[3].next_marker->fb.index : -1),
+					markers[i]->fb.paths[3].time,
+					(markers[i]->fb.paths[4].next_marker ? markers[i]->fb.paths[4].next_marker->fb.index : -1),
+					markers[i]->fb.paths[4].time,
+					(markers[i]->fb.paths[5].next_marker ? markers[i]->fb.paths[5].next_marker->fb.index : -1),
+					markers[i]->fb.paths[5].time,
+					(markers[i]->fb.paths[6].next_marker ? markers[i]->fb.paths[6].next_marker->fb.index : -1),
+					markers[i]->fb.paths[6].time,
+					(markers[i]->fb.paths[7].next_marker ? markers[i]->fb.paths[7].next_marker->fb.index : -1),
+					markers[i]->fb.paths[7].time
+				);
+			}
+		}
+	}
 
 	return;
 }

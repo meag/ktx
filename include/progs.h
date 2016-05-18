@@ -288,7 +288,9 @@ typedef enum
 typedef void (*fb_void_func_t)(void);
 typedef qbool (*fb_bool_func_t)(void);
 typedef float (*fb_desire_func_t)(struct gedict_s* self);
-typedef void (*fb_touch_func_t)(struct gedict_s* player, struct gedict_s* item);
+typedef qbool (*fb_touch_func_t)(struct gedict_s* item, struct gedict_s* player);
+typedef void (*fb_taken_func_t)(struct gedict_s* item, struct gedict_s* player);
+typedef void (*fb_entity_func_t)(struct gedict_s* item);
 
 #ifndef NUMBER_MARKERS
 #define NUMBER_MARKERS 300
@@ -429,7 +431,7 @@ typedef struct fb_entvars_s {
 	float fire_nextthink;                     // when to next run periodic firing logic for this bot
 
 	int T;                                    // flags for this individual marker
-	int G_;                                   // assigned goal number for this marker
+	int G_;                                   // assigned goal number for this marker [1-based...]
 	int Z_;                                   // assigned zone for this marker
 	int S_;                                   // subzone for this marker
 
@@ -448,7 +450,8 @@ typedef struct fb_entvars_s {
 	fb_void_func_t sight_from_marker;
 	fb_void_func_t higher_sight_from_marker;
 	fb_void_func_t sight_from_time;
-	fb_bool_func_t pickup;
+
+	fb_bool_func_t pickup;                           // return true if a player would pickup an item as they touch it
 	float saved_goal_desire;                         // the desire for the current goal entity
 	float saved_respawn_time;
 	float saved_goal_time;
@@ -532,10 +535,12 @@ typedef struct fb_entvars_s {
 	qbool botchose;
 	int next_impulse;
 
-	// Item functions
-	fb_touch_func_t item_touch;      // called whenever an item is touched
-	fb_touch_func_t item_taken;      // called whenever an item is taken
-	fb_touch_func_t item_affect;     // called whenever an item affects a player (mega-health)
+	// Item event functions
+	fb_touch_func_t     item_touch;      // called whenever an item is touched
+	fb_taken_func_t     item_taken;      // called whenever an item is taken
+	fb_taken_func_t     item_affect;     // called whenever an item affects a player (mega-health)
+	fb_entity_func_t    item_respawned;  // called whenever an item respawns
+	fb_entity_func_t    item_placed;     // called when item has been placed in the map
 } fb_entvars_t;
 
 //typedef (void(*)(gedict_t *)) one_edict_func;

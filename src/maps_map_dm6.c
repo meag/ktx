@@ -3,6 +3,8 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
+static gedict_t* dm6_door = 0;
+
 void CheckNewWeapon (int weapon);
 
 void map_dm6() {
@@ -815,4 +817,82 @@ void DM6SelectWeaponToOpenDoor (gedict_t* self)
 		CheckNewWeapon( desired_weapon );
 		self->fb.firing |= (self->s.v.weapon == desired_weapon);
 	}
+}
+
+qbool DM6DoorLogic (gedict_t* self, gedict_t* goal_entity)
+{
+	if (goal_entity->fb.Z_ == 1) {
+		if (self->fb.touch_marker->fb.zones[0].task & DM6_DOOR) {
+			if (dm6_door->s.v.takedamage) {
+				if (self->s.v.enemy == NUM_FOR_EDICT(self->fb.look_object)) {
+					if (!self->invincible_time) {
+						if (self->fb.look_object->fb.firepower >= 50) {
+							goal_entity->fb.saved_goal_desire = 0;
+							return true;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
+qbool DM6DoorClosed (fb_path_eval_t* eval)
+{
+	return (eval->test_marker == dm6_door && !dm6_door->s.v.takedamage) ||
+		   ((eval->description & DM6_DOOR) && dm6_door->s.v.origin[0] > -64);
+}
+
+void DM6MarkerTouchLogic (gedict_t* self, gedict_t* goalentity_marker, gedict_t* touch_marker_)
+{
+	if (goalentity_marker && goalentity_marker->fb.Z_ == 1) {
+		if (touch_marker_->fb.zones[0].task & DM6_DOOR) {
+			if (dm6_door->s.v.takedamage) {
+				vec3_t temp, src;
+				VectorAdd(dm6_door->s.v.absmin, dm6_door->s.v.view_ofs, temp);
+				VectorSubtract(temp, origin_, temp);
+				temp[2] -= 40;
+				normalize(temp, direction);
+				VectorCopy(origin_, src);
+				src[2] += 16;
+				traceline(src[0], src[1], src[2], src[0] + direction[0] * 2048, src[1] + direction[1] * 2048, src[2] + direction[2] * 2048, FALSE, self);
+				if (PROG_TO_EDICT(g_globalvars.trace_ent) == dm6_door) {
+					self->fb.path_state |= DM6_DOOR;
+				}
+			}
+			else  {
+				self->fb.path_state &= ~DM6_DOOR;
+			}
+		}
+	}
+}
+
+qbool DM6LookAtDoor (gedict_t* self)
+{
+	if (self->fb.path_state & DM6_DOOR) {
+		self->fb.state |= NOTARGET_ENEMY;
+		self->fb.look_object = look_object_ = dm6_door;
+		return true;
+	}
+
+	return false;
+}
+
+qbool DM6FireAtDoor (gedict_t* self)
+{
+	if (self->fb.path_state & DM6_DOOR) {
+		if (dm6_door->s.v.takedamage) {
+			rel_pos[2] = rel_pos[2] - 38;
+		}
+		else {
+			self->fb.path_state -= DM6_DOOR;
+			self->fb.state &= NOT_NOTARGET_ENEMY;
+		}
+
+		return true;
+	}
+
+	return false;
 }

@@ -2,6 +2,14 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
+#define FB_GOAL_SHELLS 24
+#define FB_GOAL_SPIKES 23
+#define FB_GOAL_CELLS  19
+
+#define FB_GOAL_SNG    20
+#define FB_GOAL_SSG    21
+#define FB_GOAL_NG     22
+
 // Goal functions
 
 void check_marker (void);
@@ -230,16 +238,26 @@ qbool pickup_cells(void) {
 }
 
 // Item creation functions 
-static void StartItemFB(gedict_t* ent) {
+void PlaceItemFB (gedict_t* ent)
+{
+	ent->s.v.movetype = MOVETYPE_NONE;
+	setsize(ent, ent->s.v.mins[0] - 49, ent->s.v.mins[1] - 49, ent->s.v.mins[2], ent->s.v.maxs[0] + 49, ent->s.v.maxs[1] + 49, ent->s.v.maxs[2]);
+	adjust_view_ofs_z(ent);
+
+	VectorSet (ent->fb.virtual_mins, ent->s.v.absmin[0] + 32, ent->s.v.absmin[1] + 32, ent->s.v.absmin[2] - 33);
+	VectorSet (ent->fb.virtual_maxs, ent->fb.virtual_mins[0] + 96, ent->fb.virtual_mins[1] + 96, ent->fb.virtual_mins[2] + 114);
+}
+
+static void StartItemFB(gedict_t* ent)
+{
 	AddToQue(ent);
 	VectorSet(ent->s.v.view_ofs, 80, 80, 24);
 	if (! ent->s.v.touch) {
 		ent->s.v.touch = (func_t) marker_touch;
 		ent->s.v.nextthink = -1;
 	}
-	//ent->s.v.solid = SOLID_TRIGGER;
-	//ent->s.v.flags = FL_ITEM;
-	BecomeMarker(ent);
+
+	ent->fb.item_placed = PlaceItemFB;
 }
 
 //
@@ -251,16 +269,19 @@ static void fb_health_taken (gedict_t* item, gedict_t* player)
 		// TODO: TeamReport (TookMega)
 	}
 
-	AssignVirtualGoal ();
+	AssignVirtualGoal (item);
 	UpdateTotalDamage (player);
 	UpdateGoalEntity (item);
+	item->s.v.solid = SOLID_TRIGGER;
 }
 
-static void fb_health_touch (gedict_t* item, gedict_t* player)
+static qbool fb_health_touch (gedict_t* item, gedict_t* player)
 {
-	if (marker_time) {
+	if (marker_time)
 		check_marker ();
-	}
+	if (item->s.v.nextthink > g_globalvars.time)
+		return true;
+	return false;
 }
 
 static void fb_health_rot (gedict_t* item, gedict_t* player)
@@ -269,7 +290,7 @@ static void fb_health_rot (gedict_t* item, gedict_t* player)
 
 	if (player->s.v.health <= 100)
 	{
-		AssignVirtualGoal ();
+		AssignVirtualGoal (item);
 	}
 }
 
@@ -286,6 +307,7 @@ static void fb_spawn_health(gedict_t* ent) {
 	ent->fb.item_taken = fb_health_taken;
 	ent->fb.item_touch = fb_health_touch;
 	ent->fb.item_affect = fb_health_rot;
+	ent->fb.item_respawned = AssignVirtualGoal;
 	StartItemFB(ent);
 }
 
@@ -296,22 +318,33 @@ static void fb_armor_taken (gedict_t* item, gedict_t* player)
 {
 	UpdateTotalDamage(player);
 	UpdateGoalEntity(item);
+
+	item->s.v.solid = SOLID_TRIGGER;
 }
 
-static void fb_armor_touch (gedict_t* item, gedict_t* player)
+static qbool fb_armor_touch (gedict_t* item, gedict_t* player)
 {
 	// allow the bot to hurt themselves to pickup armor
 	qbool have_more_armor = item->fb.total_armor >= player->fb.total_armor;
 	qbool want_armor = player->s.v.goalentity == NUM_FOR_EDICT (item);
 	qbool targetting_player = player->fb.look_object && player->fb.look_object->ct == ctPlayer;
 
-	if (want_armor && have_more_armor && marker_time && !targetting_player && !player->fb.firing) {
+	if (marker_time)
+		check_marker();
+
+	if (item->s.v.nextthink > g_globalvars.time)
+		return true;
+
+	if (player->isBot && player->s.v.takedamage && want_armor && have_more_armor && marker_time && !targetting_player && !player->fb.firing) {
 		player->fb.state |= HURT_SELF;
 		player->fb.linked_marker = item;
 		player->fb.path_state = 0;
 		player->fb.linked_marker_time = g_globalvars.time + 0.5f;
 		player->fb.goal_refresh_time = g_globalvars.time + 2 + random();
+		return true; // wait
 	}
+
+	return NoItemTouch (item, player);
 }
 
 static void fb_spawn_armor(gedict_t* ent) {
@@ -331,6 +364,7 @@ static void fb_spawn_armor(gedict_t* ent) {
 	ent->fb.item_taken = fb_armor_taken;
 	ent->fb.item_touch = fb_armor_touch;
 	ent->fb.total_armor = ent->s.v.armortype * ent->s.v.armorvalue;
+	ent->fb.item_respawned = AssignVirtualGoal;
 
 	StartItemFB(ent);
 }
@@ -338,18 +372,37 @@ static void fb_spawn_armor(gedict_t* ent) {
 //
 // weapons
 
-static void fb_weapon_touch (gedict_t* item, gedict_t* player)
+static qbool fb_weapon_touch (gedict_t* item, gedict_t* player)
 {
-	
+	if (marker_time)
+		check_marker();	
+	if (item->s.v.nextthink > g_globalvars.time)
+		return true;
+	if (NoItemTouch(item, player))
+		return true;
+
+	return false;
 }
 
 static void fb_weapon_taken (gedict_t* item, gedict_t* player)
 {
+	UpdateGoalEntity (item);
+	item->fb.goal_respawn_time = item->s.v.nextthink;
+	AssignVirtualGoal (item);
+	item->s.v.solid = SOLID_TRIGGER;
+}
 
+static void StartWeapon (gedict_t* ent)
+{
+	ent->fb.item_taken = fb_weapon_taken;
+	ent->fb.item_touch = fb_weapon_touch;
+	ent->fb.item_respawned = AssignVirtualGoal;
+
+	StartItemFB(ent);
 }
 
 static void fb_spawn_ssg(gedict_t* ent) {
-	SetGoalForMarker(21, ent);
+	SetGoalForMarker(FB_GOAL_SSG, ent);
 
 	available_weapons |= IT_SUPER_SHOTGUN;
 	if (deathmatch == 1) {
@@ -361,11 +414,11 @@ static void fb_spawn_ssg(gedict_t* ent) {
 		ent->fb.pickup = pickup_supershotgun2;
 	}
 
-	StartItemFB(ent);
+	StartWeapon (ent);
 }
 
 static void fb_spawn_ng(gedict_t* ent) {
-	SetGoalForMarker(22, ent);
+	SetGoalForMarker(FB_GOAL_NG, ent);
 
 	available_weapons |= IT_NAILGUN;
 	if (deathmatch == 1) {
@@ -377,11 +430,11 @@ static void fb_spawn_ng(gedict_t* ent) {
 		ent->fb.pickup = pickup_nailgun2;
 	}
 
-	StartItemFB(ent);
+	StartWeapon (ent);
 }
 
 static void fb_spawn_sng(gedict_t* ent) {
-	SetGoalForMarker(20, ent);
+	SetGoalForMarker(FB_GOAL_SNG, ent);
 
 	available_weapons |= IT_SUPER_NAILGUN;
 	if (deathmatch == 1) {
@@ -393,7 +446,7 @@ static void fb_spawn_sng(gedict_t* ent) {
 		ent->fb.pickup = pickup_supernailgun2;
 	}
 
-	StartItemFB(ent);
+	StartWeapon (ent);
 }
 
 static void fb_spawn_gl(gedict_t* ent) {
@@ -409,7 +462,7 @@ static void fb_spawn_gl(gedict_t* ent) {
 		ent->fb.pickup = pickup_grenadelauncher2;
 	}
 
-	StartItemFB(ent);
+	StartWeapon (ent);
 }
 
 static void fb_spawn_rl(gedict_t* ent) {
@@ -425,7 +478,7 @@ static void fb_spawn_rl(gedict_t* ent) {
 		ent->fb.pickup = pickup_rocketlauncher2;
 	}
 
-	StartItemFB(ent);
+	StartWeapon (ent);
 }
 
 static void fb_spawn_lg(gedict_t* ent) {
@@ -441,25 +494,52 @@ static void fb_spawn_lg(gedict_t* ent) {
 		ent->fb.pickup = pickup_lightning2;
 	}
 
+	StartWeapon (ent);
+}
+
+static qbool fb_ammo_touch (gedict_t* item, gedict_t* player)
+{
+	if (marker_time)
+		check_marker();
+	if (item->s.v.nextthink > g_globalvars.time)
+		return true;
+	if (NoItemTouch(item, player))
+		return true;
+	return false;
+}
+
+static void fb_ammo_taken (gedict_t* item, gedict_t* player)
+{
+	UpdateGoalEntity (item);
+	AssignVirtualGoal (item);
+
+	item->s.v.solid = SOLID_TRIGGER;
+}
+
+static void StartAmmoFB (gedict_t* ent)
+{
+	ent->fb.item_touch = fb_ammo_touch;
+	ent->fb.item_taken = fb_ammo_taken;
+	ent->fb.item_respawned = AssignVirtualGoal;
 	StartItemFB(ent);
 }
 
 static void fb_spawn_shells(gedict_t* ent) {
-	SetGoalForMarker(24, ent);
+	SetGoalForMarker(FB_GOAL_SHELLS, ent);
 
 	ent->fb.desire = goal_shells;
 	ent->fb.pickup = pickup_shells;
 
-	StartItemFB(ent);
+	StartAmmoFB (ent);
 }
 
 static void fb_spawn_spikes(gedict_t* ent) {
-	SetGoalForMarker(23, ent);
+	SetGoalForMarker(FB_GOAL_SPIKES, ent);
 
 	ent->fb.desire = goal_spikes;
 	ent->fb.pickup = pickup_spikes;
 
-	StartItemFB(ent);
+	StartAmmoFB (ent);
 }
 
 static void fb_spawn_rockets(gedict_t* ent) {
@@ -468,16 +548,16 @@ static void fb_spawn_rockets(gedict_t* ent) {
 	ent->fb.desire = goal_rockets;
 	ent->fb.pickup = pickup_rockets;
 
-	StartItemFB(ent);
+	StartAmmoFB (ent);
 }
 
 static void fb_spawn_cells(gedict_t* ent) {
-	SetGoalForMarker(19, ent);
+	SetGoalForMarker(FB_GOAL_CELLS, ent);
 
 	ent->fb.desire = goal_cells;
 	ent->fb.pickup = pickup_cells;
 
-	StartItemFB(ent);
+	StartAmmoFB (ent);
 }
 
 static void fb_spawn_weapon(gedict_t* ent) {
@@ -496,6 +576,7 @@ static void fb_spawn_pent(gedict_t* ent) {
 	ent->fb.desire = goal_artifact_invulnerability;
 	ent->fb.pickup = pickup_true;
 
+	ent->fb.item_respawned = AssignVirtualGoal;
 	StartItemFB(ent);
 }
 
@@ -503,6 +584,7 @@ static void fb_spawn_biosuit(gedict_t* ent) {
 	ent->fb.desire = goal_NULL;
 	ent->fb.pickup = pickup_true;
 
+	ent->fb.item_respawned = AssignVirtualGoal;
 	StartItemFB(ent);
 }
 
@@ -510,6 +592,7 @@ static void fb_spawn_ring(gedict_t* ent) {
 	ent->fb.desire = goal_artifact_invisibility;
 	ent->fb.pickup = pickup_true;
 
+	ent->fb.item_respawned = AssignVirtualGoal;
 	StartItemFB(ent);
 }
 
@@ -517,6 +600,7 @@ static void fb_spawn_quad(gedict_t* ent) {
 	ent->fb.desire = goal_artifact_super_damage;
 	ent->fb.pickup = pickup_true;
 	
+	ent->fb.item_respawned = AssignVirtualGoal;
 	StartItemFB(ent);
 }
 
@@ -549,6 +633,8 @@ int ItemSpawnFunctionCount (void)
 
 qbool NoItemTouch(gedict_t* self, gedict_t* other)
 {
+	//G_bprint (2, "NoItemTouch(%f,%f,%f) = [%f,%f,%f] > [%f,%f,%f]\n", PASSVEC3 (other->s.v.origin), PASSVEC3 (self->fb.virtual_mins), PASSVEC3 (self->fb.virtual_maxs));
+
 	if (other->s.v.origin[0] <= self->fb.virtual_maxs[0] &&
 	    other->s.v.origin[1] <= self->fb.virtual_maxs[1] &&
 	    other->s.v.origin[2] <= self->fb.virtual_maxs[2])
@@ -557,8 +643,9 @@ qbool NoItemTouch(gedict_t* self, gedict_t* other)
 			other->s.v.origin[1] >= self->fb.virtual_mins[1] &&
 		    other->s.v.origin[2] >= self->fb.virtual_mins[2])
 		{
-			if (other->s.v.goalentity == NUM_FOR_EDICT(self))
+			if (other->s.v.goalentity == NUM_FOR_EDICT (self)) {
 				other->fb.goal_refresh_time = 0;
+			}
 			return false;
 		}
 	}

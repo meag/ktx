@@ -6,6 +6,9 @@
 void DM3CampLogic();
 void DM4CampLogic();
 void DM6CampLogic();
+qbool DM6DoorClosed (fb_path_eval_t* eval);
+void DM6MarkerTouchLogic (gedict_t* self, gedict_t* goalentity_marker, gedict_t* touch_marker_);
+qbool DM6LookAtDoor (gedict_t* self);
 
 static float best_score;
 
@@ -26,15 +29,6 @@ static void BotWaitLogic(gedict_t* touch_marker_) {
 		self->fb.state = self->fb.state - (self->fb.state & WAIT);
 	}
 }
-
-typedef struct fb_path_eval_s {
-	gedict_t* touch_marker;
-	gedict_t* test_marker;
-	qbool rocket_alert;
-	int description;
-	float path_time;
-	qbool path_normal;
-} fb_path_eval_t;
 
 static qbool DetectIncomingRocket(vec3_t marker_pos) {
 	// if the path location is too close to an incoming rocket, 
@@ -72,13 +66,7 @@ static void EvalPath(fb_path_eval_t* eval) {
 		return;
 	}
 
-	// don't 
-	if (eval->test_marker == dm6_door && !dm6_door->s.v.takedamage) {
-		return;
-	}
-
-	// don't try and pass through dm6 door when fully closed
-	if (eval->description & DM6_DOOR && dm6_door->s.v.origin[0] > -64) {
+	if (DM6DoorClosed(eval)) {
 		return;
 	}
 
@@ -203,7 +191,7 @@ void frogbot_marker_touch() {
 		}
 		self->fb.state = self->fb.state & NOT_HURT_SELF;
 	}
-	self->fb.path_normal_ = TRUE;
+	self->fb.path_normal_ = true;
 	if (self->fb.state & RUNAWAY) {
 		enemy_touch_marker = enemy_->fb.touch_marker;
 		if (enemy_touch_marker) {
@@ -214,7 +202,7 @@ void frogbot_marker_touch() {
 			to_marker = touch_marker_;
 			enemy_touch_marker->fb.sight_from_time();
 			look_traveltime_squared = look_traveltime * look_traveltime;
-			path_normal = TRUE;
+			path_normal = true;
 
 			for (i = 0; i < sizeof(touch_marker_->fb.runaway) / sizeof(touch_marker_->fb.runaway[0]); ++i) {
 				to_marker = touch_marker_->fb.runaway[i].next_marker;
@@ -338,7 +326,7 @@ void frogbot_marker_touch() {
 	{ 
 		int i = 0;
 
-		for (i = 0; i < sizeof(touch_marker_->fb.paths) / sizeof(touch_marker_->fb.paths[0]); ++i) {
+		for (i = 0; i < NUMBER_PATHS; ++i) {
 			gedict_t* test_marker = touch_marker_->fb.paths[i].next_marker;
 			if (test_marker) {
 				fb_path_eval_t eval = { 0 };
@@ -402,26 +390,7 @@ void frogbot_marker_touch() {
 		self->fb.linked_marker_time = g_globalvars.time + 5;
 	}
 	self->fb.old_linked_marker = touch_marker_;
-	if (goalentity_marker && goalentity_marker->fb.Z_ == 1) {
-		if (touch_marker_->fb.zones[0].task & DM6_DOOR) {
-			if (dm6_door->s.v.takedamage) {
-				vec3_t temp, src;
-				VectorAdd(dm6_door->s.v.absmin, dm6_door->s.v.view_ofs, temp);
-				VectorSubtract(temp, origin_, temp);
-				temp[2] -= 40;
-				normalize(temp, direction);
-				VectorCopy(origin_, src);
-				src[2] += 16;
-				traceline(src[0], src[1], src[2], src[0] + direction[0] * 2048, src[1] + direction[1] * 2048, src[2] + direction[2] * 2048, FALSE, self);
-				if (PROG_TO_EDICT(g_globalvars.trace_ent) == dm6_door) {
-					self->fb.path_state |= DM6_DOOR;
-				}
-			}
-			else  {
-				self->fb.path_state &= ~DM6_DOOR;
-			}
-		}
-	}
+	DM6MarkerTouchLogic (self, goalentity_marker, touch_marker_);
 	self->fb.state = self->fb.state & NOT_NOTARGET_ENEMY;
 	if ((int)self->s.v.flags & FL_ONGROUND && self->fb.wasinwater) {
 		self->fb.wasinwater = FALSE;
@@ -438,12 +407,8 @@ void frogbot_marker_touch() {
 		}
 		return;
 	}
-	if (self->fb.path_state & DM6_DOOR) {
-		self->fb.state = self->fb.state | NOTARGET_ENEMY;
-		look_object_ = dm6_door;
-		self->fb.look_object = look_object_;
+	if (DM6LookAtDoor (self))
 		return;
-	}
 	if (look_object_ && look_object_->ct == ctPlayer) {
 		return;
 	}
@@ -504,7 +469,7 @@ void frogbot_marker_touch() {
 
 	{
 		int i = 0;
-		for (i = 0; i < sizeof(linked_marker_->fb.paths) / sizeof(linked_marker_->fb.paths[0]); ++i) {
+		for (i = 0; i < NUMBER_PATHS; ++i) {
 			from_marker = linked_marker_->fb.paths[i].next_marker;
 			if (from_marker) {
 				EvalLook();

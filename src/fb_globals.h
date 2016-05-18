@@ -259,7 +259,6 @@ extern float old_path_state;
 #ifndef SAVED_T
 #define SAVED_T 1
 #endif
-extern gedict_t* dm6_door;
 #ifndef NOTARGET_ENEMY
 #define NOTARGET_ENEMY 32
 #endif
@@ -592,7 +591,6 @@ extern float lock;
 extern float duel_mode;
 extern float team_mode;
 extern float a_rep;
-extern float door_open;
 extern char* string_null;
 char* GetTeamName(float g);
 char* ClientTeamName(gedict_t* p);
@@ -1139,7 +1137,7 @@ void SetFireButton(gedict_t* self);
 
 // marker_util.qc
 void Visible_infront(void);
-void AssignVirtualGoal (void);
+void AssignVirtualGoal (gedict_t* item);
 void AssignVirtualGoal_apply(gedict_t* marker_);
 void adjust_view_ofs_z(gedict_t* ent);
 
@@ -1179,6 +1177,8 @@ float random(void);
 
 // maps
 void LoadMap(void);
+qbool FrogbotsCheckMapSupport (void);
+
 void map_aerowalk(void);
 void map_amphi2(void);
 void map_dm4(void);
@@ -1224,3 +1224,12 @@ qbool BotsPreTeleport (gedict_t* self, gedict_t* other);
 
 #define FB_CVAR_GAMEMODE "k_fb_gamemode"
 #define FB_CVAR_SKILL "k_fb_skill"
+
+typedef struct fb_path_eval_s {
+	gedict_t* touch_marker;
+	gedict_t* test_marker;
+	qbool rocket_alert;
+	int description;
+	float path_time;
+	qbool path_normal;
+} fb_path_eval_t;

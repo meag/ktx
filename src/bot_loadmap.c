@@ -3,6 +3,8 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
+void check_marker(void);
+
 typedef struct fb_mapping_s {
 	char* name;
 	fb_void_func_t func;
@@ -97,21 +99,33 @@ static void fb_spawn_trigger_teleport (gedict_t* ent)
 {
 	AddToQue (ent);
 
+	//Com_Printf ("fb_trigger_tele([%f %f %f] > [%f %f %f])\n", PASSVEC3 (ent->s.v.mins), PASSVEC3 (ent->s.v.maxs));
 	VectorSet (ent->fb.virtual_mins, ent->s.v.mins[0] - 18, ent->s.v.mins[1] - 18, ent->s.v.mins[2] - 34);
 	VectorSet (ent->fb.virtual_maxs, ent->s.v.maxs[0] + 18, ent->s.v.maxs[1] + 18, ent->s.v.maxs[2] + 26);
-
+	setsize(ent, ent->s.v.mins[0] - 32, ent->s.v.mins[1] - 32, ent->s.v.mins[2], ent->s.v.maxs[0] + 32, ent->s.v.maxs[1] + 32, ent->s.v.maxs[2]);
 	VectorSet (ent->s.v.view_ofs, 0.5 * (ent->s.v.absmax[0] - ent->s.v.absmin[0]), 0.5 * (ent->s.v.absmax[1] - ent->s.v.absmin[1]), 0.5 * (ent->s.v.absmax[2] - ent->s.v.absmin[2]));
 	adjust_view_ofs_z(ent);
 	BecomeMarker(ent);
+}
+
+static void fb_spawn_teleport_destination_touch (void)
+{
+	if (marker_time && other->ct == ctPlayer) {
+		check_marker ();
+	}
 }
 
 static void fb_spawn_teleport_destination (gedict_t* ent)
 {
 	AddToQue (ent);
 
+	ent->s.v.solid = SOLID_TRIGGER;
+	ent->s.v.touch = (func_t) fb_spawn_teleport_destination_touch;
+	ent->s.v.flags = FL_ITEM;
 	BecomeMarker (ent);
-	ent->fb.pickup = pickup_true;
+	setsize (ent, -65, -65, -24, 65, 65, 32);
 	VectorSet(ent->s.v.view_ofs, 80, 80, 24);
+	ent->fb.pickup = pickup_true;
 	adjust_view_ofs_z (ent);
 }
 
@@ -189,5 +203,21 @@ void LoadMap() {
 			return;
 		}
 	}
+
+	// Map not supported - fix teleports etc anyway...
+	CreateItemMarkers();
 }
 
+qbool FrogbotsCheckMapSupport (void)
+{
+	int i = 0;
+
+	for (i = 0; i < sizeof (maps) / sizeof (maps[0]); ++i) {
+		if (streq (g_globalvars.mapname, maps[i].name)) {
+			return true;
+		}
+	}
+
+	G_sprint (self, 2, "Map %s not supported for bots\n", g_globalvars.mapname);
+	return false;
+}

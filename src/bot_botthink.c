@@ -5,6 +5,7 @@
 
 void POVDMM4LookDoor(void);
 void AMPHI2BotInLava(void);
+qbool DM6FireAtDoor (gedict_t* self);
 
 // Sets a client's last marker
 void SetMarker(gedict_t* client, gedict_t* marker) {
@@ -339,16 +340,10 @@ static void BotsFireAtWorldLogic(vec3_t rel_pos, float* rel_dist) {
 	VectorSubtract(rel_pos, origin_, rel_pos);
 	*rel_dist = vlen(rel_pos);
 
-	if (self->fb.path_state & DM6_DOOR) {
-		if (dm6_door->s.v.takedamage) {
-			rel_pos[2] = rel_pos[2] - 38;
-		}
-		else  {
-			self->fb.path_state = self->fb.path_state - DM6_DOOR;
-			self->fb.state = self->fb.state & NOT_NOTARGET_ENEMY;
-		}
-	}
-	else if (*rel_dist < 160) {
+	if (DM6FireAtDoor (self))
+		return;
+
+	if (*rel_dist < 160) {
 		rel_pos2[0] = rel_pos[0];
 		rel_pos2[1] = rel_pos[1];
 		VectorNormalize(rel_pos2);
@@ -527,9 +522,8 @@ void ThinkTime(gedict_t* self) {
 
 		AttackRespawns();
 
-		// FIXME: This is called for every bot, rather than for every frame (or ideally, when the doors open/close)
 		if (streq(g_globalvars.mapname, "povdmm4")) {
-			POVDMM4LookDoor();
+			POVDMM4LookDoor(self);
 		}
 
 		BotsFireLogic();

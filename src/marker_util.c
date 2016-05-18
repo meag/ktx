@@ -6,15 +6,16 @@
 void SUB_regen ();
 
 void BecomeMarker(gedict_t* marker) {
-	marker->fb.fl_marker = TRUE;
+	marker->fb.fl_marker = true;
 	marker->fb.marker_link = first_marker;
 	first_marker = marker;
-	dropper->fb.marker_link = first_marker;
+	//dropper->fb.marker_link = first_marker;
 }
 
+// FIXME: Never called
 void RemoveMarker(gedict_t* marker) {
 	gedict_t* e;
-	marker->fb.fl_marker = FALSE;
+	marker->fb.fl_marker = false;
 	e = dropper;
 	while (e->fb.marker_link != marker) {
 		e = e->fb.marker_link;
@@ -37,6 +38,7 @@ void spawn_marker(vec3_t org) {
 	setsize(marker_, -65, -65, -24, 65, 65, 32);
 }
 
+// FIXME: Arguments/globals
 void check_marker(void) {
 	vec3_t temp;
 
@@ -152,10 +154,11 @@ void AssignVirtualGoal_apply(gedict_t* marker_) {
 	}
 }
 
-void AssignVirtualGoal(void) {
+// Assign virtual goal to all markers in an items zone
+void AssignVirtualGoal(gedict_t* item) {
 	gedict_t* marker_;
 
-	for (marker_ = zone_head[self->fb.Z_]; marker_; marker_ = marker_->fb.Z_next) {
+	for (marker_ = zone_head[item->fb.Z_]; marker_; marker_ = marker_->fb.Z_next) {
 		AssignVirtualGoal_apply(marker_);
 	}
 }
@@ -166,7 +169,7 @@ float ExistsPath(gedict_t* from_marker, gedict_t* to_marker) {
 	if (from_marker == NULL || to_marker == NULL)
 		return FALSE;
 
-	for (i = 0; i < sizeof(from_marker->fb.paths) / sizeof(from_marker->fb.paths[0]); ++i) {
+	for (i = 0; i < NUMBER_PATHS; ++i) {
 		if (from_marker->fb.paths[i].next_marker == to_marker) {
 			new_path_state = from_marker->fb.paths[i].flags;
 			return TRUE;
