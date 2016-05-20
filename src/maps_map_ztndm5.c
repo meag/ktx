@@ -304,11 +304,11 @@ void map_ztndm5() {
 	SetMarkerPathFlags(58, 4, JUMP_LEDGE);
 	SetMarkerPathFlags(65, 2, JUMP_LEDGE);
 
-	markers[1 - 1]->s.v.view_ofs[2] = -7;
-	markers[28 - 1]->s.v.view_ofs[2] = 17;
-	markers[31 - 1]->s.v.view_ofs[2] = -6;
-	markers[6 - 1]->s.v.view_ofs[2] = -6;
-	markers[8 - 1]->s.v.view_ofs[2] = 17;
-	markers[9 - 1]->s.v.view_ofs[2] = 17;
+	SetMarkerViewOffset(1, -7);
+	SetMarkerViewOffset(28, 17);
+	SetMarkerViewOffset(31, -6);
+	SetMarkerViewOffset(6, -6);
+	SetMarkerViewOffset(8, 17);
+	SetMarkerViewOffset(9, 17);
 }
 

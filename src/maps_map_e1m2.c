@@ -330,7 +330,7 @@ void map_e1m2() {
 	SetGoal(18, 3);
 	SetGoal(19, 1);
 
-	markers[44 - 1]->s.v.view_ofs[2] = 185;
+	SetMarkerViewOffset(44, 185);
 
 	SetMarkerPath(234, 0, 117);
 	SetMarkerPath(234, 1, 41);

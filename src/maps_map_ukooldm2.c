@@ -319,15 +319,15 @@ void map_ukooldm2() {
 	SetMarkerPathFlags(58, 2, JUMP_LEDGE);
 	SetMarkerPathFlags(59, 0, JUMP_LEDGE);
 
-	markers[10 - 1]->s.v.view_ofs[2] = -10;
-	markers[11 - 1]->s.v.view_ofs[2] = -10;
-	markers[12 - 1]->s.v.view_ofs[2] = 17;
-	markers[14 - 1]->s.v.view_ofs[2] = 17;
-	markers[15 - 1]->s.v.view_ofs[2] = 17;
-	markers[16 - 1]->s.v.view_ofs[2] = 17;
-	markers[5 - 1]->s.v.view_ofs[2] = 305;
-	markers[6 - 1]->s.v.view_ofs[2] = 241;
-	markers[7 - 1]->s.v.view_ofs[2] = -7;
-	markers[8 - 1]->s.v.view_ofs[2] = -10;
+	SetMarkerViewOffset(10, -10);
+	SetMarkerViewOffset(11, -10);
+	SetMarkerViewOffset(12, 17);
+	SetMarkerViewOffset(14, 17);
+	SetMarkerViewOffset(15, 17);
+	SetMarkerViewOffset(16, 17);
+	SetMarkerViewOffset(5, 305);
+	SetMarkerViewOffset(6, 241);
+	SetMarkerViewOffset(7, -7);
+	SetMarkerViewOffset(8, -10);
 }
 

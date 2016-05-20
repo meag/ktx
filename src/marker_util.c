@@ -189,7 +189,7 @@ void CheckWaterColumn(gedict_t* m, vec3_t m_pos, vec3_t testplace) {
 		self->s.v.origin[2] += 16;
 		self->s.v.flags = FL_ONGROUND_PARTIALGROUND;
 		if (!walkmove(self, 0, 0)) {
-			m->fb.T = m->fb.T | T_NO_AIR;
+			m->fb.T |= T_NO_AIR;
 			return;
 		}
 

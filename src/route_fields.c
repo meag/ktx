@@ -144,7 +144,7 @@ void SetMarkerFlag(int marker_number, int flags) {
 	if (marker_number < 0 || marker_number >= NUMBER_MARKERS)
 		return;
 
-	markers[marker_number]->fb.T = flags;
+	markers[marker_number]->fb.T |= flags;
 }
 
 void NameZone(float zoneNumber, char* name) {

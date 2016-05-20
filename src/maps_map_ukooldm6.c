@@ -412,10 +412,10 @@ void map_ukooldm6() {
 	SetMarkerPathFlags(88, 2, JUMP_LEDGE);
 	SetMarkerPathFlags(92, 2, JUMP_LEDGE);
 
-	markers[15 - 1]->s.v.view_ofs[2] = -2;
-	markers[33 - 1]->s.v.view_ofs[2] = -7;
-	markers[5 - 1]->s.v.view_ofs[2] = -2;
-	markers[7 - 1]->s.v.view_ofs[2] = -2;
-	markers[9 - 1]->s.v.view_ofs[2] = -2;
+	SetMarkerViewOffset(15, -2);
+	SetMarkerViewOffset(33, -7);
+	SetMarkerViewOffset(5, -2);
+	SetMarkerViewOffset(7, -2);
+	SetMarkerViewOffset(9, -2);
 }
 

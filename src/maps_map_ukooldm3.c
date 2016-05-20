@@ -369,21 +369,21 @@ void map_ukooldm3() {
 	SetMarkerPathFlags(89, 1, JUMP_LEDGE);
 	SetMarkerPathFlags(90, 0, JUMP_LEDGE);
 
-	markers[12 - 1]->s.v.view_ofs[2] = 2;
-	markers[13 - 1]->s.v.view_ofs[2] = 13;
-	markers[17 - 1]->s.v.view_ofs[2] = -17;
-	markers[19 - 1]->s.v.view_ofs[2] = -10;
-	markers[21 - 1]->s.v.view_ofs[2] = -58;
-	markers[25 - 1]->s.v.view_ofs[2] = -34;
-	markers[26 - 1]->s.v.view_ofs[2] = -10;
-	markers[28 - 1]->s.v.view_ofs[2] = -14;
-	markers[43 - 1]->s.v.view_ofs[2] = 5;
-	markers[44 - 1]->s.v.view_ofs[2] = -7;
-	markers[45 - 1]->s.v.view_ofs[2] = -47;
-	markers[46 - 1]->s.v.view_ofs[2] = -1;
-	markers[47 - 1]->s.v.view_ofs[2] = 1;
-	markers[48 - 1]->s.v.view_ofs[2] = -3;
-	markers[55 - 1]->s.v.view_ofs[2] = 1;
+	SetMarkerViewOffset(12, 2);
+	SetMarkerViewOffset(13, 13);
+	SetMarkerViewOffset(17, -17);
+	SetMarkerViewOffset(19, -10);
+	SetMarkerViewOffset(21, -58);
+	SetMarkerViewOffset(25, -34);
+	SetMarkerViewOffset(26, -10);
+	SetMarkerViewOffset(28, -14);
+	SetMarkerViewOffset(43, 5);
+	SetMarkerViewOffset(44, -7);
+	SetMarkerViewOffset(45, -47);
+	SetMarkerViewOffset(46, -1);
+	SetMarkerViewOffset(47, 1);
+	SetMarkerViewOffset(48, -3);
+	SetMarkerViewOffset(55, 1);
 
 }
 

@@ -297,13 +297,13 @@ void map_ukooldm8() {
 	SetMarkerFlag(72, 1);
 	SetMarkerFlag(73, 1);
 
-	markers[29 - 1]->s.v.view_ofs[2] = 17;
-	markers[3 - 1]->s.v.view_ofs[2] = 10;
-	markers[30 - 1]->s.v.view_ofs[2] = 17;
-	markers[31 - 1]->s.v.view_ofs[2] = 17;
-	markers[32 - 1]->s.v.view_ofs[2] = 17;
-	markers[33 - 1]->s.v.view_ofs[2] = 17;
-	markers[6 - 1]->s.v.view_ofs[2] = 14;
-	markers[9 - 1]->s.v.view_ofs[2] = 14;
+	SetMarkerViewOffset(29, 17);
+	SetMarkerViewOffset(3, 10);
+	SetMarkerViewOffset(30, 17);
+	SetMarkerViewOffset(31, 17);
+	SetMarkerViewOffset(32, 17);
+	SetMarkerViewOffset(33, 17);
+	SetMarkerViewOffset(6, 14);
+	SetMarkerViewOffset(9, 14);
 }
 

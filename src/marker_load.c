@@ -59,3 +59,14 @@ void SetMarkerPath(int source_marker, int path_index, int next_marker) {
 		Com_Printf ("SetMarkerPath(%d, %d, %d) = %d\n", source_marker, path_index, next_marker, markers[next_marker] == 0 ? -1 : markers[next_marker]->fb.index);
 	markers[source_marker]->fb.paths[path_index].next_marker = markers[next_marker];
 }
+
+void SetMarkerViewOffset (int marker, float zOffset)
+{
+	--marker;
+
+	if (marker < 0 || marker >= NUMBER_MARKERS || markers[marker] == 0) {
+		return;
+	}
+
+	markers[marker]->s.v.view_ofs[2] = zOffset;
+}

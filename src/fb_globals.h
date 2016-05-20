@@ -1165,6 +1165,7 @@ void SetGoal(int goal, int marker_number);
 void SetGoalForMarker(int goal, gedict_t* marker);
 void SetMarkerPathFlags(int marker_number, int path_index, int flags);
 void SetMarkerPath(int source_marker, int path_index, int next_marker);
+void SetMarkerViewOffset (int marker, float zOffset);
 
 // added for ktx
 qbool fb_lg_disabled(void);
