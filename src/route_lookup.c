@@ -68,7 +68,6 @@ void Z ## x ## _marker() { \
 	if (path_normal) { \
 		middle_marker = from_marker->fb.zones[x - 1].marker; \
 		zone_time = from_marker->fb.zones[x - 1].time; \
-		return; \
 	} \
 	else  { \
 		middle_marker = from_marker->fb.zones[x - 1].reverse_marker; \

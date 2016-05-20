@@ -149,7 +149,7 @@ static float goal_rockets(gedict_t* self) {
 	if (self->s.v.ammo_rockets < 100) {
 		return (self->fb.desire_rockets + virtual_enemy->fb.desire_rockets);
 	}
-	return goal_desire;
+	return 0;
 }
 
 static float goal_cells(gedict_t* self) {

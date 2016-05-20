@@ -136,13 +136,13 @@ void AssignVirtualGoal_apply(gedict_t* marker_) {
 			int i = 0;
 			for (i = 0; i < NUMBER_PATHS; ++i) {
 				test_goal = marker_->fb.paths[i].next_marker;
-				if (test_goal && ((test_goal->fb.G_ != goal_number) || (test_goal->s.v.nextthink)))
+				if (test_goal && ((test_goal->fb.G_ != goal_number) || (test_goal->s.v.nextthink > g_globalvars.time)))
 					break;
 			}
 
 			if (i >= NUMBER_PATHS) {
 				// Waiting to respawn...
-				if ((marker_->s.v.nextthink > 0) && (marker_->s.v.think == (func_t) SUB_regen)) {
+				if ((marker_->s.v.nextthink > g_globalvars.time) && (marker_->s.v.think == (func_t) SUB_regen)) {
 					test_goal = marker_;
 				}
 				else {

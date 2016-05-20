@@ -9,7 +9,7 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
-typedef qbool (*fb_path_calc_func_t)(gedict_t* m, gedict_t* m_P, float P_time);
+typedef qbool (*fb_path_calc_func_t)(gedict_t* m, gedict_t* m_P, float P_time, int m_D);
 
 static void Calc_G_time_12 (void);
 /*
@@ -21,6 +21,46 @@ typedef struct frogbots_s {
 
 frogbots_t frogbots;
 */
+
+static void TravelTimeForPath (gedict_t* m, int i)
+{
+	gedict_t* m_P = m->fb.paths[i].next_marker;
+	vec3_t m_pos;
+
+	VectorAdd(m->s.v.absmin, m->s.v.view_ofs, m_pos);
+
+	if (m->fb.paths[i].flags & ROCKET_JUMP) {
+		m->fb.paths[i].time = 100000;
+		return;
+	}
+
+	if (m->fb.paths[i].flags & JUMP_LEDGE) {
+		m->fb.paths[i].flags |= NO_DODGE;
+	}
+
+	// Distance irrelevant if teleporting
+	if (streq(m->s.v.classname, "trigger_teleport")) {
+		m_P->fb.near_teleport = m;
+		m->fb.paths[i].time = 0;
+	}
+	else {
+		vec3_t m_P_pos;
+
+		VectorAdd(m_P->s.v.absmin, m_P->s.v.view_ofs, m_P_pos);
+		if ((m->fb.T & T_WATER) || (m_P->fb.T & T_WATER)) {
+			m->fb.paths[i].flags |= WATER_PATH;
+			m->fb.paths[i].time = (VectorDistance(m_P_pos, m_pos) / sv_maxwaterspeed);
+		}
+		else {
+			if (m->fb.index == 1 && m_P->fb.index == 2) {
+				Com_Printf ("1 => 2 = [%f %f %f] => [%f %f %f] = %f / %f = %f seconds\n", PASSVEC3(m_pos), PASSVEC3(m_P_pos), VectorDistance (m_P_pos, m_pos), sv_maxspeed, VectorDistance (m_P_pos, m_pos) / sv_maxspeed);
+			}
+
+			m->fb.paths[i].time = (VectorDistance(m_P_pos, m_pos) / sv_maxspeed);
+		}
+	}
+}
+/*
 static float TravelTime(gedict_t* m, gedict_t* m_P, int* m_D) {
 	vec3_t m_pos;
 
@@ -53,10 +93,11 @@ static float TravelTime(gedict_t* m, gedict_t* m_P, int* m_D) {
 		}
 	}
 }
+*/
 
 // Was: Calc_G_time_3_path_apply
-static qbool IdentifyFastestSubzoneRoute(gedict_t* m, gedict_t* m_P /* next */, float P_time /* traveltime */) {
-	qbool no_change = TRUE;
+static qbool IdentifyFastestSubzoneRoute(gedict_t* m, gedict_t* m_P /* next */, float P_time /* traveltime */, int m_D) {
+	qbool no_change = true;
 
 	if (!m || m == world || !m_P || m_P == world) {
 		return no_change;
@@ -67,7 +108,7 @@ static qbool IdentifyFastestSubzoneRoute(gedict_t* m, gedict_t* m_P /* next */, 
 
 		for (i = 0; i < NUMBER_SUBZONES; ++i) {
 			if (m->fb.subzones[i].time > (P_time + m_P->fb.subzones[i].time)) {
-				no_change = FALSE;
+				no_change = false;
 				m->fb.subzones[i].time = P_time + m_P->fb.subzones[i].time;
 				m->fb.subzones[i].next_marker = m_P;
 			}
@@ -77,9 +118,20 @@ static qbool IdentifyFastestSubzoneRoute(gedict_t* m, gedict_t* m_P /* next */, 
 	return no_change;
 }
 
+static qbool FastestGoalCheck (gedict_t* m, gedict_t* m_P, int i, float P_time)
+{
+	if (m->fb.goals[i].time > (P_time + m_P->fb.goals[i].time)) {
+		m->fb.goals[i].next_marker = m_P->fb.goals[i].next_marker;
+		m->fb.goals[i].time = P_time + m_P->fb.goals[i].time;
+		return false;
+	}
+
+	return true;
+}
+
 // Calc_G_time_4_path_apply
-static qbool IdentifyFastestGoalRoute(gedict_t* m, gedict_t* m_P, float P_time) {
-	qbool no_change = TRUE;
+static qbool IdentifyFastestGoalRoute(gedict_t* m, gedict_t* m_P, float P_time, int m_D) {
+	qbool no_change = true;
 	int i = 0;
 
 	if (!m || m == world || !m_P || m_P == world) {
@@ -87,18 +139,14 @@ static qbool IdentifyFastestGoalRoute(gedict_t* m, gedict_t* m_P, float P_time) 
 	}
 
 	for (i = 0; i < NUMBER_GOALS; ++i) {
-		if (m->fb.goals[i].time > (P_time + m_P->fb.goals[i].time)) {
-			no_change = FALSE;
-			m->fb.goals[i].next_marker = m_P->fb.goals[i].next_marker;
-			m->fb.goals[i].time = P_time + m_P->fb.goals[i].time;
-		}
+		no_change &= FastestGoalCheck (m, m_P, i, P_time);
 	}
 
 	return no_change;
 }
 
 // Next two functions: Calc_G_time_5_path_apply
-static qbool IdentifyFastestZoneRoute(gedict_t* m, gedict_t* m_P, int x, float P_time) {
+static qbool IdentifyFastestZoneRoute(gedict_t* m, gedict_t* m_P, int x, float P_time, int m_D) {
 	if (m->fb.zones[x].time > (P_time + m_P->fb.zones[x].time)) { 
 		m->fb.zones[x].marker = m_P->fb.zones[x].marker; 
 		m->fb.zones[x].time = P_time + m_P->fb.zones[x].time; 
@@ -112,7 +160,7 @@ static qbool IdentifyFastestZoneRoute(gedict_t* m, gedict_t* m_P, int x, float P
 	return true;
 }
 
-static qbool Calc_G_time_5_path_apply(gedict_t* m, gedict_t* m_P, float P_time) {
+static qbool Calc_G_time_5_path_apply(gedict_t* m, gedict_t* m_P, float P_time, int m_D) {
 	qbool no_change = true;
 	int i = 0;
 
@@ -121,13 +169,13 @@ static qbool Calc_G_time_5_path_apply(gedict_t* m, gedict_t* m_P, float P_time) 
 	}
 
 	for (i = 0; i < NUMBER_ZONES; ++i) {
-		no_change &= IdentifyFastestZoneRoute(m, m_P, i, P_time);
+		no_change &= IdentifyFastestZoneRoute(m, m_P, i, P_time, m_D);
 	}
 
 	return no_change;
 }
 
-static qbool ZoneFromTimeAdjust(gedict_t* m, gedict_t* m_P, int x, float P_time) {
+static qbool ZoneFromTimeAdjust(gedict_t* m, gedict_t* m_P, int x, float P_time, int m_D) {
 	if (m_P->fb.zones[x].from_time > (m->fb.zones[x].from_time + P_time)) { 
 		m_P->fb.zones[x].from_time = m->fb.zones[x].from_time + P_time; 
 		return false;
@@ -137,7 +185,7 @@ static qbool ZoneFromTimeAdjust(gedict_t* m, gedict_t* m_P, int x, float P_time)
 }
 
 // was: Calc_G_time_6_path_apply
-static qbool Calc_G_time_6_path_apply(gedict_t* m, gedict_t* m_P, float P_time) {
+static qbool Calc_G_time_6_path_apply(gedict_t* m, gedict_t* m_P, float P_time, int m_D) {
 	qbool no_change = TRUE;
 	int i = 0;
 
@@ -146,7 +194,7 @@ static qbool Calc_G_time_6_path_apply(gedict_t* m, gedict_t* m_P, float P_time) 
 	}
 
 	for (i = 0; i < NUMBER_ZONES; ++i) {
-		no_change &= ZoneFromTimeAdjust(m, m_P, i, P_time);
+		no_change &= ZoneFromTimeAdjust (m, m_P, i, P_time, m_D);
 	}
 
 	return no_change;
@@ -178,7 +226,7 @@ static void Calc_G_time_7(void) {
 	}
 }
 
-static qbool ZoneReverseTimeAdjust(gedict_t* m, gedict_t* m_P, int x) {
+static qbool ZoneReverseTimeAdjust(gedict_t* m, gedict_t* m_P, int x, int m_D) {
 	if (m->fb.zones[x].reverse_time > (P_time + m_P->fb.zones[x].reverse_time)) { 
 		m->fb.zones[x].reverse_marker = m_P->fb.zones[x].reverse_marker; 
 		m->fb.zones[x].reverse_time = P_time + m_P->fb.zones[x].reverse_time; 
@@ -190,7 +238,7 @@ static qbool ZoneReverseTimeAdjust(gedict_t* m, gedict_t* m_P, int x) {
 	return TRUE;
 }
 
-static qbool Calc_G_time_8_path_apply(gedict_t* m, gedict_t* m_P, float P_time) {
+static qbool Calc_G_time_8_path_apply(gedict_t* m, gedict_t* m_P, float P_time, int m_D) {
 	qbool no_change = TRUE;
 	int i = 0;
 
@@ -199,8 +247,8 @@ static qbool Calc_G_time_8_path_apply(gedict_t* m, gedict_t* m_P, float P_time) 
 	}
 
 	if (m_D & REVERSIBLE) {
-		for (i = 0; i < sizeof(m->fb.zones) / sizeof(m->fb.zones[0]); ++i) {
-			no_change &= ZoneReverseTimeAdjust(m, m_P, i);
+		for (i = 0; i < NUMBER_ZONES; ++i) {
+			no_change &= ZoneReverseTimeAdjust(m, m_P, i, m_D);
 		}
 	}
 
@@ -236,7 +284,7 @@ static void Calc_G_time_9_apply(gedict_t* m, gedict_t* m_2, vec3_t m_pos, vec3_t
 
 	if (m2_pos[2] - m_pos[2] >= 40) {
 		if (VectorDistance(m2_pos, m_pos) <= 1000) {
-			for (i = 0; i < sizeof(m->fb.zones) / sizeof(m->fb.zones[0]); ++i) {
+			for (i = 0; i < NUMBER_ZONES; ++i) {
 				ZoneHigherSightFromMarkerCalculate(m, m_2, i);
 			}
 		}
@@ -266,7 +314,7 @@ static void Calc_G_time_9(void) {
 	}
 }
 
-static qbool ZoneMinSightFromTimeCalc(gedict_t* m, gedict_t* m_P, int x) {
+static qbool ZoneMinSightFromTimeCalc(gedict_t* m, gedict_t* m_P, int x, int m_D) {
 	if (m->fb.zones[x].sight_from_time < (m_P->fb.zones[x].sight_from_time - P_time)) {
 		m->fb.zones[x].sight_from_time = m_P->fb.zones[x].sight_from_time - P_time; 
 		return FALSE;
@@ -275,7 +323,7 @@ static qbool ZoneMinSightFromTimeCalc(gedict_t* m, gedict_t* m_P, int x) {
 	return TRUE;
 }
 
-static qbool Calc_G_time_10_path_apply(gedict_t* m, gedict_t* m_P, float P_time) {
+static qbool Calc_G_time_10_path_apply(gedict_t* m, gedict_t* m_P, float P_time, int m_D) {
 	qbool no_change = TRUE;
 	int i = 0;
 
@@ -284,7 +332,7 @@ static qbool Calc_G_time_10_path_apply(gedict_t* m, gedict_t* m_P, float P_time)
 	}
 
 	for (i = 0; i < NUMBER_ZONES; ++i) {
-		no_change &= ZoneMinSightFromTimeCalc(m, m_P, i);
+		no_change &= ZoneMinSightFromTimeCalc(m, m_P, i, m_D);
 	}
 
 	return no_change;
@@ -419,7 +467,7 @@ static void PathCalculation(fb_path_calc_func_t func) {
 		no_change = true;
 		for (m = first_marker; m && m != world; m = m->fb.marker_link) {
 			for (i = 0; i < NUMBER_PATHS; ++i) {
-				no_change &= func(m, m->fb.paths[i].next_marker, m->fb.paths[i].time);
+				no_change &= func(m, m->fb.paths[i].next_marker, m->fb.paths[i].time, m->fb.paths[i].flags);
 			}
 		}
 	}
@@ -455,7 +503,7 @@ void InitialiseMarkerRoutes(void) {
 		for (i = 0; i < NUMBER_PATHS; ++i) {
 			m_P = m->fb.paths[i].next_marker;
 			if (m_P && m_P->fb.fl_marker) {
-				m->fb.paths[i].time = TravelTime(m, m_P, &m->fb.paths[i].flags);
+				TravelTimeForPath(m, i);
 			}
 			else {
 				m->fb.paths[i].next_marker = 0;
@@ -518,7 +566,8 @@ void InitialiseMarkerRoutes(void) {
 					markers[i]->fb.zones[12].time,
 					markers[i]->fb.zones[13].time
 				);*/
-
+#
+				/*
 				Com_Printf ("M %d %s = %d %f / %d %f / %d %f / %d %f / %d %f / %d %f / %d %f / %d %f\n",
 					markers[i]->fb.index,
 					markers[i]->s.v.classname,
@@ -538,9 +587,121 @@ void InitialiseMarkerRoutes(void) {
 					markers[i]->fb.paths[6].time,
 					(markers[i]->fb.paths[7].next_marker ? markers[i]->fb.paths[7].next_marker->fb.index : -1),
 					markers[i]->fb.paths[7].time
+				);*/
+				/*
+				Com_Printf ("M %d %s = %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f\n",
+					markers[i]->fb.index,
+					markers[i]->s.v.classname,
+					markers[i]->fb.goals[0].time, markers[i]->fb.goals[1].time, markers[i]->fb.goals[2].time, markers[i]->fb.goals[3].time, markers[i]->fb.goals[4].time,
+					markers[i]->fb.goals[5].time, markers[i]->fb.goals[6].time, markers[i]->fb.goals[7].time, markers[i]->fb.goals[8].time, markers[i]->fb.goals[9].time,
+					markers[i]->fb.goals[10].time, markers[i]->fb.goals[11].time, markers[i]->fb.goals[12].time, markers[i]->fb.goals[13].time, markers[i]->fb.goals[14].time,
+					markers[i]->fb.goals[15].time, markers[i]->fb.goals[16].time, markers[i]->fb.goals[17].time, markers[i]->fb.goals[18].time, markers[i]->fb.goals[19].time,
+					markers[i]->fb.goals[20].time, markers[i]->fb.goals[21].time, markers[i]->fb.goals[22].time, markers[i]->fb.goals[23].time
+				);*/
+			}
+		}
+/*
+		Com_Printf ("-- Goal paths --\n");
+		for (i = 0; i < NUMBER_MARKERS; ++i) {
+			if (markers[i]) {
+				Com_Printf ("M %d %s = %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
+					markers[i]->fb.index,
+					markers[i]->s.v.classname,
+					markers[i]->fb.goals[0].next_marker ? markers[i]->fb.goals[0].next_marker->fb.index : -1,
+					markers[i]->fb.goals[1].next_marker ? markers[i]->fb.goals[1].next_marker->fb.index : -1,
+					markers[i]->fb.goals[2].next_marker ? markers[i]->fb.goals[2].next_marker->fb.index : -1,
+					markers[i]->fb.goals[3].next_marker ? markers[i]->fb.goals[3].next_marker->fb.index : -1,
+					markers[i]->fb.goals[4].next_marker ? markers[i]->fb.goals[4].next_marker->fb.index : -1,
+					markers[i]->fb.goals[5].next_marker ? markers[i]->fb.goals[5].next_marker->fb.index : -1,
+					markers[i]->fb.goals[6].next_marker ? markers[i]->fb.goals[6].next_marker->fb.index : -1,
+					markers[i]->fb.goals[7].next_marker ? markers[i]->fb.goals[7].next_marker->fb.index : -1,
+					markers[i]->fb.goals[8].next_marker ? markers[i]->fb.goals[8].next_marker->fb.index : -1,
+					markers[i]->fb.goals[9].next_marker ? markers[i]->fb.goals[9].next_marker->fb.index : -1,
+					markers[i]->fb.goals[10].next_marker ? markers[i]->fb.goals[10].next_marker->fb.index : -1,
+					markers[i]->fb.goals[11].next_marker ? markers[i]->fb.goals[11].next_marker->fb.index : -1,
+					markers[i]->fb.goals[12].next_marker ? markers[i]->fb.goals[12].next_marker->fb.index : -1,
+					markers[i]->fb.goals[13].next_marker ? markers[i]->fb.goals[13].next_marker->fb.index : -1,
+					markers[i]->fb.goals[14].next_marker ? markers[i]->fb.goals[14].next_marker->fb.index : -1,
+					markers[i]->fb.goals[15].next_marker ? markers[i]->fb.goals[15].next_marker->fb.index : -1,
+					markers[i]->fb.goals[16].next_marker ? markers[i]->fb.goals[16].next_marker->fb.index : -1,
+					markers[i]->fb.goals[17].next_marker ? markers[i]->fb.goals[17].next_marker->fb.index : -1,
+					markers[i]->fb.goals[18].next_marker ? markers[i]->fb.goals[18].next_marker->fb.index : -1,
+					markers[i]->fb.goals[19].next_marker ? markers[i]->fb.goals[19].next_marker->fb.index : -1,
+					markers[i]->fb.goals[20].next_marker ? markers[i]->fb.goals[20].next_marker->fb.index : -1,
+					markers[i]->fb.goals[21].next_marker ? markers[i]->fb.goals[21].next_marker->fb.index : -1,
+					markers[i]->fb.goals[22].next_marker ? markers[i]->fb.goals[22].next_marker->fb.index : -1,
+					markers[i]->fb.goals[23].next_marker ? markers[i]->fb.goals[23].next_marker->fb.index : -1
 				);
 			}
 		}
+
+		Com_Printf ("-- Zone paths --\n");
+		for (i = 0; i < NUMBER_MARKERS; ++i) {
+			if (markers[i]) {
+				Com_Printf ("M %d %s = %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
+					markers[i]->fb.index,
+					markers[i]->s.v.classname,
+					markers[i]->fb.zones[0].next ? markers[i]->fb.zones[0].next->fb.index : -1,
+					markers[i]->fb.zones[1].next ? markers[i]->fb.zones[1].next->fb.index : -1,
+					markers[i]->fb.zones[2].next ? markers[i]->fb.zones[2].next->fb.index : -1,
+					markers[i]->fb.zones[3].next ? markers[i]->fb.zones[3].next->fb.index : -1,
+					markers[i]->fb.zones[4].next ? markers[i]->fb.zones[4].next->fb.index : -1,
+					markers[i]->fb.zones[5].next ? markers[i]->fb.zones[5].next->fb.index : -1,
+					markers[i]->fb.zones[6].next ? markers[i]->fb.zones[6].next->fb.index : -1,
+					markers[i]->fb.zones[7].next ? markers[i]->fb.zones[7].next->fb.index : -1,
+					markers[i]->fb.zones[8].next ? markers[i]->fb.zones[8].next->fb.index : -1,
+					markers[i]->fb.zones[9].next ? markers[i]->fb.zones[9].next->fb.index : -1,
+					markers[i]->fb.zones[10].next ? markers[i]->fb.zones[10].next->fb.index : -1,
+					markers[i]->fb.zones[11].next ? markers[i]->fb.zones[11].next->fb.index : -1,
+					markers[i]->fb.zones[12].next ? markers[i]->fb.zones[12].next->fb.index : -1,
+					markers[i]->fb.zones[13].next ? markers[i]->fb.zones[13].next->fb.index : -1,
+					markers[i]->fb.zones[14].next ? markers[i]->fb.zones[14].next->fb.index : -1,
+					markers[i]->fb.zones[15].next ? markers[i]->fb.zones[15].next->fb.index : -1,
+					markers[i]->fb.zones[16].next ? markers[i]->fb.zones[16].next->fb.index : -1,
+					markers[i]->fb.zones[17].next ? markers[i]->fb.zones[17].next->fb.index : -1,
+					markers[i]->fb.zones[18].next ? markers[i]->fb.zones[18].next->fb.index : -1,
+					markers[i]->fb.zones[19].next ? markers[i]->fb.zones[19].next->fb.index : -1,
+					markers[i]->fb.zones[20].next ? markers[i]->fb.zones[20].next->fb.index : -1,
+					markers[i]->fb.zones[21].next ? markers[i]->fb.zones[21].next->fb.index : -1,
+					markers[i]->fb.zones[22].next ? markers[i]->fb.zones[22].next->fb.index : -1,
+					markers[i]->fb.zones[23].next ? markers[i]->fb.zones[23].next->fb.index : -1
+				);
+			}
+		}
+
+		Com_Printf ("-- Zone times --\n");
+		for (i = 0; i < NUMBER_MARKERS; ++i) {
+			if (markers[i]) {
+				Com_Printf ("M %d %s = %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f\n",
+					markers[i]->fb.index,
+					markers[i]->s.v.classname,
+					markers[i]->fb.zones[0].marker ? markers[i]->fb.zones[0].time : -1,
+					markers[i]->fb.zones[1].marker ? markers[i]->fb.zones[1].time : -1,
+					markers[i]->fb.zones[2].marker ? markers[i]->fb.zones[2].time : -1,
+					markers[i]->fb.zones[3].marker ? markers[i]->fb.zones[3].time : -1,
+					markers[i]->fb.zones[4].marker ? markers[i]->fb.zones[4].time : -1,
+					markers[i]->fb.zones[5].marker ? markers[i]->fb.zones[5].time : -1,
+					markers[i]->fb.zones[6].marker ? markers[i]->fb.zones[6].time : -1,
+					markers[i]->fb.zones[7].marker ? markers[i]->fb.zones[7].time : -1,
+					markers[i]->fb.zones[8].marker ? markers[i]->fb.zones[8].time : -1,
+					markers[i]->fb.zones[9].marker ? markers[i]->fb.zones[9].time : -1,
+					markers[i]->fb.zones[10].marker ? markers[i]->fb.zones[10].time : -1,
+					markers[i]->fb.zones[11].marker ? markers[i]->fb.zones[11].time : -1,
+					markers[i]->fb.zones[12].marker ? markers[i]->fb.zones[12].time : -1,
+					markers[i]->fb.zones[13].marker ? markers[i]->fb.zones[13].time : -1,
+					markers[i]->fb.zones[14].marker ? markers[i]->fb.zones[14].time : -1,
+					markers[i]->fb.zones[15].marker ? markers[i]->fb.zones[15].time : -1,
+					markers[i]->fb.zones[16].marker ? markers[i]->fb.zones[16].time : -1,
+					markers[i]->fb.zones[17].marker ? markers[i]->fb.zones[17].time : -1,
+					markers[i]->fb.zones[18].marker ? markers[i]->fb.zones[18].time : -1,
+					markers[i]->fb.zones[19].marker ? markers[i]->fb.zones[19].time : -1,
+					markers[i]->fb.zones[20].marker ? markers[i]->fb.zones[20].time : -1,
+					markers[i]->fb.zones[21].marker ? markers[i]->fb.zones[21].time : -1,
+					markers[i]->fb.zones[22].marker ? markers[i]->fb.zones[22].time : -1,
+					markers[i]->fb.zones[23].marker ? markers[i]->fb.zones[23].time : -1
+				);
+			}
+		}*/
 	}
 
 	return;

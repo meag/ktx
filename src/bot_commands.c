@@ -109,11 +109,13 @@ static void FrogbotsSetSkill (void)
 
 static void FrogbotsDebug (void)
 {
-	vec3_t m_pos;
+	gedict_t* bot = &g_edicts[bots[0].entity];
 
-	VectorAdd (markers[1]->s.v.absmin, markers[1]->s.v.view_ofs, m_pos);
-
-	G_sprint (self, 2, "Marker 1 = [%f %f %f]\n", PASSVEC3 (m_pos));
+	G_sprint (self, 2, "Bot: %s\n", bot->s.v.netname);
+	G_sprint (self, 2, "  %s: %s (%d)\n", redtext("Touch"), bot->fb.touch_marker ? bot->fb.touch_marker->s.v.classname : "(none)", bot->fb.touch_marker ? bot->fb.touch_marker->fb.index : -1);
+	G_sprint (self, 2, "  %s: %s\n", redtext("Enemy"), g_edicts[bot->s.v.enemy].s.v.netname);
+	G_sprint (self, 2, "  %s: %s\n", redtext("Looking"), bot->fb.look_object ? bot->fb.look_object->s.v.classname : "(nothing)");
+	G_sprint (self, 2, "  %s: %s\n", redtext ("VirtGoal"), bot->fb.virtual_goal ? bot->fb.virtual_goal->s.v.classname : "(nothing)");
 }
 
 void FrogbotsCommand (void)

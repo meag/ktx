@@ -3,7 +3,7 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
-void POVDMM4LookDoor(void);
+void POVDMM4LookDoor(gedict_t* self);
 void AMPHI2BotInLava(void);
 qbool DM6FireAtDoor (gedict_t* self);
 
@@ -59,9 +59,6 @@ static void LookingAtEnemyLogic() {
 static void NewlyPickedEnemyLogic() {
 	gedict_t* goalentity_ = &g_edicts[self->s.v.goalentity];
 
-	//G_bprint (2, "No look object, enemy is %s, goal is %s\n", enemy_->s.v.classname, goalentity_->s.v.classname);
-
-	visible_object = enemy_;
 	if (goalentity_ == enemy_) {
 		if (Visible_360(self, enemy_)) {
 			LookEnemy(self, enemy_);
@@ -75,12 +72,11 @@ static void NewlyPickedEnemyLogic() {
 			}
 		}
 	}
-	else  {
-		Visible_infront();
-		if (enemy_visible) {
+	else {
+		if (Visible_infront(self, enemy_)) {
 			LookEnemy(self, enemy_);
 		}
-		else  {
+		else {
 			if (g_globalvars.time >= self->fb.enemy_time) {
 				BestEnemy(self);
 			}
@@ -530,31 +526,25 @@ void ThinkTime(gedict_t* self) {
 	}
 }
 
-void BotEvadeLogic() {
+void BotEvadeLogic(gedict_t* self) {
 	self->fb.bot_evade = FALSE;
 	if (deathmatch <= 3 && !isRA()) {
-		if (numberofclients == 2) {
-			if (random() < 0.08) {
-				if ((self->s.v.origin[2] + 18) > (enemy_->s.v.absmin[2] + enemy_->s.v.view_ofs[2])) {
-					if ((int)self->s.v.items & IT_ROCKET_LAUNCHER) {
-						if (self->s.v.ammo_rockets > 4) {
-							if (!self->s.v.waterlevel) {
-								self->fb.bot_evade = (qbool) (self->s.v.health > 70) && (self->s.v.armorvalue > 100) && !enemy_visible;
-							}
-						}
+		if (isDuel() && random() < 0.08) {
+			if ((self->s.v.origin[2] + 18) > (enemy_->s.v.absmin[2] + enemy_->s.v.view_ofs[2])) {
+				if ((int)self->s.v.items & IT_ROCKET_LAUNCHER && self->s.v.ammo_rockets > 4) {
+					if (!self->s.v.waterlevel) {
+						self->fb.bot_evade = (qbool) (self->s.v.health > 70) && (self->s.v.armorvalue > 100) && !enemy_visible;
 					}
 				}
 			}
 		}
-		else if (numberofclients > 2) {
-			if (random() < 0.1) {
-				if ((self->s.v.origin[2] + 18) > (enemy_->s.v.absmin[2] + enemy_->s.v.view_ofs[2])) {
-					if (((int)self->s.v.items & IT_ROCKET_LAUNCHER) || ((int)self->s.v.items & IT_LIGHTNING)) {
-						if ((self->s.v.ammo_cells >= 20) || (self->s.v.ammo_rockets > 3)) {
-							if (!self->s.v.waterlevel) {
-								if ((self->s.v.health > 70) && (self->s.v.armorvalue > 90)) {
-									self->fb.bot_evade = (qbool) (!((int)self->s.v.items & (IT_INVULNERABILITY | IT_INVISIBILITY | IT_QUAD)));
-								}
+		else if (! isDuel() && random() < 0.1) {
+			if ((self->s.v.origin[2] + 18) > (enemy_->s.v.absmin[2] + enemy_->s.v.view_ofs[2])) {
+				if (((int)self->s.v.items & IT_ROCKET_LAUNCHER) || ((int)self->s.v.items & IT_LIGHTNING)) {
+					if ((self->s.v.ammo_cells >= 20) || (self->s.v.ammo_rockets > 3)) {
+						if (!self->s.v.waterlevel) {
+							if ((self->s.v.health > 70) && (self->s.v.armorvalue > 90)) {
+								self->fb.bot_evade = (qbool) (!((int)self->s.v.items & (IT_INVULNERABILITY | IT_INVISIBILITY | IT_QUAD)));
 							}
 						}
 					}

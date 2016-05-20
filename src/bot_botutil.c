@@ -71,47 +71,43 @@ float BestArrowForDirection(gedict_t* self, vec3_t dir_move) {
 	return best_arrow;
 }
 
-// Test if one player is visible to another.  takes into account bodies & ring
-qbool Visible_360(gedict_t* self, gedict_t* visible_object) {
-	// If the object is already dead
+// TODO: the height offset is fixed here, leading to the bot not targetting the player when they are behind barrier on povdmm4
+//       improve with VISIBILITY_LOW | NORMAL | HIGH?  
+// Test if one player is visible to another.  takes into account other entities & ring
+static qbool VisibilityTest (gedict_t* self, gedict_t* visible_object, float min_dot_product)
+{
+	vec3_t temp;
+
 	if (visible_object->s.v.takedamage) {
-		// can't see eyes unless it's attacking
-		if (g_globalvars.time < visible_object->invisible_finished) {
-			if (g_globalvars.time >= visible_object->attack_finished) {
-				return FALSE;
-			}
+		// Can only see invisible objects when they're attacking
+		if (g_globalvars.time < visible_object->invisible_finished && g_globalvars.time >= visible_object->attack_finished) {
+			return false;
 		}
 
+		// If we can draw straight line between the two...
 		traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 32, visible_object->s.v.origin[0], visible_object->s.v.origin[1], visible_object->s.v.origin[2] + 32, TRUE, self);
 		if (g_globalvars.trace_fraction == 1) {
-			return TRUE;
-		}
-	}
-	return FALSE;
-}
-
-void Visible_infront() {
-	if (visible_object->s.v.takedamage) {
-		if (g_globalvars.time < visible_object->invisible_finished) {
-			if (g_globalvars.time >= visible_object->attack_finished) {
-				enemy_visible = FALSE;
-				return;
+			if (min_dot_product == 0) {
+				return true;
 			}
-		}
-		traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 32, visible_object->s.v.origin[0], visible_object->s.v.origin[1], visible_object->s.v.origin[2] + 32, TRUE, self);
-		if (g_globalvars.trace_fraction == 1) {
-			vec3_t temp;
+
+			// Check it's sufficiently in front of the player
 			trap_makevectors(self->s.v.v_angle);
 			VectorSubtract(visible_object->s.v.origin, self->s.v.origin, temp);
 			VectorNormalize(temp);
 
-			if (DotProduct(g_globalvars.v_forward, temp) > 0.7071067) {
-				enemy_visible = TRUE;
-				return;
-			}
+			return DotProduct (g_globalvars.v_forward, temp) >= min_dot_product;
 		}
 	}
-	enemy_visible = FALSE;
+	return false;
+}
+
+qbool Visible_360(gedict_t* self, gedict_t* visible_object) {
+	return VisibilityTest (self, visible_object, 0.0f);
+}
+
+qbool Visible_infront(gedict_t* self, gedict_t* visible_object) {
+	return VisibilityTest (self, visible_object, 0.7071067f);
 }
 
 void TestTopBlock(void) {

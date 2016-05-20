@@ -411,6 +411,20 @@ typedef struct fb_entvars_s {
 	struct gedict_s* next;
 	struct gedict_s* next_load;
 	
+	// Goal evaluation
+	struct gedict_s* best_goal;
+	float best_goal_score;
+	float saved_goal_desire;                         // the desire for the current goal entity
+	float saved_respawn_time;
+	float saved_goal_time;
+	float saved_enemy_time_squared;
+	float goal_respawn_time;
+	float goal_refresh_time;
+	float goal_enemy_repel;
+	float goal_enemy_desire;
+	float best_score2;
+	float best_goal_time;
+
 	// FIXME: these set in client.qc, not currently set
 	float pitchspeed;
 	float yawspeed;
@@ -452,12 +466,6 @@ typedef struct fb_entvars_s {
 	fb_void_func_t sight_from_time;
 
 	fb_bool_func_t pickup;                           // return true if a player would pickup an item as they touch it
-	float saved_goal_desire;                         // the desire for the current goal entity
-	float saved_respawn_time;
-	float saved_goal_time;
-	float saved_enemy_time_squared;
-	float goal_respawn_time;
-	float goal_refresh_time;
 	float weapon_refresh_time;
 
 	struct gedict_s* touch_marker;

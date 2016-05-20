@@ -274,6 +274,9 @@ void health_touch()
 	if ( match_in_progress != 2 || !readytostart() )
         return;
 
+	if ( self->fb.item_touch && self->fb.item_touch (self, other) )
+		return;
+
 	if ( self->healtype == 2 )	// Megahealth?  Ignore max_health...
 	{
 		if ( other->s.v.health >= 250 )

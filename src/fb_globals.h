@@ -120,7 +120,6 @@ extern gedict_t* previous_spot;
 extern gedict_t* enemy_;
 extern gedict_t* virtual_enemy;
 extern gedict_t* look_object_;
-extern gedict_t* visible_object;
 extern gedict_t* test_enemy;
 extern gedict_t* viewport;
 extern gedict_t* non_viewport;
@@ -387,12 +386,10 @@ extern float jumpspeed;
 //extern vec3_t dir_move;
 //extern float path_score;
 extern float total_goal_time;
-extern gedict_t* goal_marker2;
 extern vec3_t self_dir;
 extern float look_score;
 extern vec3_t dir_look;
-extern gedict_t* best_goal;
-extern gedict_t* best_goal_marker;
+/*
 extern float best_goal_desire;
 extern float best_goal_time;
 extern float best_score2;
@@ -400,6 +397,7 @@ extern gedict_t* best_goal2;
 extern float goal_desire;
 extern float enemy_desire;
 extern float enemy_repel;
+*/
 extern float best_goal_score;
 extern float current_goal_time;
 extern float current_goal_time_125;
@@ -410,7 +408,6 @@ extern gedict_t* linked_marker_;
 extern vec3_t linked_marker_origin;
 extern float goal_score;
 extern float goal_score2;
-extern float goal_time2;
 extern float same_dir;
 extern float avoid;
 extern float enemy_score;
@@ -503,7 +500,7 @@ extern gedict_t* removebot_self;
 extern vec3_t start;
 extern vec3_t end;
 //extern int description;
-extern float goal_time;
+//extern float goal_time;
 //extern float path_time;
 extern float component_speed;
 extern float do_jump;
@@ -1136,7 +1133,7 @@ void AttackRespawns(void);
 void SetFireButton(gedict_t* self);
 
 // marker_util.qc
-void Visible_infront(void);
+qbool Visible_infront(gedict_t* self, gedict_t* visible_object);
 void AssignVirtualGoal (gedict_t* item);
 void AssignVirtualGoal_apply(gedict_t* marker_);
 void adjust_view_ofs_z(gedict_t* ent);
@@ -1199,7 +1196,7 @@ void map_ztndm5(void);
 float pr1_rint (float f);
 
 // 
-void BotEvadeLogic(void);
+void BotEvadeLogic(gedict_t* self);
 qbool SameTeam(gedict_t* p1, gedict_t* p2);
 
 // botstat.qc
