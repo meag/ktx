@@ -93,7 +93,7 @@ static void EvalGoal(gedict_t* self, gedict_t* goal_entity) {
 			return;
 		}
 
-		goal_entity->fb.saved_respawn_time = goal_entity->fb.goal_respawn_time + (goal_time * prediction_error_ * random()) - g_globalvars.time;
+		goal_entity->fb.saved_respawn_time = goal_entity->fb.goal_respawn_time + (goal_time * self->fb.skill.prediction_error * random()) - g_globalvars.time;
 		if (goal_time < goal_entity->fb.saved_respawn_time) {
 			goal_time = goal_entity->fb.saved_respawn_time;
 		}
@@ -229,7 +229,7 @@ void UpdateGoal() {
 	int items_ = self->s.v.items;
 
 	self->fb.goal_refresh_time = g_globalvars.time + 2 + random();
-	prediction_error_ = self->fb.prediction_error;
+	prediction_error_ = self->fb.skill.prediction_error;
 	enemy_ = &g_edicts[self->s.v.enemy];
 	enemy_touch_marker = enemy_->fb.touch_marker;
 	

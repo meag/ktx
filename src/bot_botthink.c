@@ -112,7 +112,7 @@ static void BotDodgeMovement(vec3_t dir_move) {
 			--dodge_factor;
 		}
 		trap_makevectors(self->s.v.v_angle);
-		VectorMA(dir_move, random() * self->fb.dodge_amount * dodge_factor, g_globalvars.v_right, dir_move);
+		VectorMA(dir_move, random() * self->fb.skill.dodge_amount * dodge_factor, g_globalvars.v_right, dir_move);
 	}
 }
 
@@ -221,7 +221,7 @@ static void HumanTouchMarkerLogic() {
 
 	enemy_ = &g_edicts[self->s.v.enemy];
 	touch_marker_ = self->fb.touch_marker;
-	lookahead_time_ = self->fb.lookahead_time;
+	lookahead_time_ = self->fb.skill.lookahead_time;
 	VectorCopy(self->s.v.origin, origin_);
 	goalentity_ = &g_edicts[self->s.v.goalentity];
 	if (g_globalvars.time >= self->fb.enemy_time) {
@@ -248,7 +248,7 @@ static void PeriodicAllClientLogic() {
 			enemy_ = &g_edicts[self->s.v.enemy];
 			look_object_ = self->fb.look_object;
 			touch_marker_ = self->fb.touch_marker;
-			lookahead_time_ = self->fb.lookahead_time;
+			lookahead_time_ = self->fb.skill.lookahead_time;
 			linked_marker_ = self->fb.linked_marker;
 
 			VectorCopy(self->s.v.origin, origin_);
@@ -383,9 +383,9 @@ static void BotsFireAtPlayerLogic(vec3_t rel_pos, float* rel_dist) {
 
 static void BotsFireLogic() {
 	if (g_globalvars.time >= self->fb.fire_nextthink) {
-		self->fb.fire_nextthink = self->fb.fire_nextthink + (self->fb.firing_reflex * (0.95 + (0.1 * random())));
+		self->fb.fire_nextthink = self->fb.fire_nextthink + (self->fb.skill.firing_reflex * (0.95 + (0.1 * random())));
 		if (self->fb.fire_nextthink <= g_globalvars.time) {
-			self->fb.fire_nextthink = g_globalvars.time + (self->fb.firing_reflex * (0.95 + (0.1 * random())));
+			self->fb.fire_nextthink = g_globalvars.time + (self->fb.skill.firing_reflex * (0.95 + (0.1 * random())));
 		}
 
 		look_object_ = self->fb.look_object;
@@ -463,8 +463,8 @@ static void BotsFireLogic() {
 				self->fb.desired_angle[0] = 180;
 			}
 			VectorSubtract(self->fb.desired_angle, self->s.v.v_angle, self->fb.angle_error);
-			self->fb.angle_error[0] -= (1 - self->fb.fast_aim) * (self->fb.pitchspeed * self->fb.firing_reflex);
-			self->fb.angle_error[1] -= (1 - self->fb.fast_aim) * (self->fb.yawspeed * self->fb.firing_reflex);
+			self->fb.angle_error[0] -= (1 - self->fb.skill.fast_aim) * (self->fb.pitchspeed * self->fb.skill.firing_reflex);
+			self->fb.angle_error[1] -= (1 - self->fb.skill.fast_aim) * (self->fb.yawspeed * self->fb.skill.firing_reflex);
 			if (self->fb.angle_error[1] >= 180) {
 				self->fb.angle_error[1] = self->fb.angle_error[1] - 360;
 			}
@@ -472,10 +472,10 @@ static void BotsFireLogic() {
 				self->fb.angle_error[1] = self->fb.angle_error[1] + 360;
 			}
 
-			self->fb.track_pitchspeed += self->fb.fast_aim * self->fb.angle_error[0] / self->fb.firing_reflex;
-			self->fb.track_yawspeed += self->fb.fast_aim * self->fb.angle_error[1] / self->fb.firing_reflex;
-			self->fb.pitchaccel = (1 - self->fb.fast_aim) * self->fb.angle_error[0] / self->fb.firing_reflex;
-			self->fb.yawaccel = (1 - self->fb.fast_aim) * self->fb.angle_error[1] / self->fb.firing_reflex;
+			self->fb.track_pitchspeed += self->fb.skill.fast_aim * self->fb.angle_error[0] / self->fb.skill.firing_reflex;
+			self->fb.track_yawspeed += self->fb.skill.fast_aim * self->fb.angle_error[1] / self->fb.skill.firing_reflex;
+			self->fb.pitchaccel = (1 - self->fb.skill.fast_aim) * self->fb.angle_error[0] / self->fb.skill.firing_reflex;
+			self->fb.yawaccel = (1 - self->fb.skill.fast_aim) * self->fb.angle_error[1] / self->fb.skill.firing_reflex;
 
 			if (self->fb.pitchaccel > 0) {
 				self->fb.pitchaccel = self->fb.pitchaccel + 5400;

@@ -347,6 +347,18 @@ typedef struct fb_zone_s {
 	int task;
 } fb_zone_t;
 
+typedef struct botskill_s {
+	int   skill_level;           // 0-20 as standard
+	float fast_aim;
+	float dodge_amount;
+	float lookahead_time;
+	float prediction_error;
+	float look_anywhere;
+	float stop_turn_speed;
+	float accuracy;
+	float firing_reflex;
+} botskill_t;
+
 typedef struct fb_entvars_s {
 	fb_zone_t zones[NUMBER_ZONES];
 	fb_subzone_t subzones[NUMBER_SUBZONES];
@@ -476,22 +488,14 @@ typedef struct fb_entvars_s {
 	float input_time;
 
 	// These settings dictate the 'skill' of the bot
-	int bot_skill;
-	float fast_aim;
-	float dodge_amount;
-	float lookahead_time;
-	float prediction_error;
-	float look_anywhere;
-	float stop_turn_speed;
-	float accuracy;
-	float firing_reflex;
+	botskill_t skill;
 
 	// These control the bot's next command
 	qbool firing;                         // does the bot want to attack this frame?
 	qbool jumping;                        // does the bot want to jump this frame?
 
-	vec3_t virtual_mins;
-	vec3_t virtual_maxs;
+	vec3_t virtual_mins;                  // true bounds of the object (items are markers, so size is boosted)
+	vec3_t virtual_maxs;                  // true bounds of the object
 	vec3_t dir_move_;
 	float ledge_backup_time;
 
@@ -520,16 +524,8 @@ typedef struct fb_entvars_s {
 	
 	float help_teammate_time;
 	float frogwatermove_time;
-	float kick;
-	float k_stuff;
-	float k_accepted;
-	float suicide_time;
-	float spawn_frag_time;
-	float s_frags;
-	float cprint;
-	float up_finished;
-	float botnumber;
-	float old_bot;
+	float up_finished;                          // Swimming
+	int botnumber;                              // bots[botnumber]
 	qbool rocketjumping;
 
 	// These dictate the QW command sent to mvdsv

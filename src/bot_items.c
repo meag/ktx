@@ -281,6 +281,9 @@ static qbool fb_health_touch (gedict_t* item, gedict_t* player)
 		check_marker ();
 	if (item->s.v.nextthink > g_globalvars.time)
 		return true;
+	if (NoItemTouch(item, player))
+		return true;
+
 	return false;
 }
 

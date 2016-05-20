@@ -29,7 +29,6 @@ void BotClientEntersEvent(gedict_t* self, gedict_t* spawn_pos) {
 	self->fb.jumping = FALSE;
 	self->fb.goal_refresh_time = 0;
 	self->fb.allowedMakeNoise = TRUE;
-	self->fb.spawn_frag_time = g_globalvars.time + 1;
 }
 
 // Called by client/PlayerDeathThink
@@ -156,10 +155,9 @@ static float goal_client6(gedict_t* self) {
 void BotClientConnectedEvent(gedict_t* self) {
 	self->fb.desire = (deathmatch <= 3 ? goal_client : goal_client6);
 	self->fb.T = UNREACHABLE;
-	self->fb.bot_skill = g_globalvars.parm3;
-	self->fb.k_stuff = g_globalvars.parm15;
-	self->fb.lookahead_time = 30;
-	self->fb.prediction_error = 0;
+	self->fb.skill.skill_level = g_globalvars.parm3;
+	self->fb.skill.lookahead_time = 30;
+	self->fb.skill.prediction_error = 0;
 
 	if (self->isBot) {
 		PlayerReady ();

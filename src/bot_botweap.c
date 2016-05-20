@@ -33,7 +33,7 @@ static qbool RocketSafe(void) {
 	return (self->fb.total_damage > splash_damage);
 }
 
-// When duelling, try and spawn frag.  FIXME: ar_time not set in player.qc
+// When duelling, try and spawn frag.
 void AttackRespawns(void) {
 	gedict_t* enemy_ = &g_edicts[self->s.v.enemy];
 
@@ -43,7 +43,7 @@ void AttackRespawns(void) {
 
 	if (enemy_ != world && enemy_->s.v.health < 1) {
 		if (ar_time > g_globalvars.time) {
-			if (self->fb.bot_skill >= 15) {
+			if (self->fb.skill.skill_level >= 15) {
 				if ((int)self->s.v.items & IT_ROCKET_LAUNCHER) {
 					if (self->s.v.ammo_rockets > 3) {
 						if (!self->fb.rocketjumping) {
@@ -370,7 +370,7 @@ void SetFireButton(gedict_t* self) {
 				if (self->fb.angle_error[1] < 0) {
 					self->fb.angle_error[1] = 0 - self->fb.angle_error[1];
 				}
-				min_angle_error = (1 + risk) * risk_factor * (self->fb.accuracy + (1440 / rel_dist));
+				min_angle_error = (1 + risk) * risk_factor * (self->fb.skill.accuracy + (1440 / rel_dist));
 				if (self->fb.angle_error[0] > min_angle_error) {
 					return;
 				}

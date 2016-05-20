@@ -4,30 +4,27 @@
 #include "fb_globals.h"
 
 void SetSkill();
-void LoadTemp1();
-void AddBot();
 
+// TODO: Exchange standard attributes for different bot characters/profiles
 void SetAttribs(gedict_t* self) {
-	float smartness;
-	int skill_ = self->fb.bot_skill;
+	float smartness = 10;
+	int skill_ = self->fb.skill.skill_level;
 
-	smartness = 10;
-	G_bprint (2, "skill &cf00%d&r\n", self->fb.bot_skill);
+	G_bprint (2, "skill &cf00%d&r\n", self->fb.skill.skill_level);
 	if (skill_ > 10) {
-		self->fb.fast_aim = (skill_ - 10) * 0.1;
+		self->fb.skill.fast_aim = (skill_ - 10) * 0.1;
 		skill_ = 10;
 	}
 	else  {
-		self->fb.fast_aim = 0;
+		self->fb.skill.fast_aim = 0;
 	}
-	/*
-	self->fb.firing_reflex = 0.5 - (skill_ * 0.04);
-	self->fb.accuracy = 45 - (skill_ * 2.25);
-	self->fb.stop_turn_speed = 135 + (smartness * 40.5);
-	self->fb.dodge_amount = smartness * 0.1;
-	self->fb.look_anywhere = smartness * 0.1;
-	self->fb.lookahead_time = 5 + (smartness * 2.5);
-	self->fb.prediction_error = 1 - (smartness * 0.1);*/
+	self->fb.skill.firing_reflex = 0.5 - (skill_ * 0.04);
+	self->fb.skill.accuracy = 45 - (skill_ * 2.25);
+	self->fb.skill.stop_turn_speed = 135 + (smartness * 40.5);
+	self->fb.skill.dodge_amount = smartness * 0.1;
+	self->fb.skill.look_anywhere = smartness * 0.1;
+	self->fb.skill.lookahead_time = 5 + (smartness * 2.5);
+	self->fb.skill.prediction_error = 1 - (smartness * 0.1);
 }
 
 void CalculatePhysicsVariables() {

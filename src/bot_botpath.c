@@ -416,7 +416,7 @@ void frogbot_marker_touch() {
 		self->fb.look_object = self->fb.linked_marker;
 		return;
 	}
-	if (random() < self->fb.look_anywhere) {
+	if (random() < self->fb.skill.look_anywhere) {
 		from_marker = enemy_->fb.touch_marker;
 		if (!from_marker) {
 			from_marker = goalentity_marker;

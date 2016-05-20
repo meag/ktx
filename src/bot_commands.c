@@ -2,6 +2,8 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
+void SetAttribs (gedict_t* self);
+
 #define MAX_BOTS          32
 #define MIN_FROGBOT_SKILL  0
 #define MAX_FROGBOT_SKILL 20
@@ -22,8 +24,6 @@ typedef struct bot_s {
 } bot_t;
 
 bot_t            bots[MAX_BOTS] = { 0 };
-
-void SetAttribs (gedict_t* self);
 
 static int FrogbotSkillLevel (void)
 {
@@ -53,7 +53,8 @@ static void FrogbotsAddbot(void) {
 			bots[i].entity = entity;
 			memset(&bots[i].command, 0, sizeof(bots[i].command));
 			g_edicts[entity].fb.last_cmd_sent = g_globalvars.time;
-			g_edicts[entity].fb.bot_skill = FrogbotSkillLevel();
+			g_edicts[entity].fb.skill.skill_level = FrogbotSkillLevel();
+			g_edicts[entity].fb.botnumber = i;
 			SetAttribs (&g_edicts[entity]);
 			return;
 		}

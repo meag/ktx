@@ -105,10 +105,12 @@ void PlaceItem()
 		}
 	}
 
-	//if (self->fb.item_placed) {
-	//	self->fb.item_placed (self);
-	//}
-	PlaceItemFB (self);
+	if (bots_enabled ()) {
+		//if (self->fb.item_placed) {
+		//	self->fb.item_placed (self);
+		//}
+		PlaceItemFB (self);
+	}
 }
 
 /*
@@ -151,7 +153,8 @@ void StartItem()
 	self->s.v.nextthink = g_globalvars.time + 0.2;	// items start after other solids
 	self->s.v.think = ( func_t ) PlaceItem;
 
-	BecomeMarker(self);
+	if (bots_enabled())
+		BecomeMarker(self);
 }
 
 /*
