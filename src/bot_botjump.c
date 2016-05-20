@@ -58,16 +58,18 @@ static void lava_jump(gedict_t* self) {
 	float best_distance = 1001,
 	      best_yaw = 0;
 
-	for (e = world; e = trap_findradius(e, e->s.v.origin, 1000); ) {
+	// Find closest marker... don't we have a function for this already?
+	// Note: this was bugged in .qc code, referencing entity 't'
+	for (e = world; e = trap_findradius(e, self->s.v.origin, 1000); ) {
 		if (streq(e->s.v.classname, "marker")) {
-			if (VectorDistance(t->s.v.origin, e->s.v.origin) < best_distance) {
-				best_distance = VectorDistance(t->s.v.origin, e->s.v.origin);
+			if (VectorDistance(self->s.v.origin, e->s.v.origin) < best_distance) {
+				best_distance = VectorDistance(self->s.v.origin, e->s.v.origin);
 				pt = e;
 			}
 		}
 	}
 
-	best_yaw = vectoyaw(t->s.v.origin);
+	best_yaw = vectoyaw(pt->s.v.origin);
 	self->fb.real_yaw = (360 - best_yaw);
 	self->fb.yawaccel = 0;
 	self->fb.yawspeed = 0;

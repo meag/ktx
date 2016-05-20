@@ -437,7 +437,6 @@ extern float pcount;
 extern gedict_t* thing;
 extern float numspots;
 extern float totalspots;
-extern gedict_t* t;
 extern vec3_t vec1;
 extern vec3_t vec2;
 extern vec3_t vec_;

@@ -26,7 +26,7 @@ static void BotWaitLogic(gedict_t* touch_marker_) {
 	}
 	else  {
 		// stop waiting
-		self->fb.state = self->fb.state - (self->fb.state & WAIT);
+		self->fb.state &= ~WAIT;
 	}
 }
 
@@ -70,7 +70,7 @@ static void EvalPath(fb_path_eval_t* eval) {
 		return;
 	}
 
-	if (eval->description & ROCKET_JUMP && !self->fb.willRocketJumpThisTic) {
+	if ((eval->description & ROCKET_JUMP) && !self->fb.willRocketJumpThisTic) {
 		return;
 	}
 

@@ -202,7 +202,6 @@ float pcount = 0;
 gedict_t* thing = 0;
 float numspots = 0;
 float totalspots = 0;
-gedict_t* t = 0;
 vec3_t vec1 = { 0 };
 vec3_t vec2 = { 0 };
 vec3_t vec_ = { 0 };
