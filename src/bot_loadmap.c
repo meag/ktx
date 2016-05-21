@@ -3,7 +3,7 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
-void check_marker(void);
+void check_marker (gedict_t* self, gedict_t* other);
 
 typedef struct fb_mapping_s {
 	char* name;
@@ -191,21 +191,29 @@ static void AssignVirtualGoals (void)
 	}
 }
 
-void LoadMap() {
-	int i = 0;
+qbool LoadBotRoutingFromFile (void);
 
-	for (i = 0; i < sizeof(maps) / sizeof(maps[0]); ++i) {
-		if (streq(g_globalvars.mapname, maps[i].name)) {
-			CreateItemMarkers();
-			maps[i].func();
-			AssignVirtualGoals ();
-			AllMarkersLoaded();
-			return;
+void LoadMap() {
+	// Need to do this anyway, otherwise teleporters will be broken
+	CreateItemMarkers();
+
+	// If we have a .bot file, use that
+	if (LoadBotRoutingFromFile ()) {
+		AssignVirtualGoals ();
+		AllMarkersLoaded();
+	}
+	else {
+		// Fall-back to built-in support
+		int i = 0;
+		for (i = 0; i < sizeof(maps) / sizeof(maps[0]); ++i) {
+			if (streq(g_globalvars.mapname, maps[i].name)) {
+				maps[i].func();
+				AssignVirtualGoals ();
+				AllMarkersLoaded();
+				return;
+			}
 		}
 	}
-
-	// Map not supported - fix teleports etc anyway...
-	CreateItemMarkers();
 }
 
 qbool FrogbotsCheckMapSupport (void)

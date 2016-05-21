@@ -255,9 +255,10 @@ extern float old_path_state;
 #ifndef T_NO_AIR
 #define T_NO_AIR 4
 #endif
-#ifndef SAVED_T
-#define SAVED_T 1
+#ifndef MARKER_IS_DM6_DOOR
+#define MARKER_IS_DM6_DOOR 8
 #endif
+
 #ifndef NOTARGET_ENEMY
 #define NOTARGET_ENEMY 32
 #endif
@@ -1155,7 +1156,7 @@ void UpdateGoal(void);
 void frogbot_marker_touch(void);
 
 // marker_load.qc
-void N(float x, float y, float z);
+void CreateMarker(float x, float y, float z);
 void AllMarkersLoaded(void);
 
 void SetZone(int zone_number, int marker_number);
