@@ -167,7 +167,7 @@ static void BotMoveTowardsLinkedMarker(gedict_t* self, vec3_t dir_move) {
 	normalize(temp, dir_move);
 	if (linked_marker_ == touch_marker_) {
 		if (goalentity_ == touch_marker_) {
-			if (touch_marker_->s.v.nextthink) {
+			if (touch_marker_->s.v.nextthink > g_globalvars.time) {
 				VectorClear(dir_move);
 			}
 		}

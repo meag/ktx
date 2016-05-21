@@ -134,7 +134,7 @@ void AssignVirtualGoal_apply(gedict_t* marker_) {
 	if (goal_number) {
 		gedict_t* test_goal = marker_;
 
-		if (test_goal->s.v.nextthink) {
+		if (test_goal->s.v.nextthink > g_globalvars.time) {
 			int i = 0;
 			for (i = 0; i < NUMBER_PATHS; ++i) {
 				test_goal = marker_->fb.paths[i].next_marker;

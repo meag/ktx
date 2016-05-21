@@ -83,7 +83,7 @@ static void EvalPath(fb_path_eval_t* eval) {
 	avoid = (g_globalvars.time < eval->test_marker->fb.arrow_time) || DetectIncomingRocket(marker_position);
 
 	// If we'd pickup an item as we travel, negatively impact score
-	if (beQuiet && eval->test_marker->fb.pickup && !eval->test_marker->s.v.nextthink) {
+	if (beQuiet && eval->test_marker->fb.pickup && eval->test_marker->s.v.nextthink <= g_globalvars.time) {
 		if (eval->test_marker != goalentity_marker) {
 			if (eval->test_marker->fb.pickup()) {
 				path_score = path_score - 2.5;
@@ -167,7 +167,7 @@ void frogbot_marker_touch() {
 	}
 	if (linked_marker_ == touch_marker_) {
 		if (goalentity_ == touch_marker_) {
-			if (!touch_marker_->s.v.nextthink) {
+			if (touch_marker_->s.v.nextthink <= g_globalvars.time) {
 				return;
 			}
 		}

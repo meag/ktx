@@ -114,9 +114,12 @@ static void FrogbotsDebug (void)
 
 	G_sprint (self, 2, "Bot: %s\n", bot->s.v.netname);
 	G_sprint (self, 2, "  %s: %s (%d)\n", redtext("Touch"), bot->fb.touch_marker ? bot->fb.touch_marker->s.v.classname : "(none)", bot->fb.touch_marker ? bot->fb.touch_marker->fb.index : -1);
-	G_sprint (self, 2, "  %s: %s\n", redtext("Enemy"), g_edicts[bot->s.v.enemy].s.v.netname);
+	G_sprint (self, 2, "  %s: %s\n", redtext("Enemy"), bot->s.v.enemy == 0 ? "(none)" : g_edicts[bot->s.v.enemy].s.v.netname);
 	G_sprint (self, 2, "  %s: %s\n", redtext("Looking"), bot->fb.look_object ? bot->fb.look_object->s.v.classname : "(nothing)");
 	G_sprint (self, 2, "  %s: %s\n", redtext ("VirtGoal"), bot->fb.virtual_goal ? bot->fb.virtual_goal->s.v.classname : "(nothing)");
+	G_sprint (self, 2, "  %s: %s\n", redtext ("GoalEnt"), bot->s.v.goalentity == 0 ? "(none)" : g_edicts[bot->s.v.goalentity].s.v.classname);
+
+	bot->fb.debug = true;
 }
 
 void FrogbotsCommand (void)
@@ -177,7 +180,7 @@ void BotStartFrame(int time_) {
 	FrogbotPrePhysics2 ();
 	FrogbotPostPhysics ();
 
-	for (i = 0; i < sizeof(bots) / sizeof(bots[0]); ++i) {
+	for (i = 0; i < MAX_BOTS; ++i) {
 		// meag testing...
 		//bots[i].command.angles[0] = (int)(bots[i].command.angles[0] + 1) % 360;
 
@@ -196,6 +199,7 @@ void BotStartFrame(int time_) {
 				bots[i].command.buttons,
 				bots[i].command.impulse
 			);*/
+
 		}
 	}
 }

@@ -114,7 +114,7 @@ qbool able_rj() {
 
 	// work out how much health we'll have after - factor in if we're heading towards a respawned healthbox
 	health_after = ((teamplay == 1) || (teamplay == 5) ? 100 : self->s.v.health - ceil(55 - health_after));
-	if (self->fb.linked_marker && self->fb.linked_marker->healamount > 0 && self->fb.linked_marker->s.v.nextthink == 0) {
+	if (self->fb.linked_marker && self->fb.linked_marker->healamount > 0 && self->fb.linked_marker->s.v.nextthink <= g_globalvars.time) {
 		health_after = health_after + self->fb.linked_marker->healamount;
 	}
 

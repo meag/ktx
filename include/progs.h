@@ -434,6 +434,7 @@ typedef struct fb_entvars_s {
 	float goal_refresh_time;
 	float goal_enemy_repel;
 	float goal_enemy_desire;
+	struct gedict_s* best_goal2;
 	float best_score2;
 	float best_goal_time;
 
@@ -545,6 +546,9 @@ typedef struct fb_entvars_s {
 	fb_taken_func_t     item_affect;     // called whenever an item affects a player (mega-health)
 	fb_entity_func_t    item_respawned;  // called whenever an item respawns
 	fb_entity_func_t    item_placed;     // called when item has been placed in the map
+
+	// Debugging
+	qbool               debug;           // If set, trace logic
 } fb_entvars_t;
 
 //typedef (void(*)(gedict_t *)) one_edict_func;

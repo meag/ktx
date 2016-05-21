@@ -160,15 +160,21 @@ static float goal_cells(gedict_t* self) {
 }
 
 static float goal_artifact_invulnerability(gedict_t* self) {
-	return 200 + self->fb.total_damage;
+	if (Get_Powerups())
+		return 200 + self->fb.total_damage;
+	return 0;
 }
 
 static float goal_artifact_invisibility(gedict_t* self) {
-	return 200 + self->fb.total_damage;
+	if (Get_Powerups())
+		return 200 + self->fb.total_damage;
+	return 0;
 }
 
 static float goal_artifact_super_damage(gedict_t* self) {
-	return 200 + self->fb.total_damage;
+	if (Get_Powerups())
+		return 200 + self->fb.total_damage;
+	return 0;
 }
 
 // Pickup functions (TODO)
@@ -584,7 +590,7 @@ static void fb_spawn_pent(gedict_t* ent) {
 }
 
 static void fb_spawn_biosuit(gedict_t* ent) {
-	ent->fb.desire = goal_NULL;
+	ent->fb.desire = goal_NULL; // FIXME
 	ent->fb.pickup = pickup_true;
 
 	ent->fb.item_respawned = AssignVirtualGoal;
