@@ -12,7 +12,7 @@
 
 // Goal functions
 
-void check_marker (void);
+void check_marker (gedict_t* self, gedict_t* other);
 void HazardTeleport (gedict_t* self, gedict_t* other);
 void SetMarker (gedict_t* client, gedict_t* marker);
 
@@ -278,7 +278,7 @@ static void fb_health_taken (gedict_t* item, gedict_t* player)
 static qbool fb_health_touch (gedict_t* item, gedict_t* player)
 {
 	if (marker_time)
-		check_marker ();
+		check_marker (item, player);
 	if (item->s.v.nextthink > g_globalvars.time)
 		return true;
 	if (NoItemTouch(item, player))
@@ -333,7 +333,7 @@ static qbool fb_armor_touch (gedict_t* item, gedict_t* player)
 	qbool targetting_player = player->fb.look_object && player->fb.look_object->ct == ctPlayer;
 
 	if (marker_time)
-		check_marker();
+		check_marker (item, player);
 
 	if (item->s.v.nextthink > g_globalvars.time)
 		return true;
@@ -378,7 +378,7 @@ static void fb_spawn_armor(gedict_t* ent) {
 static qbool fb_weapon_touch (gedict_t* item, gedict_t* player)
 {
 	if (marker_time)
-		check_marker();	
+		check_marker (item, player);
 	if (item->s.v.nextthink > g_globalvars.time)
 		return true;
 	if (NoItemTouch(item, player))
@@ -503,7 +503,7 @@ static void fb_spawn_lg(gedict_t* ent) {
 static qbool fb_ammo_touch (gedict_t* item, gedict_t* player)
 {
 	if (marker_time)
-		check_marker();
+		check_marker (item, player);
 	if (item->s.v.nextthink > g_globalvars.time)
 		return true;
 	if (NoItemTouch(item, player))

@@ -38,40 +38,42 @@ void spawn_marker(vec3_t org) {
 	setsize(marker_, -65, -65, -24, 65, 65, 32);
 }
 
-// FIXME: Arguments/globals
-void check_marker(void) {
+// self = item, other = player that just touched the marker
+// called even if the item is waiting to respawn
+void check_marker(gedict_t* self, gedict_t* other) {
 	vec3_t temp;
+	float distance;
 
 	if (random() < 0.25) {
 		self->fb.touchPlayer = other;
 		self->fb.touchPlayerTime = g_globalvars.time + 2.5;
 	}
 
+	// Distance from item's viewheight to player
 	VectorAdd(self->s.v.absmin, self->s.v.view_ofs, temp);
 	VectorSubtract(temp, other->s.v.origin, temp);
 	distance = vlen(temp);
+
+	// touch_distance is set to max value at start of every frame, so this will fire for multiple markers only
+	//   if it is closer than previous
 	if (distance < other->fb.touch_distance && self->s.v.absmin[2] - 20 < other->s.v.absmin[2]) {
 		if (other->fb.Z_ != self->fb.Z_) {
 			LeaveZone(other->fb.Z_, other->s.v.team, other->fb.is_strong);
-			EnterZone(self->fb.Z_, self->s.v.team, self->fb.is_strong);
+			EnterZone(self->fb.Z_, other->s.v.team, other->fb.is_strong);
 		}
 		other->fb.touch_distance = distance;
 
-		//if (other->fb.touch_marker != self) {
-			//G_bprint (2, "Set touch_marker: %d\n", self->fb.index);
-		//}
-
 		other->fb.touch_marker = self;
 		other->fb.Z_ = self->fb.Z_;
+
+		// Brute-force finding of closest marker if we don't touch another one in time
 		other->fb.touch_marker_time = g_globalvars.time + 5;
 	}
 }
 
 void marker_touch() {
-	if (marker_time) {
-		if (other->ct == ctPlayer) {
-			check_marker();
-		}
+	if (marker_time && other->ct == ctPlayer) {
+		check_marker (self, other);
 	}
 }
 

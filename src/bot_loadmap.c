@@ -111,7 +111,7 @@ static void fb_spawn_trigger_teleport (gedict_t* ent)
 static void fb_spawn_teleport_destination_touch (void)
 {
 	if (marker_time && other->ct == ctPlayer) {
-		check_marker ();
+		check_marker (self, other);
 	}
 }
 
