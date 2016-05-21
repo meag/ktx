@@ -67,6 +67,18 @@ float CountPlayers()
 	return num;
 }
 
+float CountBots (void)
+{
+	gedict_t	*p;
+	float		num = 0;
+
+	for (p = world; (p = find_plr (p)); )
+		if (p->isBot)
+			num++;
+
+	return num;
+}
+
 float CountRPlayers()
 {
 	gedict_t	*p;
