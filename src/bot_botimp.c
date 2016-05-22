@@ -73,7 +73,6 @@ void InitParameters() {
 	}
 
 	sv_accelerate = cvar("sv_accelerate");
-	sv_friction = cvar("sv_friction");
 	use_ammo = (deathmatch != 4);
 
 	available_weapons = deathmatch <= 3 ? IT_AXE_SHOTGUN : (deathmatch == 4 ? IT_ALL_BUT_GRENADE : IT_ALL);
@@ -88,24 +87,6 @@ void SetSkill() {
 
 void CheckParameters() {
 	check_parm_time = floor(g_globalvars.time) + 1;
-	/*
-	if (sv_accelerate > 10) {
-		sv_maxfriction = 10;
-	}
-	else  {
-		sv_maxfriction = sv_accelerate;
-	}
-	if (sv_friction > sv_maxfriction) {
-		cvar_fset("sv_friction", sv_maxfriction);
-	}
-	if (sv_friction != cvar("sv_friction")) {
-		sv_friction = cvar("sv_friction");
-		if (sv_friction < 0) {
-			sv_friction = 0;
-		}
-		cvar_fset("sv_friction", sv_friction);
-	}
-	*/
 }
 
 char* SetTeamNetName() {
@@ -262,33 +243,4 @@ void print_boolean(int value, char* s) {
 }
 
 void PrintRules() {
-	/*
-	sprint_fb(self, 2, "skill....... ");
-	sprint_ftos(self, 2, skill);
-	sprint_fb(self, 2, "\\deathmatch.. ");
-	sprint_ftos(self, 2, deathmatch);
-	sprint_fb(self, 2, "\\teamplay.... ");
-	sprint_ftos(self, 2, teamplay);
-	sprint_fb(self, 2, "\\");
-	a_rulesfix();
-	print_boolean(GAME_ENABLE_POWERUPS, "��������.... ");
-	print_boolean(GAME_ENABLE_RUNES, "����........ ");
-	print_boolean(GAME_RUNE_RJ, "�������..... ");
-	print_boolean(GAME_MATCH, "�����....... ");
-	print_boolean(GAME_HIDE_RULES, "����........ ");
-	print_boolean(GAME_ENABLE_AUTOREPORT, "����������.. ");
-	print_boolean(GAME_ENABLE_DROPWEAP, "��������.... ");
-	print_boolean(GAME_ENABLE_AUTOSTEAMS, "����������.. ");
-	a_boolean();
-	sprint_fb(self, 2, "\\");
-	if (sv_accelerate != 10) {
-		sprint_fb(self, 2, "sv_accelerate is ");
-		sprint_ftos(self, 2, sv_accelerate);
-		sprint_fb(self, 2, "\\");
-	}
-	if (sv_friction != 4) {
-		sprint_fb(self, 2, "sv_friction is ");
-		sprint_ftos(self, 2, sv_friction);
-		sprint_fb(self, 2, "\\");
-	}*/
 }

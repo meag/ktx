@@ -357,6 +357,9 @@ typedef struct botskill_s {
 	float stop_turn_speed;
 	float accuracy;
 	float firing_reflex;
+
+	float lg_preference;          // 0...1  previously game-wide, look to use LG when possible
+	float rl_preference;          // 0...1  previously game-wide, look to use RL when possible
 } botskill_t;
 
 typedef struct fb_entvars_s {

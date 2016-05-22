@@ -287,27 +287,27 @@ static qbool PredictSpot(gedict_t* self, gedict_t* enemy_, vec3_t testplace, flo
 	VectorCopy(testplace, self->s.v.origin);
 	self->s.v.flags = FL_ONGROUND_PARTIALGROUND;
 	if (walkmove(self, 0, 0)) {
-		if (!(droptofloor(self))) {
+		if (! droptofloor(self)) {
 			self = fallspot_self;
 			testplace[2] = testplace[2] - 400 * (rel_time * rel_time) - 38;
-			return FALSE;
+			return false;
 		}
+
 		if (self->s.v.origin[2] < fallheight) {
 			self = fallspot_self;
 			testplace[2] = testplace[2] - 400 * (rel_time * rel_time) - 38;
-			return FALSE;
+			return false;
 		}
 		self = fallspot_self;
-		return TRUE;
+		return true;
 	}
 	self = fallspot_self;
 	VectorCopy(enemy_->s.v.origin, testplace);
-	return FALSE;
+	return false;
 }
 
 static void PredictEnemyLocationInFuture(gedict_t* enemy, float rel_time) {
 	vec3_t testplace;
-	qbool predict_spot;
 
 	enemy_->fb.oldsolid = enemy_->s.v.solid;
 	enemy_->s.v.solid = SOLID_NOT;
@@ -315,12 +315,10 @@ static void PredictEnemyLocationInFuture(gedict_t* enemy, float rel_time) {
 	VectorMA(enemy_->s.v.origin, rel_time, enemy_->s.v.velocity, testplace);
 	testplace[2] += 36;
 
-	predict_spot = PredictSpot(self, enemy_, testplace, rel_time);
-
-	if (predict_spot) {
+	if (PredictSpot(self, enemy_, testplace, rel_time)) {
 		VectorCopy(dropper->s.v.origin, self->fb.predict_origin);
 	}
-	else  {
+	else {
 		VectorSubtract(self->fb.predict_origin, enemy_->s.v.origin, dir_forward);
 		dir_forward[2] = 0;
 		if ((vlen(dir_forward) > half_sv_maxspeed) || (DotProduct(dir_forward, enemy_->s.v.velocity) <= 0)) {

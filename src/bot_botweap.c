@@ -383,7 +383,7 @@ void SetFireButton(gedict_t* self) {
 	}
 }
 
-static int DesiredWeapon() {
+static int DesiredWeapon(void) {
 	int items_ = self->s.v.items;
 	qbool shaft_available = false;
 	qbool avoid_rockets = false;
@@ -405,7 +405,8 @@ static int DesiredWeapon() {
 		}
 	}
 
-	if (game_rl_pref || fb_lg_disabled()) {
+	// When to always use RL
+	if (self->fb.skill.rl_preference >= random() || fb_lg_disabled()) {
 		if (items_ & IT_ROCKET_LAUNCHER) {
 			if (self->s.v.ammo_rockets) {
 				if (RocketSafe()) {
@@ -416,8 +417,7 @@ static int DesiredWeapon() {
 		}
 	}
 
-	shaft_available = false;
-	if (game_lg_pref && !fb_lg_disabled()) {
+	if (self->fb.skill.lg_preference >= random() && !fb_lg_disabled()) {
 		if ((self->s.v.waterlevel <= 1) || ((int)self->s.v.items & IT_INVULNERABILITY)) {
 			if ((items_ & IT_LIGHTNING) && self->s.v.ammo_cells) {
 				if (self->fb.enemy_dist <= 600) {
@@ -524,7 +524,7 @@ static int DesiredWeapon() {
 	return IT_AXE;
 }
 
-void SelectWeapon() {
+void SelectWeapon(void) {
 	if (self->fb.path_state & DM6_DOOR) {
 		return;
 	}
