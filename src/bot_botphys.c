@@ -106,9 +106,10 @@ void VelocityForArrow(gedict_t* self) {
 							accel_forward = 0;
 						}
 					}*/
+					// TODO: this is wrong, set the command instead
 					//VectorMA(self->s.v.velocity, accel_forward, dir_forward, self->s.v.velocity);
-					//VectorMA(self->s.v.velocity, accel_forward, dir_forward, self->fb.real_direction);
-					VectorCopy (dir_forward, self->fb.real_direction);
+					//VectorCopy (dir_forward, self->fb.real_direction);
+					VectorMA(self->fb.real_direction, accel_forward, dir_forward, self->fb.real_direction);
 					return;
 				}
 			}
@@ -136,7 +137,7 @@ void VelocityForArrow(gedict_t* self) {
 			}
 		}
 	}
-	else  {
+	else {
 		trap_makevectors(self->s.v.v_angle);
 		if (arrow_ & FORWARD) {
 			if (arrow_ == FORWARD) {
@@ -191,6 +192,7 @@ void VelocityForArrow(gedict_t* self) {
 			}
 			current_maxspeed = sv_maxstrafespeed;
 		}
+
 		if (self->s.v.waterlevel <= 1) {
 			dir_forward[2] = 0;
 			VectorNormalize(dir_forward);
@@ -214,27 +216,21 @@ void VelocityForArrow(gedict_t* self) {
 	}
 	accel_forward = sv_accelerate_frametime * current_maxspeed;
 	velocity_forward = DotProduct(self->s.v.velocity, dir_forward);
-	if (!((int)self->s.v.flags & FL_ONGROUND)) {
-		if (self->s.v.waterlevel <= 1) {
-			if (current_maxspeed > 30) {
-				current_maxspeed = 30;
-			}
-		}
+	if (!((int)self->s.v.flags & FL_ONGROUND) && self->s.v.waterlevel <= 1) {
+		current_maxspeed = min(current_maxspeed, 30);
 	}
 	if ((velocity_forward + accel_forward) > (current_maxspeed)) {
-		accel_forward = current_maxspeed - velocity_forward;
-		if (accel_forward < 0) {
-			accel_forward = 0;
-		}
+		accel_forward = max(0, current_maxspeed - velocity_forward);
 	}
 
 	// TODO: this is wrong, set the command instead
 	//VectorMA(self->s.v.velocity, accel_forward, dir_forward, self->s.v.velocity);
-	VectorCopy (dir_forward, self->fb.real_direction);
+	//VectorCopy (dir_forward, self->fb.real_direction);
+	VectorMA(self->fb.real_direction, accel_forward, dir_forward, self->fb.real_direction);
 }
 
 void FrogbotPrePhysics1(void) {
-	// Set all players to non-solid so we can avoid rockets easier
+	// Set all players to non-solid so we can avoid hazards
 	if (hazard_time) {
 		for (self = world; self = find_plr(self); ) {
 			self->fb.oldsolid = self->s.v.solid;
@@ -255,7 +251,7 @@ void FrogbotPrePhysics1(void) {
 
 	// Re-instate client entity types
 	if (hazard_time) {
-		for (self = find_plr(world); self; self = find_plr(self)) {
+		for (self = world; self = find_plr(self); ) {
 			self->s.v.solid = self->fb.oldsolid;
 		}
 	}
