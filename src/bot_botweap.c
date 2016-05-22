@@ -109,20 +109,42 @@ static qbool ShotForLuck(vec3_t object) {
 	return (g_globalvars.trace_fraction == 1);
 }
 
+// FIXME: 
+// Frogbots take into account the distance they've had to snap to look at the player, and won't fire if distance
+//   is too high, compared to skill.accuracy
+static void SetFireButtonBasedOnAngles (gedict_t* self, float risk, float risk_factor, float rel_dist)
+{
+	float min_angle_error;
+	int i;
+
+	VectorSubtract(self->fb.desired_angle, self->s.v.v_angle, self->fb.angle_error);
+
+	for (i = 0; i < 2; ++i) {
+		if (self->fb.angle_error[i] >= 180)
+			self->fb.angle_error[i] -= 360;
+		else if (self->fb.angle_error[i] < -180)
+			self->fb.angle_error[i] += 360;
+
+		self->fb.angle_error[i] = fabs (self->fb.angle_error[i]);
+	}
+
+	min_angle_error = (1 + risk) * risk_factor * (self->fb.skill.accuracy + (1440 / rel_dist));
+	self->fb.firing |= (self->fb.angle_error[0] <= min_angle_error && self->fb.angle_error[1] <= min_angle_error);
+}
+
 void SetFireButton(gedict_t* self) {
-	/*
-	if (match_in_progress != 2) {
-		if (! match_in_progress) {
-			if ((g_globalvars.time + random()) < enemy_->attack_finished) {
-				self->fb.firing = false;
-				return;
-			}
-		}
-		else  {
-			self->fb.firing = false;
-			return;
-		}
-	}*/
+	// Only fire in pre-war if enemy attacked us
+	if (match_in_progress == 0 && (g_globalvars.time + random()) < enemy_->attack_finished) {
+		self->fb.firing = false;
+		return;
+	}
+
+	// Countdown, never fire
+	if (match_in_progress == 1) {
+		self->fb.firing = false;
+		return;
+	}
+
 	if (self->fb.firing) {
 		if (look_object_ == enemy_) {
 			if (random() < 0.666667) {
@@ -131,6 +153,7 @@ void SetFireButton(gedict_t* self) {
 				}
 			}
 		}
+
 		if (!self->fb.rocketjumping) {
 			self->fb.firing = false;
 		}
@@ -357,27 +380,7 @@ void SetFireButton(gedict_t* self) {
 					return;
 				}
 
-				VectorSubtract(self->fb.desired_angle, self->s.v.v_angle, self->fb.angle_error);
-				if (self->fb.angle_error[1] >= 180) {
-					self->fb.angle_error[1] -= 360;
-				}
-				else if (self->fb.angle_error[1] < -180) {
-					self->fb.angle_error[1] += 360;
-				}
-				if (self->fb.angle_error[0] < 0) {
-					self->fb.angle_error[0] = 0 - self->fb.angle_error[0];
-				}
-				if (self->fb.angle_error[1] < 0) {
-					self->fb.angle_error[1] = 0 - self->fb.angle_error[1];
-				}
-				min_angle_error = (1 + risk) * risk_factor * (self->fb.skill.accuracy + (1440 / rel_dist));
-				if (self->fb.angle_error[0] > min_angle_error) {
-					return;
-				}
-				if (self->fb.angle_error[1] > min_angle_error) {
-					return;
-				}
-				self->fb.firing = true;
+				SetFireButtonBasedOnAngles (self, risk, risk_factor, rel_dist);
 			}
 		}
 	}

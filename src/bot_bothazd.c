@@ -3,8 +3,21 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
-// A lot of this is the bot cheating?..
-void AvoidEdge();
+// A lot of this is the bot 'cheating'?..
+
+// 
+static void AvoidEdge() {
+	VectorCopy(oldvelocity_, dir_forward);
+	dir_forward[2] = 0;
+	if (dir_forward[0] || dir_forward[1] || dir_forward[2]) {
+		vec3_t dir_move;
+		oldvelocity_[0] = oldvelocity_[1] = 0;  // lavacheat always enabled
+		VectorScale(dir_forward, -1, dir_move);
+		NewVelocityForArrow(self, dir_move);
+		self->fb.arrow_time2 = self->fb.arrow_time;
+	}
+}
+
 
 void HazardTeleport(gedict_t* self, gedict_t* other) {
 	gedict_t* plr;
@@ -541,19 +554,6 @@ void AvoidHazards() {
 		}
 	}
 }
-
-void AvoidEdge() {
-	VectorCopy(oldvelocity_, dir_forward);
-	dir_forward[2] = 0;
-	if (dir_forward[0] || dir_forward[1] || dir_forward[2]) {
-		vec3_t dir_move;
-		oldvelocity_[0] = oldvelocity_[1] = 0;  // lavacheat always enabled
-		VectorScale(dir_forward, -1, dir_move);
-		NewVelocityForArrow(self, dir_move);
-		self->fb.arrow_time2 = self->fb.arrow_time;
-	}
-}
-
 
 
 // Called after a grenade has been spawned

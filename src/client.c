@@ -3236,9 +3236,10 @@ void PlayerPostThink()
 
 	mv_record();
 
-	W_WeaponFrame();
+	if ( bots_enabled() )
+		ThinkTime (self);
 
-	ThinkTime (self);
+	W_WeaponFrame();
 
 	if ( isRACE() )
 	{
