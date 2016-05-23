@@ -405,7 +405,7 @@ typedef struct fb_entvars_s {
 	float desire_nails;
 	float desire_shells;
 
-	int state;                              // WAIT | RUNAWAY | NOTARGET_ENEMY | HELP_TEAMMATE | STATE_BOTTOM (doors)
+	int state;                              // WAIT | RUNAWAY | NOTARGET_ENEMY | HELP_TEAMMATE | STATE_BOTTOM (doors) | SHOT_FOR_LUCK
 	int camp_state;                         // CAMPBOT
 	float arrow;
 	float wasinwater;

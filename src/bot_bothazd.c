@@ -6,7 +6,7 @@
 // A lot of this is the bot 'cheating'?..
 
 // 
-static void AvoidEdge() {
+static void AvoidEdge(void) {
 	VectorCopy(oldvelocity_, dir_forward);
 	dir_forward[2] = 0;
 	if (dir_forward[0] || dir_forward[1] || dir_forward[2]) {

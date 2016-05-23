@@ -87,7 +87,7 @@ void AttackRespawns(void) {
 	}
 }
 
-void CheckNewWeapon(int desired_weapon) {
+qbool CheckNewWeapon(int desired_weapon) {
 	int weapons[] = { 
 		IT_AXE, IT_SHOTGUN, IT_SUPER_SHOTGUN, IT_NAILGUN, IT_SUPER_NAILGUN, IT_GRENADE_LAUNCHER, IT_ROCKET_LAUNCHER, IT_LIGHTNING
 	};
@@ -98,9 +98,12 @@ void CheckNewWeapon(int desired_weapon) {
 			if (weapons[i] == desired_weapon) {
 				self->fb.botchose = true;
 				self->fb.next_impulse = i + 1;
+				return true;
 			}
 		}
 	}
+
+	return false;
 }
 
 static qbool ShotForLuck(vec3_t object) {
@@ -130,6 +133,176 @@ static void SetFireButtonBasedOnAngles (gedict_t* self, float risk, float risk_f
 
 	min_angle_error = (1 + risk) * risk_factor * (self->fb.skill.accuracy + (1440 / rel_dist));
 	self->fb.firing |= (self->fb.angle_error[0] <= min_angle_error && self->fb.angle_error[1] <= min_angle_error);
+}
+
+// FIXME: should just be avoiding bore anyway?
+// FIXME: take strength of player & enemy into account, player might survive quad splashdamage, to enemy weapon
+static void AvoidQuadBore (gedict_t* self)
+{
+	qbool has_quad = (int)self->s.v.items & IT_QUAD;
+	qbool has_pent = (int)self->s.v.items & IT_INVULNERABILITY;
+	qbool could_explode = (self->s.v.weapon == IT_ROCKET_LAUNCHER) || (self->s.v.weapon == IT_GRENADE_LAUNCHER);
+	qbool could_hurt_self = could_explode && !has_pent && teamplay != 1 && teamplay != 5;
+
+	if (!has_quad || !could_hurt_self)
+		return;
+
+	if (self->fb.look_object == enemy_ && self->fb.enemy_dist <= 250) {
+		// Enemy is too close for explosion, fire something else instead.
+		int items_ = (int) self->s.v.items;
+		int desired_weapon = IT_AXE;
+
+		if ((items_ & IT_LIGHTNING) && (self->s.v.ammo_cells)) {
+			desired_weapon = IT_LIGHTNING;
+		}
+		else if ((items_ & IT_SUPER_NAILGUN) && (self->s.v.ammo_nails)) {
+			desired_weapon = IT_SUPER_NAILGUN;
+		}
+		else if ((items_ & IT_NAILGUN) && (self->s.v.ammo_nails)) {
+			desired_weapon = IT_NAILGUN;
+		}
+		else if ((items_ & IT_SUPER_SHOTGUN) && (self->s.v.ammo_shells)) {
+			desired_weapon = IT_SUPER_SHOTGUN;
+		}
+		else if (self->s.v.ammo_shells) {
+			desired_weapon = IT_SHOTGUN;
+		}
+		
+		self->fb.firing |= CheckNewWeapon( desired_weapon );
+	}
+}
+
+// FIXME: Interesting... if a marker is the look object then it wouldn't explode on that?
+static void SpamRocketShot (gedict_t* self)
+{
+	qbool has_rl = ((int)self->s.v.items & IT_ROCKET_LAUNCHER) && self->s.v.ammo_rockets > 3;
+	qbool safe_to_fire = !visible_teammate (self) && self->fb.allowedMakeNoise;
+    
+	if (self->fb.rocketjumping)
+		return;
+
+	if (!has_rl || !safe_to_fire)
+		return;
+
+	if (self->fb.look_object) {
+		// dist_sfl = threshold distance before attempting shot for luck
+		float dist_sfl = ((int)self->s.v.items & IT_QUAD) ? 300.0f : 250.0f;
+
+		// rel_dist = distance between player and the item they're about to fire at
+		VectorAdd(self->fb.look_object->s.v.absmin, self->fb.look_object->s.v.view_ofs, testplace);
+		VectorSubtract(testplace, self->s.v.origin, rel_pos);
+		rel_dist = vlen(rel_pos);
+
+		if (rel_dist > dist_sfl && ShotForLuck(testplace)) {
+			// FIXME: This uses distance to enemy, not to testplace (?)
+			if (RocketSafe()) {
+				// FIXME: Aim lower?  This looks like copy & paste from BotsFireLogic()
+				//        Why self->origin + rel_pos when rel_pos = testplace - origin, why not just testplace?
+				traceline(
+					origin_[0], origin_[1], origin_[2] + 16, 
+					self->s.v.origin[0] + rel_pos[0], 
+					self->s.v.origin[1] + rel_pos[1], 
+					self->s.v.origin[2] + rel_pos[2] - 22, 
+					TRUE, self);
+				if (g_globalvars.trace_fraction == 1) {
+					rel_pos[2] = rel_pos[2] - 38;
+				}
+				self->fb.state |= SHOT_FOR_LUCK;
+				self->fb.botchose = 1;
+				self->fb.next_impulse = 7;
+				self->fb.firing = true;
+			}
+			else {
+				self->fb.state &= ~SHOT_FOR_LUCK;
+			}
+		}
+	}
+}
+
+static void RocketLauncherShot (gedict_t* self, float risk)
+{
+	float hit_radius = 160;
+	vec3_t rocket_origin;     // where the rocket will be spawned from
+	vec3_t rocket_endpos;     // where it will explode
+
+	// 
+	VectorCopy(self->s.v.origin, rocket_origin);
+	rocket_origin[2] += 16;
+	trap_makevectors(self->s.v.v_angle);      // FIXME: desired angle?  will be one frame behind
+	traceline(rocket_origin[0], rocket_origin[1], rocket_origin[2], rocket_origin[0] + (g_globalvars.v_forward[0] * 600), rocket_origin[1] + (g_globalvars.v_forward[1] * 600), rocket_origin[2] + (g_globalvars.v_forward[2] * 600), FALSE, self);
+	VectorCopy(g_globalvars.trace_endpos, rocket_endpos);
+	risk_strength = g_globalvars.trace_fraction;
+
+	for (test_enemy = world; test_enemy = find_plr (test_enemy); ) {
+		// Ignore corpses
+		if (!test_enemy->s.v.takedamage)
+			continue;
+
+		if (test_enemy == enemy_) {
+			predict_dist = 1000000;
+			if (look_object_ && look_object_->ct == ctPlayer) {
+				if (look_object_ == enemy_) {
+					VectorCopy(self->fb.predict_origin, testplace);
+					predict_dist = VectorDistance(testplace, rocket_endpos);
+				}
+			}
+			else if (look_object_ && look_object_ != world) {
+				if (self->fb.allowedMakeNoise && self->fb.predict_shoot) {
+					VectorAdd(look_object_->s.v.absmin, look_object_->s.v.view_ofs, testplace);
+					from_marker = enemy_->fb.touch_marker;
+					path_normal = TRUE;
+					look_object_->fb.zone_marker();
+					look_object_->fb.sub_arrival_time();
+					predict_dist = (traveltime * sv_maxspeed) + VectorDistance(testplace, rocket_endpos);
+				}
+			}
+		}
+		else {
+			VectorCopy(test_enemy->s.v.origin, testplace);
+			predict_dist = VectorDistance(testplace, rocket_endpos);
+		}
+
+		if (predict_dist <= (hit_radius / (1 - risk))) {
+			// See if the explosion would hurt that player
+			traceline(rocket_endpos[0], rocket_endpos[1], rocket_endpos[2], testplace[0], testplace[1], testplace[2], TRUE, self);
+			if (g_globalvars.trace_fraction == 1) {
+				// Nothing blocking the explosion...
+				if ( ! SameTeam(test_enemy, self)) {
+					// Enemy
+					risk_factor = risk_factor / risk_strength;
+					if (self->fb.look_object == enemy_) {
+						self->fb.firing = true;
+					}
+					else if (predict_dist <= (80 / (1.2 - risk))) {
+						self->fb.firing = true;
+					}
+					else {
+						SpamRocketShot (self);
+
+						if ((int)self->s.v.items & IT_GRENADE_LAUNCHER) {
+							if (enemy_ && enemy_ != world && !self->fb.rocketjumping) {
+								if (self->fb.allowedMakeNoise && self->s.v.ammo_rockets > 3 && !visible_teammate(self)) {
+									if (self->fb.arrow == BACK) {
+										self->fb.botchose = 1;
+										self->fb.next_impulse = 6;
+										self->fb.firing = true;
+									}
+								}
+							}
+						}
+					}
+				}
+				else  {
+					if (test_enemy != self) {
+						return;
+					}
+					else {
+						risk_factor = risk_factor * risk_strength;
+					}
+				}
+			}
+		}
+	}
 }
 
 void SetFireButton(gedict_t* self) {
@@ -165,6 +338,7 @@ void SetFireButton(gedict_t* self) {
 	if (self->fb.next_impulse) {
 		return;
 	}
+
 	if (! SameTeam(look_object_, self)) {
 		DM6SelectWeaponToOpenDoor (self);
 
@@ -177,209 +351,55 @@ void SetFireButton(gedict_t* self) {
 			return;
 		}
 
-		if (enemy_) {
-			if (enemy_->fb.touch_marker) {
-				traceline(origin_[0], origin_[1], origin_[2] + 16, origin_[0] + rel_pos[0], origin_[1] + rel_pos[1], origin_[2] + rel_pos[2] + 16, FALSE, self);
-				if (g_globalvars.trace_fraction == 1) {
-					if (self->s.v.weapon != IT_ROCKET_LAUNCHER && look_object_ != enemy_) {
-						return;
-					}
-				}
-				else if (PROG_TO_EDICT(g_globalvars.trace_ent) != look_object_) {
-					gedict_t* traced = PROG_TO_EDICT(g_globalvars.trace_ent);
-					if (traced->ct == ctPlayer) {
-						if (!SameTeam(traced, self)) {
-							if (!((int)self->s.v.flags & FL_WATERJUMP)) {
-								self->s.v.enemy = NUM_FOR_EDICT( traced );
-								enemy_ = traced;
-								LookEnemy(self, enemy_);
-							}
-						}
-						return;
-					}
-					else {
-						if (look_object_ == enemy_) {
-							if (!self->s.v.waterlevel) {
-								if (self->fb.allowedMakeNoise) {
-									if ((int)self->s.v.flags & FL_ONGROUND) {
-										traceline(origin_[0], origin_[1], origin_[2] + 32, origin_[0] + rel_pos[0], origin_[1] + rel_pos[1], origin_[2] + rel_pos[2] + 32 , FALSE, self);
-										self->fb.jumping |= (g_globalvars.trace_fraction == 1);
-									}
-								}
-							}
-						}
-						return;
-					}
-				}
-
-				// Deal with bot deciding to discharge elsewhere
-				if (self->s.v.weapon == IT_LIGHTNING && self->s.v.waterlevel > 1) {
+		if (enemy_ && enemy_->fb.touch_marker) {
+			traceline(origin_[0], origin_[1], origin_[2] + 16, origin_[0] + rel_pos[0], origin_[1] + rel_pos[1], origin_[2] + rel_pos[2] + 16, FALSE, self);
+			if (g_globalvars.trace_fraction == 1) {
+				if (self->s.v.weapon != IT_ROCKET_LAUNCHER && look_object_ != enemy_) {
 					return;
 				}
-
-				risk_factor = 0.5;
-				risk = random();
-				risk = risk * risk;
-				if ((int)self->s.v.items & IT_QUAD) {
-					if (teamplay != 1 && teamplay != 5) {
-						if (!((int)self->s.v.items & IT_INVULNERABILITY)) {
-							if ((self->s.v.weapon == IT_ROCKET_LAUNCHER) || (self->s.v.weapon == IT_GRENADE_LAUNCHER)) {
-								if (self->fb.look_object == enemy_) {
-									if (self->fb.enemy_dist <= 250) {
-										// Enemy is too close for explosion, fire something else instead.
-										int items_ = (int) self->s.v.items;
-										int desired_weapon = 0;
-										if ((items_ & IT_LIGHTNING) && (self->s.v.ammo_cells)) {
-											desired_weapon = IT_LIGHTNING;
-										}
-										else if ((items_ & IT_SUPER_NAILGUN) && (self->s.v.ammo_nails)) {
-											desired_weapon = IT_SUPER_NAILGUN;
-										}
-										else if ((items_ & IT_NAILGUN) && (self->s.v.ammo_nails)) {
-											desired_weapon = IT_NAILGUN;
-										}
-										else if ((items_ & IT_SUPER_SHOTGUN) && (self->s.v.ammo_shells)) {
-											desired_weapon = IT_SUPER_SHOTGUN;
-										}
-										else if (self->s.v.ammo_shells) {
-											desired_weapon = IT_SHOTGUN;
-										}
-										CheckNewWeapon( desired_weapon );
-										if (self->s.v.weapon == desired_weapon) {
-											self->fb.firing = true;
-										}
-									}
-								}
-							}
+			}
+			else if (PROG_TO_EDICT(g_globalvars.trace_ent) != look_object_) {
+				gedict_t* traced = PROG_TO_EDICT(g_globalvars.trace_ent);
+				if (traced->ct == ctPlayer) {
+					if (!SameTeam(traced, self)) {
+						if (!((int)self->s.v.flags & FL_WATERJUMP)) {
+							self->s.v.enemy = NUM_FOR_EDICT( traced );
+							enemy_ = traced;
+							LookEnemy(self, enemy_);
 						}
 					}
+					return;
 				}
-
-				if (self->s.v.weapon == IT_ROCKET_LAUNCHER) {
-					hit_radius = 160;
-					VectorCopy(origin_, rocket_origin);
-					rocket_origin[2] += 16;
-					trap_makevectors(self->s.v.v_angle);
-					traceline(rocket_origin[0], rocket_origin[1], rocket_origin[2], rocket_origin[0] + (g_globalvars.v_forward[0] * 600), rocket_origin[1] + (g_globalvars.v_forward[1] * 600), rocket_origin[2] + (g_globalvars.v_forward[2] * 600), FALSE, self);
-					VectorCopy(g_globalvars.trace_endpos, rocket_endpos);
-					risk_strength = g_globalvars.trace_fraction;
-
-					for (test_enemy = world; test_enemy = find_plr (test_enemy); ) {
-						if (test_enemy->s.v.takedamage) {
-							if (test_enemy == enemy_) {
-								predict_dist = 1000000;
-								if (look_object_->ct == ctPlayer) {
-									if (look_object_ == enemy_) {
-										VectorCopy(self->fb.predict_origin, testplace);
-										predict_dist = VectorDistance(testplace, rocket_endpos);
-									}
-								}
-								else if (look_object_) {
-									if (self->fb.allowedMakeNoise) {
-										if (self->fb.predict_shoot) {
-											VectorAdd(look_object_->s.v.absmin, look_object_->s.v.view_ofs, testplace);
-											from_marker = enemy_->fb.touch_marker;
-											path_normal = TRUE;
-											look_object_->fb.zone_marker();
-											look_object_->fb.sub_arrival_time();
-											predict_dist = (traveltime * sv_maxspeed) + VectorDistance(testplace, rocket_endpos);
-										}
-									}
-								}
-							}
-							else  {
-								VectorCopy(test_enemy->s.v.origin, testplace);
-								predict_dist = VectorDistance(testplace, rocket_endpos);
-							}
-							if (predict_dist <= (hit_radius / (1 - risk))) {
-								traceline(rocket_endpos[0], rocket_endpos[1], rocket_endpos[2], testplace[0], testplace[1], testplace[2], TRUE, self);
-								if (g_globalvars.trace_fraction == 1) {
-									if ( ! SameTeam(test_enemy, self)) {
-										risk_factor = risk_factor / risk_strength;
-										if (self->fb.look_object == enemy_) {
-											self->fb.firing = true;
-										}
-										else if (predict_dist <= (80 / (1.2 - risk))) {
-											self->fb.firing = true;
-										}
-										else  {
-											if ((int)self->s.v.items & IT_ROCKET_LAUNCHER) {
-												if (!self->fb.lines) {
-													if (self->fb.look_object) {
-														float dist_sfl = ((int)self->s.v.items & IT_QUAD) ? 300.0f : 250.0f;
-
-														VectorAdd(self->fb.look_object->s.v.absmin, self->fb.look_object->s.v.view_ofs, testplace);
-														VectorSubtract(testplace, self->s.v.origin, rel_pos);
-														rel_dist = vlen(rel_pos);
-														if (self->s.v.ammo_rockets > 3) {
-															if (!visible_teammate(self)) {
-																if (!self->fb.rocketjumping) {
-																	if (self->fb.allowedMakeNoise) {
-																		if (rel_dist > dist_sfl) {
-																			if (ShotForLuck(testplace)) {
-																				if (RocketSafe()) {
-																					traceline(
-																						origin_[0], origin_[1], origin_[2] + 16, 
-																						self->s.v.origin[0] + rel_pos[0], 
-																						self->s.v.origin[1] + rel_pos[1], 
-																						self->s.v.origin[2] + rel_pos[2] - 22, 
-																						TRUE, self);
-																					if (g_globalvars.trace_fraction == 1) {
-																						rel_pos[2] = rel_pos[2] - 38;
-																					}
-																					self->fb.state |= SHOT_FOR_LUCK;
-																					self->fb.botchose = 1;
-																					self->fb.next_impulse = 7;
-																					self->fb.firing = true;
-																				}
-																				else  {
-																					self->fb.state = self->fb.state - (self->fb.state & SHOT_FOR_LUCK);
-																				}
-																			}
-																		}
-																	}
-																}
-															}
-														}
-													}
-												}
-											}
-											if ((int)self->s.v.items & IT_GRENADE_LAUNCHER) {
-												if (!self->fb.lines) {
-													if (enemy_) {
-														if (!self->fb.rocketjumping) {
-															if (self->fb.allowedMakeNoise) {
-																if (self->s.v.ammo_rockets > 3) {
-																	if (!visible_teammate(self)) {
-																		if (self->fb.arrow == BACK) {
-																			self->fb.botchose = 1;
-																			self->fb.next_impulse = 6;
-																			self->fb.firing = true;
-																		}
-																	}
-																}
-															}
-														}
-													}
-												}
-											}
-										}
-									}
-									else  {
-										if (test_enemy != self) {
-											return;
-										}
-										else  {
-											risk_factor = risk_factor * risk_strength;
-										}
-									}
+				else {
+					if (look_object_ == enemy_) {
+						if (!self->s.v.waterlevel) {
+							if (self->fb.allowedMakeNoise) {
+								if ((int)self->s.v.flags & FL_ONGROUND) {
+									traceline(origin_[0], origin_[1], origin_[2] + 32, origin_[0] + rel_pos[0], origin_[1] + rel_pos[1], origin_[2] + rel_pos[2] + 32 , FALSE, self);
+									self->fb.jumping |= (g_globalvars.trace_fraction == 1);
 								}
 							}
 						}
 					}
 					return;
 				}
+			}
 
+			// Deal with bot deciding to discharge elsewhere
+			if (self->s.v.weapon == IT_LIGHTNING && self->s.v.waterlevel > 1) {
+				return;
+			}
+
+			risk_factor = 0.5;
+			risk = random();
+			risk = risk * risk;
+
+			AvoidQuadBore (self);
+
+			if (self->s.v.weapon == IT_ROCKET_LAUNCHER) {
+				RocketLauncherShot (self, risk);
+			}
+			else {
 				SetFireButtonBasedOnAngles (self, risk, risk_factor, rel_dist);
 			}
 		}

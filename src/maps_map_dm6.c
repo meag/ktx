@@ -5,7 +5,7 @@
 
 static gedict_t* dm6_door = 0;
 
-void CheckNewWeapon (int weapon);
+qbool CheckNewWeapon (int weapon);
 
 void map_dm6() {
 	CreateMarker(152, -841, 171);
@@ -814,8 +814,8 @@ void DM6SelectWeaponToOpenDoor (gedict_t* self)
 		else if ((items_ & IT_LIGHTNING) && (self->s.v.ammo_cells)) {
 			desired_weapon = IT_LIGHTNING;
 		}
-		CheckNewWeapon( desired_weapon );
-		self->fb.firing |= (self->s.v.weapon == desired_weapon);
+
+		self->fb.firing |= CheckNewWeapon( desired_weapon );
 	}
 }
 

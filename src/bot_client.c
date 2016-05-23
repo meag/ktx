@@ -110,7 +110,6 @@ void BotSetCommand(gedict_t* self) {
 		DotProduct (g_globalvars.v_forward, self->fb.dir_move_) * 800,
 		DotProduct (g_globalvars.v_right, self->fb.dir_move_) * 800,
 		DotProduct (g_globalvars.v_up, self->fb.dir_move_) * 800,
-		//0, 0, 0, 
 		(self->fb.firing ? 1 : 0) | (self->fb.jumping ? 2 : 0),
 		(self->fb.botchose ? self->fb.next_impulse : 0)
 	);

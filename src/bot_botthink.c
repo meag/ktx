@@ -7,6 +7,57 @@ void POVDMM4LookDoor(gedict_t* self);
 void AMPHI2BotInLava(void);
 qbool DM6FireAtDoor (gedict_t* self);
 
+static void BotSetDesiredAngles (gedict_t* self, vec3_t rel_pos)
+{
+	vectoangles(rel_pos, self->fb.desired_angle);
+	if (self->fb.desired_angle[0] > 180) {
+		self->fb.desired_angle[0] = 360 - self->fb.desired_angle[0];
+	}
+	else {
+		self->fb.desired_angle[0] = 0 - self->fb.desired_angle[0];
+	}
+
+	// FIXME: why? :(
+	self->fb.desired_angle[0] = (pr1_rint(self->fb.desired_angle[0] / 1.40625));
+	self->fb.desired_angle[1] = (pr1_rint(self->fb.desired_angle[1] / 1.40625));
+	VectorScale(self->fb.desired_angle, 1.40625, self->fb.desired_angle);
+
+	if (self->fb.state & HURT_SELF) {
+		self->fb.desired_angle[0] = 180;
+	}
+}
+
+static void BotSetMouseParameters (gedict_t* self)
+{
+	VectorSubtract(self->fb.desired_angle, self->s.v.v_angle, self->fb.angle_error);
+	self->fb.angle_error[0] -= (1 - self->fb.skill.fast_aim) * (self->fb.pitchspeed * self->fb.skill.firing_reflex);
+	self->fb.angle_error[1] -= (1 - self->fb.skill.fast_aim) * (self->fb.yawspeed * self->fb.skill.firing_reflex);
+	if (self->fb.angle_error[1] >= 180) {
+		self->fb.angle_error[1] = self->fb.angle_error[1] - 360;
+	}
+	else if (self->fb.angle_error[1] < -180) {
+		self->fb.angle_error[1] = self->fb.angle_error[1] + 360;
+	}
+
+	self->fb.track_pitchspeed += self->fb.skill.fast_aim * self->fb.angle_error[0] / self->fb.skill.firing_reflex;
+	self->fb.track_yawspeed += self->fb.skill.fast_aim * self->fb.angle_error[1] / self->fb.skill.firing_reflex;
+	self->fb.pitchaccel = (1 - self->fb.skill.fast_aim) * self->fb.angle_error[0] / self->fb.skill.firing_reflex;
+	self->fb.yawaccel = (1 - self->fb.skill.fast_aim) * self->fb.angle_error[1] / self->fb.skill.firing_reflex;
+
+	if (self->fb.pitchaccel > 0) {
+		self->fb.pitchaccel = self->fb.pitchaccel + 5400;
+	}
+	else if (self->fb.pitchaccel < 0) {
+		self->fb.pitchaccel = self->fb.pitchaccel - 5400;
+	}
+	if (self->fb.yawaccel > 0) {
+		self->fb.yawaccel = self->fb.yawaccel + 5400;
+	}
+	else if (self->fb.yawaccel < 0) {
+		self->fb.yawaccel = self->fb.yawaccel - 5400;
+	}
+}
+
 // Sets a client's last marker
 void SetMarker(gedict_t* client, gedict_t* marker) {
 	client->fb.touch_distance = 0;
@@ -379,7 +430,7 @@ static void BotsFireAtPlayerLogic(vec3_t rel_pos, float* rel_dist) {
 	}
 }
 
-static void BotsFireLogic() {
+static void BotsFireLogic(void) {
 	if (g_globalvars.time >= self->fb.fire_nextthink) {
 		self->fb.fire_nextthink = self->fb.fire_nextthink + (self->fb.skill.firing_reflex * (0.95 + (0.1 * random())));
 		if (self->fb.fire_nextthink <= g_globalvars.time) {
@@ -446,47 +497,9 @@ static void BotsFireLogic() {
 				self->fb.track_yawspeed = DotProduct(vdiff, yaw_tangent);
 			}
 
-			vectoangles(rel_pos, self->fb.desired_angle);
-			if (self->fb.desired_angle[0] > 180) {
-				self->fb.desired_angle[0] = 360 - self->fb.desired_angle[0];
-			}
-			else {
-				self->fb.desired_angle[0] = 0 - self->fb.desired_angle[0];
-			}
+			BotSetDesiredAngles (self, rel_pos);
 
-			self->fb.desired_angle[0] = (pr1_rint(self->fb.desired_angle[0] / 1.40625));
-			self->fb.desired_angle[1] = (pr1_rint(self->fb.desired_angle[1] / 1.40625));
-			VectorScale(self->fb.desired_angle, 1.40625, self->fb.desired_angle);
-			if (self->fb.state & HURT_SELF) {
-				self->fb.desired_angle[0] = 180;
-			}
-			VectorSubtract(self->fb.desired_angle, self->s.v.v_angle, self->fb.angle_error);
-			self->fb.angle_error[0] -= (1 - self->fb.skill.fast_aim) * (self->fb.pitchspeed * self->fb.skill.firing_reflex);
-			self->fb.angle_error[1] -= (1 - self->fb.skill.fast_aim) * (self->fb.yawspeed * self->fb.skill.firing_reflex);
-			if (self->fb.angle_error[1] >= 180) {
-				self->fb.angle_error[1] = self->fb.angle_error[1] - 360;
-			}
-			else if (self->fb.angle_error[1] < -180) {
-				self->fb.angle_error[1] = self->fb.angle_error[1] + 360;
-			}
-
-			self->fb.track_pitchspeed += self->fb.skill.fast_aim * self->fb.angle_error[0] / self->fb.skill.firing_reflex;
-			self->fb.track_yawspeed += self->fb.skill.fast_aim * self->fb.angle_error[1] / self->fb.skill.firing_reflex;
-			self->fb.pitchaccel = (1 - self->fb.skill.fast_aim) * self->fb.angle_error[0] / self->fb.skill.firing_reflex;
-			self->fb.yawaccel = (1 - self->fb.skill.fast_aim) * self->fb.angle_error[1] / self->fb.skill.firing_reflex;
-
-			if (self->fb.pitchaccel > 0) {
-				self->fb.pitchaccel = self->fb.pitchaccel + 5400;
-			}
-			else if (self->fb.pitchaccel < 0) {
-				self->fb.pitchaccel = self->fb.pitchaccel - 5400;
-			}
-			if (self->fb.yawaccel > 0) {
-				self->fb.yawaccel = self->fb.yawaccel + 5400;
-			}
-			else if (self->fb.yawaccel < 0) {
-				self->fb.yawaccel = self->fb.yawaccel - 5400;
-			}
+			BotSetMouseParameters (self);
 
 			if (!self->fb.rocketjumping) {
 				SetFireButton(self);
