@@ -99,6 +99,8 @@ void BotSetCommand(gedict_t* self) {
 	self->fb.desired_angle[0] = new_pitch * -1;
 	self->fb.desired_angle[1] = new_yaw;
 	self->fb.desired_angle[2] = 0;*/
+
+	VectorNormalize (self->fb.dir_move_);
 	trap_makevectors (self->fb.desired_angle);
 
 	trap_SetBotCMD (
@@ -190,7 +192,9 @@ void BotOutOfWater(gedict_t* self) {
 			traceline(start[0], start[1], start[2], end[0], end[1], end[2], TRUE, self);
 			if (g_globalvars.trace_fraction == 1) {
 				self->s.v.flags = ((int)self->s.v.flags | FL_WATERJUMP) & ~FL_JUMPRELEASED;
-				self->s.v.velocity[2] = 225;
+				// FIXME
+				//self->s.v.velocity[2] = 225;
+				self->fb.dir_move_[2] = -225;
 				self->s.v.teleport_time = g_globalvars.time + 2;
 			}
 		}

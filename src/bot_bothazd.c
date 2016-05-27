@@ -91,7 +91,7 @@ void NewVelocityForArrow(gedict_t* self, vec3_t dir_move) {
 		self->fb.arrow = best_arrow;
 		self->fb.arrow_time = g_globalvars.time + 0.15;
 		//VectorCopy(oldvelocity_, self->s.v.velocity);
-		VectorCopy(oldvelocity_, self->fb.real_direction);
+		//VectorCopy(oldvelocity_, self->fb.real_direction);
 		VelocityForArrow(self);
 	}
 }

@@ -89,27 +89,26 @@ void VelocityForArrow(gedict_t* self) {
 
 				if (!((int)self->s.v.flags & FL_ONGROUND)) {
 					vec3_t temp;
+					float max_accel_forward = sv_accelerate * g_globalvars.frametime * sv_maxspeed;
 
 					velocity_hor_angle[1] = vectoyaw(hor_velocity) + (turning_speed * g_globalvars.frametime);
 					trap_makevectors(velocity_hor_angle);
 					VectorScale(g_globalvars.v_forward, hor_speed, temp);
 					VectorSubtract(temp, hor_velocity, desired_accel);
 					normalize(desired_accel, dir_forward);
-					accel_forward = vlen(desired_accel);
-					/*if (accel_forward > max_accel_forward) {
-						accel_forward = max_accel_forward;
-					}
+					accel_forward = min(vlen(desired_accel), max_accel_forward);
 					velocity_forward = DotProduct(self->s.v.velocity, dir_forward);
 					if ((velocity_forward + accel_forward) > 30) {
 						accel_forward = 30 - velocity_forward;
 						if (accel_forward < 0) {
 							accel_forward = 0;
 						}
-					}*/
+					}
 					// TODO: this is wrong, set the command instead
 					//VectorMA(self->s.v.velocity, accel_forward, dir_forward, self->s.v.velocity);
 					//VectorCopy (dir_forward, self->fb.real_direction);
-					VectorMA(self->fb.real_direction, accel_forward, dir_forward, self->fb.real_direction);
+					//VectorMA(self->fb.real_direction, accel_forward, dir_forward, self->fb.real_direction);
+					VectorMA(self->fb.dir_move_, accel_forward, dir_forward, self->fb.dir_move_);
 					return;
 				}
 			}
@@ -226,7 +225,8 @@ void VelocityForArrow(gedict_t* self) {
 	// TODO: this is wrong, set the command instead
 	//VectorMA(self->s.v.velocity, accel_forward, dir_forward, self->s.v.velocity);
 	//VectorCopy (dir_forward, self->fb.real_direction);
-	VectorMA(self->fb.real_direction, accel_forward, dir_forward, self->fb.real_direction);
+	//VectorMA(self->fb.real_direction, accel_forward, dir_forward, self->fb.real_direction);
+	VectorMA(self->fb.dir_move_, accel_forward, dir_forward, self->fb.dir_move_);
 }
 
 void FrogbotPrePhysics1(void) {
@@ -269,7 +269,8 @@ void BotDetectTrapped(gedict_t* self) {
 		unstick_time = unstick_time + g_globalvars.frametime;
 		if (unstick_time <= numberofclients) {
 			no_bots_stuck = FALSE;
-			self->s.v.velocity[2] = JUMPSPEED;
+			//self->s.v.velocity[2] = JUMPSPEED;
+			self->fb.jumping = true;
 		}
 		else  {
 			self->fb.botchose = 1;
@@ -325,9 +326,11 @@ void FrogbotPrePhysics2() {
 					self->fb.fl_ontrain = FALSE;
 				}
 
+				// FIXME: Should standard logic deal with this now?
+				/*
 				if ((self->fb.oldwaterlevel >= 2) || ((int)self->s.v.flags & FL_WATERJUMP)) {
 					self->s.v.velocity[2] += (800 * g_globalvars.frametime);
-				}
+				}*/
 
 				VectorCopy(self->s.v.origin, self->s.v.oldorigin);
 
@@ -367,8 +370,10 @@ void FrogbotPostPhysics1() {
 				oldflags = self->s.v.flags;
 				self->s.v.flags = (int) self->s.v.flags | FL_ONGROUND_PARTIALGROUND;
 				if (walkmove(self, yaw, dist)) {
-					VectorCopy(new_velocity, self->s.v.velocity);
-					self->s.v.velocity[2] = 0;
+					//VectorCopy(new_velocity, self->s.v.velocity);
+					//self->s.v.velocity[2] = 0;
+					VectorCopy(new_velocity, self->fb.dir_move_);
+					self->fb.dir_move_[2] = 0;
 					VectorClear(self->fb.obstruction_normal);
 				}
 				else  {

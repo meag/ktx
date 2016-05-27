@@ -538,7 +538,6 @@ typedef struct fb_entvars_s {
 
 	float real_pitch;
 	float real_yaw;
-	vec3_t real_direction;
 	float last_cmd_sent;
 	qbool botchose;
 	int next_impulse;
