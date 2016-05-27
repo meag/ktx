@@ -32,6 +32,8 @@ void			SP_item_artifact_invulnerability();
 void TookWeaponHandler( gedict_t *p, int new_wp );
 void BecomeMarker(gedict_t* self);
 
+void BotsBackpackDropped (gedict_t* self, gedict_t* pack);
+
 #define AUTOTRACK_POWERUPS_PREDICT_TIME 2
 
 static qbool ItemTouched (gedict_t* item, gedict_t* player)
@@ -1942,6 +1944,9 @@ void BackpackTouch()
 	if ( cvar("k_instagib") && other->invisible_finished )
 		return; // we have ring, ignore pack
 	
+	if (self->fb.item_touch && self->fb.item_touch (self, other))
+		return;
+
 	acount = 0;
 	G_sprint( other, PRINT_LOW, "You get " );
 
@@ -2117,6 +2122,9 @@ void BackpackTouch()
 // backpack touch sound
 	sound( other, CHAN_ITEM, "weapons/lock4.wav", 1, ATTN_NORM );
 	stuffcmd( other, "bf\n" );
+
+	if (self->fb.item_taken)
+		self->fb.item_taken (self, other);
 
 	ent_remove( self );
 
@@ -2300,6 +2308,11 @@ void DropBackpack()
 	{
 		item->backpack_player_name = playername;
 		strlcpy(item->backpack_team_name, getteam(self), MAX_TEAM_NAME);
+	}
+
+	if (bots_enabled ())
+	{
+		BotsBackpackDropped (self, item);
 	}
 }
 

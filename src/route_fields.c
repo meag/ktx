@@ -162,85 +162,6 @@ void AdjustZone(gedict_t* zoneHead, float teamNumber, float strong, float adjust
 		return;
 	}
 	zoneHead->fb.total_players += adjust;
-	/*
-	if (teamNumber == 1) {
-		zoneHead->fb.team1_zone_players = zoneHead->fb.team1_zone_players + adjust;
-		if (strong) {
-			zoneHead->fb.team1_zone_strong_players = zoneHead->fb.team1_zone_strong_players + adjust;
-		}
-	}
-	else if (teamNumber == 2) {
-		zoneHead->fb.team2_zone_players = zoneHead->fb.team2_zone_players + adjust;
-		if (strong) {
-			zoneHead->fb.team2_zone_strong_players = zoneHead->fb.team2_zone_strong_players + adjust;
-		}
-	}
-	else if (teamNumber == 3) {
-		zoneHead->fb.team3_zone_players = zoneHead->fb.team3_zone_players + adjust;
-		if (strong) {
-			zoneHead->fb.team3_zone_strong_players = zoneHead->fb.team3_zone_strong_players + adjust;
-		}
-	}
-	else if (teamNumber == 4) {
-		zoneHead->fb.team4_zone_players = zoneHead->fb.team4_zone_players + adjust;
-		if (strong) {
-			zoneHead->fb.team4_zone_strong_players = zoneHead->fb.team4_zone_strong_players + adjust;
-		}
-	}
-	else if (teamNumber == 5) {
-		zoneHead->fb.team5_zone_players = zoneHead->fb.team5_zone_players + adjust;
-		if (strong) {
-			zoneHead->fb.team5_zone_strong_players = zoneHead->fb.team5_zone_strong_players + adjust;
-		}
-	}
-	else if (teamNumber == 6) {
-		zoneHead->fb.team6_zone_players = zoneHead->fb.team6_zone_players + adjust;
-		if (strong) {
-			zoneHead->fb.team6_zone_strong_players = zoneHead->fb.team6_zone_strong_players + adjust;
-		}
-	}
-	else if (teamNumber == 7) {
-		zoneHead->fb.team7_zone_players = zoneHead->fb.team7_zone_players + adjust;
-		if (strong) {
-			zoneHead->fb.team7_zone_strong_players = zoneHead->fb.team7_zone_strong_players + adjust;
-		}
-	}
-	else if (teamNumber == 8) {
-		zoneHead->fb.team8_zone_players = zoneHead->fb.team8_zone_players + adjust;
-		if (strong) {
-			zoneHead->fb.team8_zone_strong_players = zoneHead->fb.team8_zone_strong_players + adjust;
-		}
-	}
-	else if (teamNumber == 9) {
-		zoneHead->fb.team9_zone_players = zoneHead->fb.team9_zone_players + adjust;
-		if (strong) {
-			zoneHead->fb.team9_zone_strong_players = zoneHead->fb.team9_zone_strong_players + adjust;
-		}
-	}
-	else if (teamNumber == 10) {
-		zoneHead->fb.team10_zone_players = zoneHead->fb.team10_zone_players + adjust;
-		if (strong) {
-			zoneHead->fb.team10_zone_strong_players = zoneHead->fb.team10_zone_strong_players + adjust;
-		}
-	}
-	else if (teamNumber == 11) {
-		zoneHead->fb.team11_zone_players = zoneHead->fb.team11_zone_players + adjust;
-		if (strong) {
-			zoneHead->fb.team11_zone_strong_players = zoneHead->fb.team11_zone_strong_players + adjust;
-		}
-	}
-	else if (teamNumber == 12) {
-		zoneHead->fb.team12_zone_players = zoneHead->fb.team12_zone_players + adjust;
-		if (strong) {
-			zoneHead->fb.team12_zone_strong_players = zoneHead->fb.team12_zone_strong_players + adjust;
-		}
-	}
-	else if (teamNumber == 13) {
-		zoneHead->fb.team13_zone_players = zoneHead->fb.team13_zone_players + adjust;
-		if (strong) {
-			zoneHead->fb.team13_zone_strong_players = zoneHead->fb.team13_zone_strong_players + adjust;
-		}
-	}*/
 }
 
 void LeaveZone(int zoneNumber, float teamNumber, float strong) {
@@ -262,7 +183,7 @@ void DebugZoneByEnt(gedict_t* zone) {
 	bprint_fb(2, zone->s.v.netname);
 	bprint_fb(2, ": ");
 	bprint_ftos(2, zone->fb.total_players);
-	bprint_fb(2, "\\");
+	bprint_fb(2, "\n");
 }
 
 void DebugZone(int i) {
@@ -272,7 +193,7 @@ void DebugZone(int i) {
 void DebugZones() {
 	int i = 0;
 
-	bprint_fb(2, "Zones:\\");
+	bprint_fb(2, "Zones:\n");
 	for (i = 1; i < NUMBER_ZONES; ++i) {
 		DebugZone(i);
 	}

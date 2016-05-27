@@ -695,3 +695,67 @@ void BotsPostTeleport (gedict_t* self, gedict_t* other, gedict_t* teleport_desti
 	HazardTeleport(self, other);
 	SetMarker(other, teleport_destination);
 }
+
+static void BackpackTimedOut (void)
+{
+	SUB_Remove ();
+}
+
+static float goal_health_backpack(void)
+{
+	if (self->invincible_time)
+		return 0;
+
+	return 20;
+}
+
+static qbool fb_backpack_touch (gedict_t* item, gedict_t* player)
+{
+	if (player->s.v.goalentity == NUM_FOR_EDICT(item))
+		player->fb.goal_refresh_time = 0;
+
+	return false;
+}
+
+static void fb_backpack_taken (gedict_t* item, gedict_t* player)
+{
+	player->fb.weapon_refresh_time = 0;
+
+	UpdateGoalEntity(item);
+	player->fb.old_linked_marker = world;
+	player->fb.linked_marker = LocateMarker(player->s.v.origin);
+	player->fb.linked_marker_time = g_globalvars.time + 5;
+}
+
+void BotsBackpackDropped (gedict_t* self, gedict_t* pack)
+{
+	pack->s.v.think = (func_t)BackpackTimedOut;
+
+	if ((int)pack->s.v.items & IT_SUPER_SHOTGUN)
+		pack->fb.desire = goal_supershotgun1;
+	else if ((int)pack->s.v.items & IT_NAILGUN)
+		pack->fb.desire = goal_nailgun1;
+	else if ((int)pack->s.v.items & IT_SUPER_NAILGUN)
+		pack->fb.desire = goal_supernailgun1;
+	else if ((int)pack->s.v.items & IT_GRENADE_LAUNCHER)
+		pack->fb.desire = goal_grenadelauncher1;
+	else if ((int)pack->s.v.items & IT_ROCKET_LAUNCHER)
+		pack->fb.desire = goal_rocketlauncher1;
+	else if ((int)pack->s.v.items & IT_LIGHTNING)
+		pack->fb.desire = goal_lightning1;
+	else if (pack->s.v.ammo_cells > (pack->s.v.ammo_rockets * 5))
+		pack->fb.desire = goal_cells;
+	else if (pack->s.v.ammo_rockets)
+		pack->fb.desire = goal_rockets;
+	else if (pack->s.v.ammo_nails >= 50)
+		pack->fb.desire = goal_spikes;
+	else
+		pack->fb.desire = goal_shells;
+
+	if (deathmatch == 4) {
+		pack->fb.desire = goal_health_backpack;
+	}
+
+	pack->fb.item_touch = (func_t) fb_backpack_touch;
+	pack->fb.item_taken = (func_t) fb_backpack_taken;
+}
