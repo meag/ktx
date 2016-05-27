@@ -2768,6 +2768,8 @@ void PlayerPreThink()
 				if ( self->s.v.health > 150 )
 					self->s.v.health = 150;
 				self->regen_time += 0.5;
+				if (bots_enabled())
+					UpdateTotalDamage(self);
 				RegenerationSound( self );
 	    	}
 
@@ -2777,6 +2779,8 @@ void PlayerPreThink()
 				if ( self->s.v.armorvalue > 150 )
 					self->s.v.armorvalue = 150;
 				self->regen_time += 0.5;
+				if (bots_enabled())
+					UpdateTotalDamage(self);
 				RegenerationSound( self );
 	    	}
 		}

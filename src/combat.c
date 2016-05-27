@@ -889,6 +889,9 @@ void T_Damage( gedict_t * targ, gedict_t * inflictor, gedict_t * attacker, float
 		targ->s.v.frags -= 3;
 	}
 
+	if (bots_enabled())
+		UpdateTotalDamage(targ);
+
  	// if targed killed, do appropriate action and return
 	if ( ISDEAD( targ ) )
 	{

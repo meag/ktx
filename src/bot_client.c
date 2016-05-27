@@ -29,6 +29,9 @@ void BotClientEntersEvent(gedict_t* self, gedict_t* spawn_pos) {
 	self->fb.jumping = FALSE;
 	self->fb.goal_refresh_time = 0;
 	self->fb.allowedMakeNoise = TRUE;
+
+	UpdateTotalDamage (self);
+	self->fb.weapon_refresh_time = 0;
 }
 
 // Called by client/PlayerDeathThink
