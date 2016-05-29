@@ -100,6 +100,7 @@ void VelocityForArrow(gedict_t* self) {
 					}
 				}
 
+				// FIXME: Air movement
 				if (!((int)self->s.v.flags & FL_ONGROUND)) {
 					vec3_t temp;
 					float max_accel_forward = sv_accelerate * g_globalvars.frametime * sv_maxspeed;
@@ -239,7 +240,9 @@ void VelocityForArrow(gedict_t* self) {
 	//VectorMA(self->s.v.velocity, accel_forward, dir_forward, self->s.v.velocity);
 	//VectorCopy (dir_forward, self->fb.real_direction);
 	//VectorMA(self->fb.real_direction, accel_forward, dir_forward, self->fb.real_direction);
-	VectorMA(self->fb.dir_move_, accel_forward, dir_forward, self->fb.dir_move_);
+	//VectorMA(self->fb.dir_move_, accel_forward, dir_forward, self->fb.dir_move_);
+	//VectorMA(self->fb.dir_move_, accel_forward, dir_forward, self->fb.dir_move_);
+	VectorMA(self->fb.dir_move_, 300, dir_forward, self->fb.dir_move_);
 }
 
 void FrogbotPrePhysics1(void) {
