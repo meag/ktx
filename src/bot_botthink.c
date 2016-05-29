@@ -18,9 +18,11 @@ static void BotSetDesiredAngles (gedict_t* self, vec3_t rel_pos)
 	}
 
 	// FIXME: why? :(
+	/*
 	self->fb.desired_angle[0] = (pr1_rint(self->fb.desired_angle[0] / 1.40625));
 	self->fb.desired_angle[1] = (pr1_rint(self->fb.desired_angle[1] / 1.40625));
 	VectorScale(self->fb.desired_angle, 1.40625, self->fb.desired_angle);
+	*/
 
 	if (self->fb.state & HURT_SELF) {
 		self->fb.desired_angle[0] = 180;
@@ -218,7 +220,7 @@ static void BotMoveTowardsLinkedMarker(gedict_t* self, vec3_t dir_move) {
 	normalize(temp, dir_move);
 	if (linked_marker_ == touch_marker_) {
 		if (goalentity_ == touch_marker_) {
-			if (touch_marker_->s.v.nextthink > g_globalvars.time) {
+			if (WaitingToRespawn(touch_marker_)) {
 				VectorClear(dir_move);
 			}
 		}
@@ -311,7 +313,7 @@ static void PeriodicAllClientLogic() {
 				HumanTouchMarkerLogic();
 			}
 		}
-		else  {
+		else {
 			self->fb.goal_refresh_time = 0;
 			if (self->isBot) {
 				self->fb.old_linked_marker = NULL;
@@ -523,7 +525,7 @@ void ThinkTime(gedict_t* self) {
 
 	// Logic that gets called every frame for every frogbot
 	if (self->isBot) {
-		self->fb.willRocketJumpThisTic = able_rj();
+		self->fb.willRocketJumpThisTic = able_rj(self);
 
 		BotStopFiring();
 

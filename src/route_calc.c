@@ -52,7 +52,7 @@ static void TravelTimeForPath (gedict_t* m, int i)
 			m->fb.paths[i].time = (VectorDistance(m_P_pos, m_pos) / sv_maxwaterspeed);
 		}
 		else {
-			if (m->fb.index == 1 && m_P->fb.index == 2) {
+			if (m->fb.index == 26 && m_P->fb.index == 120) {
 				Com_Printf ("1 => 2 = [%f %f %f] => [%f %f %f] = %f / %f = %f seconds\n", PASSVEC3(m_pos), PASSVEC3(m_P_pos), VectorDistance (m_P_pos, m_pos), sv_maxspeed, VectorDistance (m_P_pos, m_pos) / sv_maxspeed);
 			}
 
@@ -407,10 +407,10 @@ static void Calc_G_time_11(void) {
 
 	m_zone = zone_stack_head;
 	if (path_normal) {
-		path_normal = FALSE;
+		path_normal = false;
 	}
 	else  {
-		path_normal = TRUE;
+		path_normal = true;
 		Calc_G_time_12();
 	}
 }

@@ -32,6 +32,7 @@ void  FixSayFloodProtect();
 void  FixRules ();
 void  ShowSpawnPoints();
 void  r_route();
+void  LoadMap (void);
 
 #define MAX_BODYQUE 4
 gedict_t       *bodyque[MAX_BODYQUE];
@@ -1349,10 +1350,10 @@ void StartFrame( int time )
 			InitParameters();
 			InitFrogbots1();
 		}
-		else if ( framecount == 4 ) {
-			InitFrogbots2();
+		else if ( framecount == 20 ) {
+			LoadMap();
 		}
-		else if ( framecount > 4 ) {
+		else if ( framecount > 20 ) {
 			BotStartFrame( time );
 		}
 	}

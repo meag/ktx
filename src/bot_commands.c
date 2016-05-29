@@ -108,18 +108,99 @@ static void FrogbotsSetSkill (void)
 	}
 }
 
+void PathScoringLogic (
+	float respawn_time, qbool be_quiet, qbool path_normal, vec3_t player_origin, vec3_t player_direction, 
+	gedict_t* touch_marker_, gedict_t* goalentity_marker, qbool rocket_alert, qbool rocket_jump_routes_allowed,
+	qbool trace_bprint, float *best_score, gedict_t** linked_marker_, int* new_path_state
+);
+
 static void FrogbotsDebug (void)
 {
-	gedict_t* bot = &g_edicts[bots[0].entity];
+	if (trap_CmdArgc () == 2) {
+		gedict_t* bot = &g_edicts[bots[0].entity];
 
-	G_sprint (self, 2, "Bot: %s\n", bot->s.v.netname);
-	G_sprint (self, 2, "  %s: %s (%d)\n", redtext("Touch"), bot->fb.touch_marker ? bot->fb.touch_marker->s.v.classname : "(none)", bot->fb.touch_marker ? bot->fb.touch_marker->fb.index : -1);
-	G_sprint (self, 2, "  %s: %s\n", redtext("Enemy"), bot->s.v.enemy == 0 ? "(none)" : g_edicts[bot->s.v.enemy].s.v.netname);
-	G_sprint (self, 2, "  %s: %s\n", redtext("Looking"), bot->fb.look_object ? bot->fb.look_object->s.v.classname : "(nothing)");
-	G_sprint (self, 2, "  %s: %s\n", redtext ("VirtGoal"), bot->fb.virtual_goal ? bot->fb.virtual_goal->s.v.classname : "(nothing)");
-	G_sprint (self, 2, "  %s: %s\n", redtext ("GoalEnt"), bot->s.v.goalentity == 0 ? "(none)" : g_edicts[bot->s.v.goalentity].s.v.classname);
+		G_sprint (self, 2, "Bot: %s\n", bot->s.v.netname);
+		G_sprint (self, 2, "  %s: %s (%d)\n", redtext ("Touch"), bot->fb.touch_marker ? bot->fb.touch_marker->s.v.classname : "(none)", bot->fb.touch_marker ? bot->fb.touch_marker->fb.index : -1);
+		G_sprint (self, 2, "  %s: %s\n", redtext ("Enemy"), bot->s.v.enemy == 0 ? "(none)" : g_edicts[bot->s.v.enemy].s.v.netname);
+		G_sprint (self, 2, "  %s: %s\n", redtext ("Looking"), bot->fb.look_object ? bot->fb.look_object->s.v.classname : "(nothing)");
+		G_sprint (self, 2, "  %s: %s\n", redtext ("VirtGoal"), bot->fb.virtual_goal ? bot->fb.virtual_goal->s.v.classname : "(nothing)");
+		G_sprint (self, 2, "  %s: %s\n", redtext ("GoalEnt"), bot->s.v.goalentity == 0 ? "(none)" : g_edicts[bot->s.v.goalentity].s.v.classname);
 
-	bot->fb.debug = true;
+		bot->fb.debug = true;
+	}
+	else {
+		char sub_command[64];
+
+		trap_CmdArgv (2, sub_command, sizeof (sub_command));
+
+		if (streq (sub_command, "markers")) {
+			int i = 0;
+			
+			for (i = 0; i < NUMBER_MARKERS; ++i) {
+				if (markers[i]) {
+					G_sprint (self, 2, "%d / %d: %s\n", i, markers[i]->fb.index, markers[i]->s.v.classname);
+				}
+			}
+		}
+		else if (streq (sub_command, "marker")) {
+			gedict_t* marker = NULL;
+			int i = 0;
+
+			trap_CmdArgv (3, sub_command, sizeof (sub_command));
+			marker = markers[(int)bound (0, atoi (sub_command), NUMBER_MARKERS - 1)];
+
+			if (marker == NULL) {
+				G_sprint (self, 2, "(marker #%d not present)\n", atoi(sub_command));
+			}
+			else {
+				G_sprint (self, 2, "Marker %d, %s, position %f %f %f\n", marker->fb.index, marker->s.v.classname, PASSVEC3 (marker->s.v.origin));
+				G_sprint (self, 2, "Zone %d, Subzone %d\n", marker->fb.Z_, marker->fb.S_);
+				G_sprint (self, 2, "Paths:\n");
+				for (i = 0; i < NUMBER_PATHS; ++i) {
+					gedict_t* next = marker->fb.paths[i].next_marker;
+
+					if (next != NULL) {
+						G_sprint (self, 2, "  %d: %d (%s), time %f\n", i, next->fb.index, next->s.v.classname, marker->fb.paths[i].time);
+					}
+				}
+			}
+		}
+		else if (streq (sub_command, "path") && trap_CmdArgc() == 5) {
+			int start, end;
+
+			trap_CmdArgv (3, sub_command, sizeof (sub_command));
+			start = atoi (sub_command);
+			trap_CmdArgv (4, sub_command, sizeof (sub_command));
+			end = atoi (sub_command);
+
+			if (start >= 0 && start < NUMBER_MARKERS && end >= 0 && end < NUMBER_MARKERS) {
+				gedict_t *from = markers[start];
+				gedict_t *to = markers[end];
+
+				if (from && to) {
+					G_sprint (self, 2, "From zone %d, subzone %d to zone %d subzone %d\n", from->fb.Z_, from->fb.S_, to->fb.Z_, to->fb.S_);
+					from_marker = from;
+					to->fb.zone_marker();
+					to->fb.sub_arrival_time();
+					G_sprint (self, 2, "Travel time %f, zone_time %f\n", traveltime, zone_time);
+					G_sprint (self, 2, "Middle marker %d (zone %d subzone %d), time %f\n", middle_marker->fb.index, middle_marker->fb.Z_, middle_marker->fb.S_, middle_marker->fb.subzones[to->fb.S_].time);
+
+					{
+						float best_score = -1000000;
+						gedict_t* linked_marker_ = NULL;
+						int new_path_state = 0;
+						vec3_t player_direction = { 0, 0, 0 }; // Standing still, for sake of argument
+
+						lookahead_time_ = 30;
+						PathScoringLogic (to->fb.goal_respawn_time, false, true, from->s.v.origin, player_direction, from, to, false, true, true, &best_score, &linked_marker_, &new_path_state);
+
+						G_sprint (self, 2, "Finished: next marker %d (%s), best_score %f\n", (linked_marker_ ? linked_marker_->fb.index : -1), (linked_marker_ ? linked_marker_->s.v.classname : "null"), best_score);
+					}
+				}
+			}
+
+		}
+	}
 }
 
 void FrogbotsCommand (void)

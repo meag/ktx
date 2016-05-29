@@ -69,7 +69,7 @@ void Z ## x ## _marker() { \
 		middle_marker = from_marker->fb.zones[x - 1].marker; \
 		zone_time = from_marker->fb.zones[x - 1].time; \
 	} \
-	else  { \
+	else { \
 		middle_marker = from_marker->fb.zones[x - 1].reverse_marker; \
 		zone_time = from_marker->fb.zones[x - 1].reverse_time; \
 	} \

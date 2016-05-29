@@ -3,6 +3,8 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
+#define CHANCE_ROCKET_JUMP 0.2       // FIXME: personalise in fb.skill
+
 // Returns true if the bot is travelling in the 'right' direction (with 90 degrees of target)
 static qbool right_direction(gedict_t* self) {
 	vec3_t test_direction,
@@ -102,10 +104,10 @@ static void lava_jump(gedict_t* self) {
 	}
 }
 
-qbool able_rj() {
+qbool able_rj(gedict_t* self) {
 	float health_after = min(self->s.v.armorvalue, ceil(self->s.v.armortype * 50));
 	qbool has_rj       = (qbool) (((int)self->s.v.items & IT_ROCKET_LAUNCHER) && (self->s.v.ammo_rockets >= 1));
-	qbool has_pent     = (qbool) ((int)self->s.v.items & (IT_INVULNERABILITY_QUAD | IT_INVULNERABILITY));
+	qbool has_pent     = (qbool) ((int)self->s.v.items & IT_INVULNERABILITY);
 
 	// If invincible, can always rocket jump
 	if (has_pent) {
@@ -114,11 +116,11 @@ qbool able_rj() {
 
 	// work out how much health we'll have after - factor in if we're heading towards a respawned healthbox
 	health_after = ((teamplay == 1) || (teamplay == 5) ? 100 : self->s.v.health - ceil(55 - health_after));
-	if (self->fb.linked_marker && self->fb.linked_marker->healamount > 0 && self->fb.linked_marker->s.v.nextthink <= g_globalvars.time) {
-		health_after = health_after + self->fb.linked_marker->healamount;
+	if (self->fb.linked_marker && self->fb.linked_marker->healamount > 0 && ! WaitingToRespawn(self->fb.linked_marker)) {
+		health_after += self->fb.linked_marker->healamount;
 	}
 
-	return (qbool) (health_after > 50 && has_rj && (!beQuiet) && g_random() < 0.2);
+	return (qbool) (health_after > 50 && has_rj && (!self->fb.be_quiet) && g_random() < CHANCE_ROCKET_JUMP);
 }
 
 // Performs rocket jump [TODO: rename]

@@ -30,7 +30,7 @@ void CreateMarker(float x, float y, float z) {
 void AllMarkersLoaded() {
 	self = NULL;
 	m_zone = zone_stack_head;
-	path_normal = TRUE;
+	path_normal = true;
 
 	InitialiseMarkerRoutes();
 }

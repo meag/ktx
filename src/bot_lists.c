@@ -86,30 +86,3 @@ void InitFrogbots1() {
 	postphysics->s.v.think = (func_t) FrogbotPostPhysics;
 }
 
-void InitFrogbots2() {
-	total_entity_count = 1;
-	for (self = world; self = nextent(self); ) {
-		++total_entity_count;
-	}
-
-	for (self = first_item; self; self = self->fb.next) {
-		self->s.v.movetype = MOVETYPE_NONE;
-		self->s.v.origin[2] = self->s.v.origin[2] + 6;
-		droptofloor(self);
-		setsize(self, self->s.v.mins[0] - 49, self->s.v.mins[1] - 49, self->s.v.mins[2], self->s.v.maxs[0] + 49, self->s.v.maxs[1] + 49, self->s.v.maxs[2]);
-		adjust_view_ofs_z(self);
-
-		VectorCopy(self->s.v.absmin, self->fb.virtual_mins);
-		self->fb.virtual_mins[0] += 32;
-		self->fb.virtual_mins[1] += 32;
-		self->fb.virtual_mins[2] -= 33;
-
-		VectorCopy(self->fb.virtual_mins, self->fb.virtual_maxs);
-		self->fb.virtual_mins[0] += 96;
-		self->fb.virtual_mins[1] += 96;
-		self->fb.virtual_mins[1] += 114;
-	}
-
-	LoadMap();
-}
-

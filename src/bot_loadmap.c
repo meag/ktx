@@ -193,7 +193,7 @@ static void AssignVirtualGoals (void)
 
 qbool LoadBotRoutingFromFile (void);
 
-void LoadMap() {
+void LoadMap(void) {
 	// Need to do this anyway, otherwise teleporters will be broken
 	CreateItemMarkers();
 

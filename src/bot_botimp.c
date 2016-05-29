@@ -9,7 +9,6 @@ void SetSkill();
 void SetAttribs(gedict_t* self) {
 	float smartness = 10;
 	int skill_ = self->fb.skill.skill_level;
-
 	G_bprint (2, "skill &cf00%d&r\n", self->fb.skill.skill_level);
 	if (skill_ > 10) {
 		self->fb.skill.fast_aim = (skill_ - 10) * 0.1;
@@ -74,9 +73,6 @@ void InitParameters() {
 
 	sv_accelerate = cvar("sv_accelerate");
 	use_ammo = (deathmatch != 4);
-
-	available_weapons = deathmatch <= 3 ? IT_AXE_SHOTGUN : (deathmatch == 4 ? IT_ALL_BUT_GRENADE : IT_ALL);
-	leave = (deathmatch != 1);
 
 	CalculatePhysicsVariables();
 }

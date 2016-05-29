@@ -279,7 +279,7 @@ void health_touch()
 	if ( match_in_progress != 2 || !readytostart() )
         return;
 
-	if ( self->fb.item_touch && self->fb.item_touch (self, other) )
+	if (ItemTouched (self, other))
 		return;
 
 	if ( self->healtype == 2 )	// Megahealth?  Ignore max_health...
@@ -332,6 +332,8 @@ void health_touch()
 		}
 	}
 
+	ItemTaken (self, other);
+	
 	activator = other;
 	SUB_UseTargets();	// fire all targets / killtargets
 }
@@ -777,8 +779,10 @@ void weapon_touch()
 
 	self = stemp;
 
-	if ( leave )
+	if (leave) {
+		ItemTaken (self, other);
 		return;
+	}
 
 	if ( deathmatch != 3 || deathmatch != 5 )
 	{
@@ -918,7 +922,7 @@ void ammo_touch()
     if ( match_in_progress != 2 || !readytostart() )
         return;
 
-	if ( self->fb.item_touch && self->fb.item_touch (self, other) )
+	if (ItemTouched (self, other))
 		return;
 
 // if the player was using his best weapon, change up to the new one if better          
@@ -1035,6 +1039,7 @@ void ammo_touch()
 		self->s.v.nextthink = g_globalvars.time + 15;
 
 	self->s.v.think = ( func_t ) SUB_regen;
+	ItemTaken (self, other);
 
 	activator = other;
 	SUB_UseTargets();	// fire all targets / killtargets
@@ -1944,7 +1949,7 @@ void BackpackTouch()
 	if ( cvar("k_instagib") && other->invisible_finished )
 		return; // we have ring, ignore pack
 	
-	if (self->fb.item_touch && self->fb.item_touch (self, other))
+	if ( ItemTouched(self, other) )
 		return;
 
 	acount = 0;
@@ -2123,8 +2128,7 @@ void BackpackTouch()
 	sound( other, CHAN_ITEM, "weapons/lock4.wav", 1, ATTN_NORM );
 	stuffcmd( other, "bf\n" );
 
-	if (self->fb.item_taken)
-		self->fb.item_taken (self, other);
+	ItemTaken (self, other);
 
 	ent_remove( self );
 

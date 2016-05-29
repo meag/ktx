@@ -66,8 +66,12 @@ void check_marker(gedict_t* self, gedict_t* other) {
 		other->fb.touch_marker = self;
 		other->fb.Z_ = self->fb.Z_;
 
-		// Brute-force finding of closest marker if we don't touch another one in time
+		// Trigger brute-force finding of closest marker if we don't touch another one in time
 		other->fb.touch_marker_time = g_globalvars.time + 5;
+
+		//if (!other->isBot) {
+		//	G_sprint (other, 2, "Marker %d touched\n", self->fb.index);
+		//}
 	}
 }
 
@@ -134,7 +138,7 @@ void AssignVirtualGoal_apply(gedict_t* marker_) {
 	if (goal_number) {
 		gedict_t* test_goal = marker_;
 
-		if (test_goal->s.v.nextthink > g_globalvars.time) {
+		if (WaitingToRespawn(test_goal)) {
 			int i = 0;
 			for (i = 0; i < NUMBER_PATHS; ++i) {
 				test_goal = marker_->fb.paths[i].next_marker;
@@ -144,7 +148,7 @@ void AssignVirtualGoal_apply(gedict_t* marker_) {
 
 			if (i >= NUMBER_PATHS) {
 				// Waiting to respawn...
-				if ((marker_->s.v.nextthink > g_globalvars.time) && (marker_->s.v.think == (func_t) SUB_regen)) {
+				if (WaitingToRespawn(marker_)) {
 					test_goal = marker_;
 				}
 				else {

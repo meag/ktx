@@ -167,7 +167,6 @@ extern float numberofclients;
 extern vec3_t oldvelocity_;
 extern vec3_t delta_velocity;
 extern gedict_t* current_waiting_bot;
-extern gedict_t* first_item;
 extern gedict_t* first_ent;
 extern gedict_t* first_marker;
 extern float takedamage_exists;
@@ -193,8 +192,7 @@ extern gedict_t* m_P;
 extern gedict_t* m_zone;
 extern float P_time;
 extern int m_D;
-extern float new_path_state;
-extern float old_path_state;
+extern int new_path_state;
 #ifndef WATERJUMP_
 #define WATERJUMP_ 2
 #endif
@@ -308,8 +306,7 @@ extern gedict_t* zone_head[NUMBER_ZONES];
 extern gedict_t* zone_tail[NUMBER_ZONES];
 extern int subzone_indexes[NUMBER_ZONES];
 
-extern float path_normal;
-extern float leave;
+extern qbool path_normal;
 extern gedict_t* from_marker;
 extern gedict_t* middle_marker;
 extern gedict_t* next_marker;
@@ -380,8 +377,6 @@ extern vec3_t last_clear_velocity;
 extern float jumpspeed;
 //extern vec3_t dir_move;
 //extern float path_score;
-extern float total_goal_time;
-extern vec3_t self_dir;
 extern float look_score;
 extern vec3_t dir_look;
 /*
@@ -398,7 +393,6 @@ extern float current_goal_time;
 extern float current_goal_time_125;
 extern float best_respawn_time;
 extern gedict_t* goalentity_marker;
-extern float goal_late_time;
 extern gedict_t* linked_marker_;
 extern vec3_t linked_marker_origin;
 extern float goal_score;
@@ -515,7 +509,6 @@ extern gedict_t* multi_ent;
 //extern float intermission_running;
 //extern float intermission_exittime;
 extern gedict_t* bodyque_head;
-extern float rocket_alert;
 extern vec3_t rocket_endpos;
 //extern char* nextmap;
 extern float frogbot_number;
@@ -523,7 +516,6 @@ extern gedict_t* prephysics;
 extern gedict_t* postphysics;
 extern gedict_t* frogbot_spawned;
 extern float use_ammo;
-extern int available_weapons;
 extern float check_parm_time;
 #ifndef SPAWN_SIZE
 #define SPAWN_SIZE 1
@@ -536,7 +528,6 @@ extern float turning_speed;
 extern vec3_t hor_normal_vec;
 extern vec3_t last_clear_angle;
 extern vec3_t velocity_hor_angle;
-extern float beQuiet;
 #ifndef PREF_FLASH
 #define PREF_FLASH 1
 #endif
@@ -568,7 +559,6 @@ gedict_t* spawn_apply(void);
 #define CP_WPSTATS 1
 #endif
 extern float intermission_getting_closer;
-extern float total_entity_count;
 float ExistsPath(gedict_t* from_marker, gedict_t* to_marker);
 float boomstick_only(void);
 
@@ -912,7 +902,7 @@ float secret_target(void);
 gedict_t* EntityAt(gedict_t* start_entity, float index_);
 float near_teammate(gedict_t* me);
 
-qbool able_rj(void);
+qbool able_rj(gedict_t* self);
 float EntVisible(vec3_t vec);
 float VisibleEntity(gedict_t* ent);
 gedict_t* identify_teammate_(gedict_t* me);
@@ -1222,4 +1212,14 @@ typedef struct fb_path_eval_s {
 	int description;
 	float path_time;
 	qbool path_normal;
+	vec3_t player_origin;
+	gedict_t* goalentity_marker;
+	float goal_late_time;
+	float lookahead_time_;
+	vec3_t player_direction;
+	qbool be_quiet;
 } fb_path_eval_t;
+
+
+// FBCA code just set nextthink to 0 when item respawned...
+qbool WaitingToRespawn (gedict_t* ent);

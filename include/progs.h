@@ -353,7 +353,7 @@ typedef struct botskill_s {
 	float dodge_amount;
 	float lookahead_time;
 	float prediction_error;
-	float look_anywhere;
+	float look_anywhere;          // 0...1  determines when the bot will look at the enemy's location
 	float stop_turn_speed;
 	float accuracy;
 	float firing_reflex;
@@ -408,7 +408,7 @@ typedef struct fb_entvars_s {
 	int state;                              // WAIT | RUNAWAY | NOTARGET_ENEMY | HELP_TEAMMATE | STATE_BOTTOM (doors) | SHOT_FOR_LUCK
 	int camp_state;                         // CAMPBOT
 	float arrow;
-	float wasinwater;
+	qbool wasinwater;
 	float swim_arrow;
 	float arrow_time;                       // If set in future, bots will avoid this path.  Used to detect grenade/rocket at teleport exit.
 	float arrow_time2;
@@ -430,10 +430,10 @@ typedef struct fb_entvars_s {
 	struct gedict_s* best_goal;
 	float best_goal_score;
 	float saved_goal_desire;                         // the desire for the current goal entity
-	float saved_respawn_time;
+	float saved_respawn_time;                        // seconds until this item respawns (includes current bot's error)
 	float saved_goal_time;
 	float saved_enemy_time_squared;
-	float goal_respawn_time;
+	float goal_respawn_time;                         // the time when this->best_goal2 will respawn (can be in past)
 	float goal_refresh_time;
 	float goal_enemy_repel;
 	float goal_enemy_desire;
@@ -451,7 +451,7 @@ typedef struct fb_entvars_s {
 	float track_pitchspeed;
 	float track_yawspeed;
 
-	float _highermarker;
+	qbool _highermarker;
 
 	struct gedict_s* near_teleport;
 	struct gedict_s* linked_marker;
@@ -551,6 +551,11 @@ typedef struct fb_entvars_s {
 
 	// Debugging
 	qbool               debug;           // If set, trace logic
+
+	// Frogbot code messes with size, keep track of item centre
+	// vec3_t              true_centre;
+
+	qbool                  be_quiet;
 } fb_entvars_t;
 
 //typedef (void(*)(gedict_t *)) one_edict_func;
