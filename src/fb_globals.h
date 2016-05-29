@@ -8,11 +8,6 @@
 #ifndef FL_ONGROUND_PARTIALGROUND
 #define FL_ONGROUND_PARTIALGROUND 1536
 #endif
-extern qbool marker_time;
-extern float next_marker_time;
-extern qbool hazard_time;
-extern float next_hazard_time;
-
 #ifndef IT_EITHER_NAILGUN
 #define IT_EITHER_NAILGUN (IT_NAILGUN | IT_SUPER_NAILGUN)
 #endif
@@ -73,14 +68,6 @@ extern float next_hazard_time;
 #ifndef CLIENTKILL
 #define CLIENTKILL 11
 #endif
-extern char* deathtype;
-extern float armorplay;
-extern int gamemode;
-extern int new_gamemode;
-extern float game_disable_autosteams;
-extern float game_disable_botchat;
-extern float game_lava_cheat;
-extern float game_hardestjump_disabled;
 
 #define FB_PREFER_ROCKET_LAUNCHER 1
 #define FB_PREFER_LIGHTNING_GUN   2
@@ -106,28 +93,6 @@ extern float game_hardestjump_disabled;
 #ifndef GAME_ENABLE_AUTOSTEAMS
 #define GAME_ENABLE_AUTOSTEAMS 2048
 #endif
-extern gedict_t* targ;
-extern vec3_t extra_velocity;
-extern float damage;
-extern float t_radius_damage;
-extern gedict_t* ignore;
-gedict_t* AddToList(gedict_t* first_in_list, gedict_t* ent);
-extern float enemy_visible;
-extern float predict_dist;
-extern gedict_t* previous_spot;
-extern gedict_t* enemy_;
-extern gedict_t* virtual_enemy;
-extern gedict_t* look_object_;
-extern gedict_t* test_enemy;
-extern gedict_t* viewport;
-extern gedict_t* non_viewport;
-extern gedict_t* self_aiment;
-extern vec3_t targ_origin;
-extern vec3_t targ_centre;
-extern vec3_t inflictor_origin;
-extern gedict_t* inflictor;
-extern float damage_radius;
-extern float inflictor_dist;
 #ifndef FORWARD
 #define FORWARD 1
 #endif
@@ -161,15 +126,7 @@ extern float inflictor_dist;
 #ifndef JUMPSPEED
 #define JUMPSPEED 270
 #endif
-extern float numberofbots;
-extern float numberofplayers;
-extern float numberofclients;
-extern vec3_t oldvelocity_;
-extern vec3_t delta_velocity;
-extern gedict_t* current_waiting_bot;
-extern gedict_t* first_ent;
-extern gedict_t* first_marker;
-extern float takedamage_exists;
+
 #ifndef FALL_FALSE
 #define FALL_FALSE 0
 #endif
@@ -182,17 +139,7 @@ extern float takedamage_exists;
 #ifndef FALL_DEATH
 #define FALL_DEATH 3
 #endif
-extern gedict_t* dropper;
-extern float fallheight;
-extern float mouse_friction;
-extern vec3_t pitch_tangent;
-extern vec3_t yaw_tangent;
-extern float mouse_vel;
-extern gedict_t* m_P;
-extern gedict_t* m_zone;
-extern float P_time;
-extern int m_D;
-extern int new_path_state;
+
 #ifndef WATERJUMP_
 #define WATERJUMP_ 2
 #endif
@@ -288,267 +235,18 @@ extern int new_path_state;
 #ifndef SHOT_FOR_LUCK
 #define SHOT_FOR_LUCK 2
 #endif
-
-extern float nextthink_;
-extern float try_shoot;
-extern qbool markers_loaded;
-extern float goal_index;
-extern gedict_t* current_load_position;
-extern gedict_t* load_position;
-
-extern float goal_number;
-extern gedict_t* test_goal;
-extern float same_zone;
-extern gedict_t* zone_stack_head;
-
-extern gedict_t* markers[NUMBER_MARKERS];
-extern gedict_t* zone_head[NUMBER_ZONES];
-extern gedict_t* zone_tail[NUMBER_ZONES];
-extern int subzone_indexes[NUMBER_ZONES];
-
-extern qbool path_normal;
-extern gedict_t* from_marker;
-extern gedict_t* middle_marker;
-extern gedict_t* next_marker;
-extern gedict_t* to_marker;
-extern gedict_t* look_marker;
-//extern gedict_t* test_marker;
-extern gedict_t* prev_marker;
-extern float two_teams;
-extern float first_team;
-extern float second_team;
-extern float new_team;
-extern vec3_t to_marker_pos;
-extern gedict_t* goal_entity;
-extern float weapon_refresh_time_;
-extern float weapon_;
-extern float am;
-extern float save;
-extern float take;
-extern float maxplayers;
-extern gedict_t* touch_marker_;
-extern float lookahead_time_;
-extern float prediction_error_;
-extern vec3_t origin_;
-extern float impulse_;
-extern float time_start;
-extern float framecount_start;
-extern float real_frametime;
-extern float sv_accelerate;
-extern float sv_maxfriction;
-extern float sv_accelerate_frametime;
-extern float sv_maxspeed;
-extern float sv_maxwaterspeed;
-extern float half_sv_maxspeed;
-extern float inv_sv_maxspeed;
-extern float sv_maxstrafespeed;
-extern float friction_factor;
-extern float old_time;
-extern float distance;
-extern vec3_t hor_direction;
-extern vec3_t dir_forward;
-extern float current_maxspeed;
-//extern float velocity_forward;
-//extern float accel_forward;
-//extern float max_accel_forward;
-extern vec3_t desired_accel;
-extern vec3_t hor_velocity;
-extern vec3_t new_velocity;
-extern vec3_t new_origin;
-extern vec3_t last_clear_hor_velocity;
-extern float last_clear_hor_speed;
-extern vec3_t jump_velocity;
-extern vec3_t jump_origin;
-extern float oldflags;
-extern float current_arrow;
-extern float content;
-extern float content1;
-extern float content2;
-extern float content3;
-extern float fall;
-extern float new_fall;
-extern float current_fallspot;
-extern vec3_t edge_normal;
-extern vec3_t self_view;
-extern vec3_t testplace;
-extern float tries;
-extern vec3_t last_clear_point;
-extern vec3_t last_clear_velocity;
-extern float jumpspeed;
-//extern vec3_t dir_move;
-//extern float path_score;
-extern float look_score;
-extern vec3_t dir_look;
-/*
-extern float best_goal_desire;
-extern float best_goal_time;
-extern float best_score2;
-extern gedict_t* best_goal2;
-extern float goal_desire;
-extern float enemy_desire;
-extern float enemy_repel;
-*/
-extern float best_goal_score;
-extern float current_goal_time;
-extern float current_goal_time_125;
-extern float best_respawn_time;
-extern gedict_t* goalentity_marker;
-extern gedict_t* linked_marker_;
-extern vec3_t linked_marker_origin;
-extern float goal_score;
-extern float goal_score2;
-extern float same_dir;
-extern float avoid;
-extern float enemy_score;
-extern vec3_t rel_pos;
-extern vec3_t rel_pos2;
-extern vec3_t rel_dir;
-extern float rel_dist;
-extern float rel_time;
-extern vec3_t rel_hor_dir;
-extern float hor_component;
-extern float min_angle_error;
-extern gedict_t* enemy_touch_marker;
-extern float new_health;
-extern vec3_t src;
-extern vec3_t direction;
-extern float risk;
-extern float risk_factor;
-extern float risk_strength;
-extern vec3_t enemy_angles;
-extern gedict_t* bot;
-extern float rnd;
-extern gedict_t* spawn_pos;
-extern gedict_t* spots;
-extern float pcount;
-extern gedict_t* thing;
-extern float numspots;
-extern float totalspots;
-extern vec3_t vec1;
-extern vec3_t vec2;
-extern vec3_t vec_;
-extern gedict_t* think_ent;
-extern gedict_t* trigger;
-extern vec3_t cmins;
-extern vec3_t cmaxs;
-extern gedict_t* item;
-extern vec3_t tmin;
-extern vec3_t tmax;
-extern float or;
-extern float nr;
-extern float best_weapon;
-extern float score_count;
-extern vec3_t item_pos;
-extern vec3_t marker_pos;
-extern gedict_t* marker_;
-extern gedict_t* marker2;
-extern float zone_time;
-extern float real_yaw_;
-extern gedict_t* fireball;
-extern gedict_t* bubble;
-extern gedict_t* bubble_spawner;
-extern vec3_t org_;
-extern float rnd1;
-extern float rnd2;
-extern float rnd3;
-extern float character;
-extern float block_;
-extern float char_count;
-extern float word_count;
-extern float spawnflags_;
-extern float digit;
-extern float exponent;
-extern float previous_exponent;
-extern gedict_t* target_;
-extern float traveltime;
-extern float traveltime2;
-extern float traveltime3;
-extern float look_traveltime;
-extern float look_traveltime_squared;
-extern gedict_t* flag_self;
-extern float flag_pos;
-extern gedict_t* flag1;
-extern gedict_t* flag2;
-extern gedict_t* tfog;
-extern vec3_t weapons_vel;
-extern gedict_t* death;
-extern gedict_t* trace_ent1;
-extern gedict_t* trace_ent2;
-extern gedict_t* old_self;
-extern gedict_t* old_other;
-extern float ledge_backup;
-extern float try_jump_ledge;
-extern float being_blocked;
-extern float forward;
-extern char* deathstring;
-extern char* deathstring2;
-extern gedict_t* removebot_self;
-extern vec3_t start;
-extern vec3_t end;
-//extern int description;
-//extern float goal_time;
-//extern float path_time;
-extern float component_speed;
-extern float do_jump;
-extern float dm;
-extern float count_;
-extern gedict_t* array_sub_object_;
-extern float bind_char;
-extern float dodge_factor;
-extern gedict_t* dodge_missile;
-extern gedict_t* killed_self;
-extern gedict_t* rune_self;
-extern gedict_t* door_enemy;
-extern gedict_t* multi_ent;
 #ifndef NUMBER_LOAD_STAGE
 #define NUMBER_LOAD_STAGE 9
 #endif
 #ifndef NUMBERHARDBOTS
 #define NUMBERHARDBOTS 16
 #endif
-//extern float intermission_running;
-//extern float intermission_exittime;
-extern gedict_t* bodyque_head;
-extern vec3_t rocket_endpos;
-//extern char* nextmap;
-extern float frogbot_number;
-extern gedict_t* prephysics;
-extern gedict_t* postphysics;
-extern gedict_t* frogbot_spawned;
-extern float use_ammo;
-extern float check_parm_time;
 #ifndef SPAWN_SIZE
 #define SPAWN_SIZE 1
 #endif
-extern float unstick_time;
-extern float no_bots_stuck;
-extern float first_trace_fraction;
-extern vec3_t first_trace_plane_normal;
-extern float turning_speed;
-extern vec3_t hor_normal_vec;
-extern vec3_t last_clear_angle;
-extern vec3_t velocity_hor_angle;
 #ifndef PREF_FLASH
 #define PREF_FLASH 1
 #endif
-extern float runaway_time;
-extern float runaway_time_temp;
-extern float runaway_score;
-extern float runaway_score_temp;
-extern gedict_t* runaway_dest;
-extern float runaway_fail;
-extern gedict_t* runaway_marker_temp;
-extern gedict_t* runaway_prev_temp;
-extern float min_traveltime;
-extern gedict_t* to_zone;
-extern float test_away_score;
-extern float best_away_score;
-extern gedict_t* best_away_marker;
-extern gedict_t* search_entity;
-extern float RA_time;
-extern float enemy_time_squared;
-float IsVisible(gedict_t* ent);
-gedict_t* spawn_apply(void);
 #ifndef IT_ROCKET_LIGHTNING
 #define IT_ROCKET_LIGHTNING 96
 #endif
@@ -558,64 +256,15 @@ gedict_t* spawn_apply(void);
 #ifndef CP_WPSTATS
 #define CP_WPSTATS 1
 #endif
-extern float intermission_getting_closer;
-float ExistsPath(gedict_t* from_marker, gedict_t* to_marker);
-float boomstick_only(void);
-
-extern float ar_time;
 #ifndef MSG_HIGH
 #define MSG_HIGH 3
 #endif
-extern float lock;
-extern float duel_mode;
-extern float team_mode;
-extern float a_rep;
-extern char* string_null;
-char* GetTeamName(float g);
-char* ClientTeamName(gedict_t* p);
-float ControlRPlayers(void);
-float CountTeams(void);
-float rndm(float fw, float fh);
-char* gNum(float n);
-float ent_fspeed(gedict_t* p);
-/*qbool IsDanger(void);
-float self_have_rl_or_lg(void);
-float enemy_have_rl_or_lg(void);
-float enemy_defenceless(void);*/
-qbool EnemyDefenceless (gedict_t* self);
-
-float enemy_shaft_attack(void);
-extern float pingupdate;
 #ifndef SVC_UPDATEPACKETLOSS
 #define SVC_UPDATEPACKETLOSS 53
 #endif
 #ifndef SVC_SETANGLE
 #define SVC_SETANGLE 10
 #endif
-extern gedict_t* team0;
-extern gedict_t* team1;
-extern gedict_t* team2;
-extern gedict_t* team3;
-extern gedict_t* team4;
-extern gedict_t* updatebot;
-extern float cvar_;
-extern float print_;
-extern float reset_;
-extern char* varg;
-extern float var_;
-extern float min_;
-extern float max_;
-extern float idleprint_time;
-extern float last_action_time;
-extern float force_time;
-extern float users;
-extern float inter_print;
-extern float loadbot_time;
-extern float loadingbots;
-extern float check_loadingbots;
-extern float game_drop;
-extern float game_damage;
-extern float game_raspawn;
 #ifndef GAME_DROP
 #define GAME_DROP 524288
 #endif
@@ -631,28 +280,12 @@ extern float game_raspawn;
 #ifndef GAME_BOTJUMP
 #define GAME_BOTJUMP 8388608
 #endif
-extern float teams;
-extern float a_nextthink;
-extern float initialized;
-extern float updatestuff;
 #ifndef exclamation
 #define exclamation 33
 #endif
 #ifndef period
 #define period 46
 #endif
-extern float a_sounds;
-extern char* a_spawn;
-float players_(void);
-float putselfinserver(void);
-float best_rl(void);
-float best_gl(void);
-float a_prethink(void);
-float a_postthink(void);
-float a_newitems(void);
-float toss_player(void);
-float scratch1(void);
-float W_BestWeapon(void);
 #ifndef IMP_DROP
 #define IMP_DROP 71
 #endif
@@ -833,21 +466,6 @@ float W_BestWeapon(void);
 #ifndef IMP_END4
 #define IMP_END4 149
 #endif
-//float int(float a);
-float oint(float a);
-float imaginary(float a, float b);
-float dig(float a, float b);
-//float pow(float a, float b);
-float anglemod2(float a);
-float check_cvar(void);
-float loadbot_time_(void);
-float utilFloatToLong(float n);
-float T_Damage2(void);
-float a_item(void);
-float TeamArmorDam(void);
-gedict_t* LocateMarker(vec3_t org);
-float RankForWeapon(float w);
-float WeaponCode(float w);
 #ifndef WEAPON_BIG2
 #define WEAPON_BIG2 1
 #endif
@@ -863,15 +481,6 @@ float WeaponCode(float w);
 #ifndef WEAPON_BIG
 #define WEAPON_BIG 8
 #endif
-float G_is_connected(void);
-//char* GetMapName(float f2);
-float map_was_voted(float val);
-float count_map_votes(float val);
-char* rndffamap(void);
-float RemoveBot(float remove_name);
-float crandom(void);
-gedict_t* RemoveFromList(gedict_t* first_in_list, gedict_t* ent);
-vec_t* VelocityForDamage(void);
 #ifndef DOOR_START_OPEN
 #define DOOR_START_OPEN 1
 #endif
@@ -884,9 +493,6 @@ vec_t* VelocityForDamage(void);
 #ifndef DOOR_TOGGLE
 #define DOOR_TOGGLE 32
 #endif
-float door_target(void);
-float EntitiesTouching(gedict_t* e1, gedict_t* e2);
-float secret_target(void);
 #ifndef SILENT
 #define SILENT 2
 #endif
@@ -899,6 +505,321 @@ float secret_target(void);
 #ifndef START_OFF
 #define START_OFF 1
 #endif
+
+
+extern qbool marker_time;
+extern float next_marker_time;
+extern qbool hazard_time;
+extern float next_hazard_time;
+
+extern gedict_t* targ;
+extern float damage;
+extern gedict_t* ignore;
+gedict_t* AddToList(gedict_t* first_in_list, gedict_t* ent);
+extern float enemy_visible;
+extern float predict_dist;
+
+extern gedict_t* enemy_;
+extern gedict_t* virtual_enemy;
+extern gedict_t* look_object_;
+extern gedict_t* test_enemy;
+extern gedict_t* viewport;
+extern gedict_t* non_viewport;
+extern gedict_t* self_aiment;
+
+extern vec3_t oldvelocity_;
+extern vec3_t delta_velocity;
+extern gedict_t* current_waiting_bot;
+extern gedict_t* first_ent;
+extern gedict_t* first_marker;
+extern float takedamage_exists;
+
+extern gedict_t* dropper;
+extern float fallheight;
+extern float mouse_friction;
+extern vec3_t pitch_tangent;
+extern vec3_t yaw_tangent;
+extern float mouse_vel;
+extern gedict_t* m_P;
+extern gedict_t* m_zone;
+extern float P_time;
+extern int m_D;
+extern int new_path_state;
+extern float nextthink_;
+extern float try_shoot;
+extern qbool markers_loaded;
+extern float goal_index;
+extern gedict_t* current_load_position;
+extern gedict_t* load_position;
+
+extern float goal_number;
+extern gedict_t* test_goal;
+extern float same_zone;
+extern gedict_t* zone_stack_head;
+
+extern gedict_t* markers[NUMBER_MARKERS];
+extern gedict_t* zone_head[NUMBER_ZONES];
+extern gedict_t* zone_tail[NUMBER_ZONES];
+extern int subzone_indexes[NUMBER_ZONES];
+
+extern qbool path_normal;
+extern gedict_t* from_marker;
+extern gedict_t* middle_marker;
+extern gedict_t* next_marker;
+extern gedict_t* to_marker;
+extern gedict_t* look_marker;
+//extern gedict_t* test_marker;
+extern gedict_t* prev_marker;
+extern vec3_t to_marker_pos;
+extern gedict_t* goal_entity;
+extern float weapon_refresh_time_;
+extern gedict_t* touch_marker_;
+extern float lookahead_time_;
+extern float prediction_error_;
+extern vec3_t origin_;
+extern float impulse_;
+extern float time_start;
+extern float framecount_start;
+extern float real_frametime;
+extern float sv_accelerate;
+extern float sv_maxfriction;
+extern float sv_accelerate_frametime;
+extern float sv_maxspeed;
+extern float sv_maxwaterspeed;
+extern float half_sv_maxspeed;
+extern float inv_sv_maxspeed;
+extern float sv_maxstrafespeed;
+extern float friction_factor;
+extern float old_time;
+extern float distance;
+extern vec3_t hor_direction;
+extern vec3_t dir_forward;
+extern float current_maxspeed;
+extern vec3_t desired_accel;
+extern vec3_t hor_velocity;
+extern vec3_t new_velocity;
+extern vec3_t new_origin;
+extern vec3_t last_clear_hor_velocity;
+extern float last_clear_hor_speed;
+extern vec3_t jump_velocity;
+extern vec3_t jump_origin;
+extern float oldflags;
+extern float current_arrow;
+extern float content;
+extern float content1;
+extern float content2;
+extern float content3;
+extern float fall;
+extern float new_fall;
+extern float current_fallspot;
+extern vec3_t edge_normal;
+extern vec3_t self_view;
+extern vec3_t testplace;
+extern float tries;
+extern vec3_t last_clear_point;
+extern vec3_t last_clear_velocity;
+extern float jumpspeed;
+extern float look_score;
+extern vec3_t dir_look;
+extern float best_goal_score;
+extern float current_goal_time;
+extern float current_goal_time_125;
+extern float best_respawn_time;
+extern gedict_t* goalentity_marker;
+extern gedict_t* linked_marker_;
+extern vec3_t linked_marker_origin;
+extern float goal_score;
+extern float goal_score2;
+extern float same_dir;
+extern float avoid;
+extern float enemy_score;
+extern vec3_t rel_pos;
+extern vec3_t rel_pos2;
+extern vec3_t rel_dir;
+extern float rel_dist;
+extern float rel_time;
+extern vec3_t rel_hor_dir;
+extern float hor_component;
+extern float min_angle_error;
+extern gedict_t* enemy_touch_marker;
+extern float new_health;
+extern vec3_t src;
+extern vec3_t direction;
+extern float risk;
+extern float risk_factor;
+extern float risk_strength;
+extern vec3_t enemy_angles;
+extern gedict_t* bot;
+extern float rnd;
+extern gedict_t* spawn_pos;
+extern gedict_t* spots;
+extern float pcount;
+extern gedict_t* thing;
+extern float numspots;
+extern float totalspots;
+extern vec3_t vec1;
+extern vec3_t vec2;
+extern vec3_t vec_;
+extern gedict_t* think_ent;
+extern gedict_t* trigger;
+extern vec3_t cmins;
+extern vec3_t cmaxs;
+extern gedict_t* item;
+extern vec3_t tmin;
+extern vec3_t tmax;
+extern float or;
+extern float nr;
+extern float best_weapon;
+extern float score_count;
+extern vec3_t item_pos;
+extern vec3_t marker_pos;
+extern gedict_t* marker_;
+extern gedict_t* marker2;
+extern float zone_time;
+extern float real_yaw_;
+extern gedict_t* fireball;
+extern gedict_t* bubble;
+extern gedict_t* bubble_spawner;
+extern vec3_t org_;
+extern float rnd1;
+extern float rnd2;
+extern float rnd3;
+extern float character;
+extern float block_;
+extern float char_count;
+extern float word_count;
+extern float spawnflags_;
+extern float digit;
+extern float exponent;
+extern float previous_exponent;
+extern gedict_t* target_;
+extern float traveltime;
+extern float traveltime2;
+extern float traveltime3;
+extern float look_traveltime;
+extern float look_traveltime_squared;
+extern gedict_t* flag_self;
+extern float flag_pos;
+extern gedict_t* flag1;
+extern gedict_t* flag2;
+extern gedict_t* tfog;
+extern vec3_t weapons_vel;
+extern gedict_t* death;
+extern gedict_t* trace_ent1;
+extern gedict_t* trace_ent2;
+extern gedict_t* old_self;
+extern gedict_t* old_other;
+extern float ledge_backup;
+extern float try_jump_ledge;
+extern float being_blocked;
+extern float forward;
+extern char* deathstring;
+extern char* deathstring2;
+extern gedict_t* removebot_self;
+extern vec3_t start;
+extern vec3_t end;
+extern float component_speed;
+extern float do_jump;
+extern float dm;
+extern float count_;
+extern gedict_t* array_sub_object_;
+extern float bind_char;
+extern float dodge_factor;
+extern gedict_t* dodge_missile;
+extern gedict_t* killed_self;
+extern gedict_t* rune_self;
+extern gedict_t* door_enemy;
+extern gedict_t* multi_ent;
+
+extern gedict_t* bodyque_head;
+extern vec3_t rocket_endpos;
+extern float frogbot_number;
+extern gedict_t* prephysics;
+extern gedict_t* postphysics;
+extern gedict_t* frogbot_spawned;
+extern float use_ammo;
+extern float check_parm_time;
+extern float unstick_time;
+extern float no_bots_stuck;
+extern float first_trace_fraction;
+extern vec3_t first_trace_plane_normal;
+extern float turning_speed;
+extern vec3_t hor_normal_vec;
+extern vec3_t last_clear_angle;
+extern vec3_t velocity_hor_angle;
+extern float runaway_time;
+extern float runaway_time_temp;
+extern float runaway_score;
+extern float runaway_score_temp;
+extern gedict_t* runaway_dest;
+extern float runaway_fail;
+extern gedict_t* runaway_marker_temp;
+extern gedict_t* runaway_prev_temp;
+extern float min_traveltime;
+extern gedict_t* to_zone;
+extern float test_away_score;
+extern float best_away_score;
+extern gedict_t* best_away_marker;
+extern gedict_t* search_entity;
+extern float RA_time;
+extern float enemy_time_squared;
+float IsVisible(gedict_t* ent);
+
+extern float intermission_getting_closer;
+float ExistsPath(gedict_t* from_marker, gedict_t* to_marker);
+float boomstick_only(void);
+
+extern float ar_time;
+extern float lock;
+extern float duel_mode;
+extern float team_mode;
+extern float a_rep;
+extern char* string_null;
+float CountTeams(void);
+qbool EnemyDefenceless (gedict_t* self);
+
+float enemy_shaft_attack(void);
+extern float pingupdate;
+extern gedict_t* team0;
+extern gedict_t* team1;
+extern gedict_t* team2;
+extern gedict_t* team3;
+extern gedict_t* team4;
+extern gedict_t* updatebot;
+extern float cvar_;
+extern float print_;
+extern float reset_;
+extern char* varg;
+extern float var_;
+extern float min_;
+extern float max_;
+extern float idleprint_time;
+extern float last_action_time;
+extern float force_time;
+extern float users;
+extern float inter_print;
+extern float loadbot_time;
+extern float loadingbots;
+extern float check_loadingbots;
+extern float game_drop;
+extern float game_damage;
+extern float game_raspawn;
+extern float teams;
+extern float a_nextthink;
+extern float initialized;
+extern float updatestuff;
+extern float a_sounds;
+extern char* a_spawn;
+float W_BestWeapon(void);
+
+gedict_t* LocateMarker(vec3_t org);
+float RankForWeapon(float w);
+float WeaponCode(float w);
+
+float crandom(void);
+gedict_t* RemoveFromList(gedict_t* first_in_list, gedict_t* ent);
+
+float EntitiesTouching(gedict_t* e1, gedict_t* e2);
 gedict_t* EntityAt(gedict_t* start_entity, float index_);
 float near_teammate(gedict_t* me);
 
@@ -909,16 +830,12 @@ gedict_t* identify_teammate_(gedict_t* me);
 float anglemod(float v);
 float visible_teammate(gedict_t* me);
 gedict_t* HelpTeammate(void);
-gedict_t* check_wp_stats(gedict_t* pl);
-float AddRandomBot(void);
-float BeenSpawned(gedict_t* client, float value);
 
 // 
 char* SetNetName(void);
 char* EnemyTeamName(void);
 char* FriendTeamName(void);
 char* SetTeamNetName(void);
-float SpawnBot(void);
 
 qbool Visible_360(gedict_t* self, gedict_t* visible_object);
 void VelocityForArrow(gedict_t* self);
@@ -965,9 +882,6 @@ void BecomeMarker(gedict_t* marker);
 
 // route_calc.qc
 void CheckWaterColumn(gedict_t* m, vec3_t m_pos, vec3_t testplace);
-
-// route_lookup.qc
-void SightMarker(gedict_t* from_marker);
 
 #define SubZoneFunction(x) \
 	void S1_ ## x (void); \
@@ -1094,10 +1008,6 @@ void FrogbotPostPhysics(void);
 // names.qc
 void CopyBot(gedict_t* e, gedict_t* f);
 
-// lists.qc
-void SetColorName(float to, gedict_t* client);
-//void Add_takedamage(gedict_t* ent);
-
 // defs2.qc
 void remove_self(void);
 
@@ -1106,6 +1016,7 @@ void AvoidHazards(void);
 void NewVelocityForArrow (gedict_t* self, vec3_t dir_move);
 
 // route_lookup.qc
+void SightMarker(gedict_t* from_marker);
 void HigherSightMarker(gedict_t* from_marker);
 
 // botweap.qc
@@ -1223,3 +1134,5 @@ typedef struct fb_path_eval_s {
 
 // FBCA code just set nextthink to 0 when item respawned...
 qbool WaitingToRespawn (gedict_t* ent);
+
+int NumberOfClients (void);

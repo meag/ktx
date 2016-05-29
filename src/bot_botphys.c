@@ -3,6 +3,19 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
+int NumberOfClients (void)
+{
+	int count = 0;
+	gedict_t* plr = NULL;
+
+	for (plr = world; plr = find_plr (plr); ) {
+		if (plr->ct == ctPlayer)
+			++count;
+	}
+
+	return count;
+}
+
 void obstruction() {
 	VectorSubtract(self->fb.oldvelocity, self->s.v.velocity, delta_velocity);
 	if (abs(delta_velocity[0]) < 0.1 && abs(delta_velocity[1]) < 0.1) {
@@ -267,7 +280,7 @@ void BotDetectTrapped(gedict_t* self) {
 	}
 	else if (content1 == CONTENT_SOLID) {
 		unstick_time = unstick_time + g_globalvars.frametime;
-		if (unstick_time <= numberofclients) {
+		if (unstick_time <= NumberOfClients()) {
 			no_bots_stuck = FALSE;
 			//self->s.v.velocity[2] = JUMPSPEED;
 			self->fb.jumping = true;

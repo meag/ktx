@@ -39,14 +39,6 @@ void InitParameters() {
 
 	first_ent = nextent(world);
 
-	// FIXME: ?
-	for (test_enemy = world; test_enemy = nextent (test_enemy); ) {
-		maxplayers = maxplayers + 1;
-	}
-	if (maxplayers > 24) {
-		maxplayers = 24;
-	}
-
 	dropper = spawn();
 	setsize(dropper, PASSVEC3( VEC_HULL_MIN ), PASSVEC3( VEC_HULL_MAX ));
 	dropper->fb.desire = goal_NULL;
@@ -55,21 +47,7 @@ void InitParameters() {
 	NewItems();
 	InitBodyQue();
 
-	gamemode = cvar(FB_CVAR_GAMEMODE);			// FIXME
-	game_disable_autosteams = (!(gamemode & GAME_ENABLE_AUTOSTEAMS));
-
 	//initialize(); // TODO: RA initialization?
-
-	if (teamplay == 4) {
-		armorplay = TRUE;
-	}
-	else if (teamplay == 5) {
-		armorplay = TRUE;
-	}
-	else  {
-		teamplay = 0;
-		cvar_set("teamplay", "0");
-	}
 
 	sv_accelerate = cvar("sv_accelerate");
 	use_ammo = (deathmatch != 4);
@@ -193,50 +171,4 @@ char* SetNetName() {
 	};
 
 	return names[(int)bound(0, self->fb.botnumber - 1, sizeof(names) / sizeof(names[0]) - 1)];
-}
-
-void ToggleGameMode(int value, char* s) {
-	new_gamemode = cvar(FB_CVAR_GAMEMODE);
-	if (new_gamemode & value) {
-		new_gamemode = new_gamemode - value;
-		bprint_fb(2, s);
-		bprint_fb(2, " disabled after restart\\");
-	}
-	else  {
-		new_gamemode = new_gamemode | value;
-		bprint_fb(2, s);
-		bprint_fb(2, " enabled after restart\\");
-	}
-	cvar_fset(FB_CVAR_GAMEMODE, new_gamemode);
-}
-
-void ToggleGameModeNow(int value, char* s) {
-	int new_gamemode = cvar(FB_CVAR_GAMEMODE);
-	if (gamemode & value) {
-		gamemode &= ~value;
-		new_gamemode &= ~value;
-		bprint_fb(2, s);
-		bprint_fb(2, " disabled%s\\");
-	}
-	else  {
-		gamemode |= value;
-		new_gamemode |= value;
-		bprint_fb(2, s);
-		bprint_fb(2, " enabled\\");
-	}
-	cvar_fset(FB_CVAR_GAMEMODE, new_gamemode);
-	//SetGame();
-}
-
-void print_boolean(int value, char* s) {
-	G_sprint(self, 2, s);
-	if (gamemode & value) {
-		G_sprint(self, 2, "enabled\\");
-	}
-	else  {
-		G_sprint(self, 2, "disabled\\");
-	}
-}
-
-void PrintRules() {
 }

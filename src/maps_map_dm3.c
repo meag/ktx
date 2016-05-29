@@ -1893,7 +1893,7 @@ void map_dm3() {
 }
 
 void DM3CampLogic() {
-	if (numberofclients > 1) {
+	if (NumberOfClients() > 1) {
 		if (teamplay && deathmatch <= 3) {
 			if ((int)self->s.v.items & (IT_ROCKET_LAUNCHER | IT_LIGHTNING) && !self->fb.bot_evade) {
 				if ((self->s.v.health > 60) && (self->s.v.armorvalue > 80)) {

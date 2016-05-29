@@ -773,7 +773,7 @@ void DM6CampLogic() {
 	qbool has_weapon = (int)self->s.v.items & (IT_ROCKET_LAUNCHER | IT_LIGHTNING);
 
 	// Camp the red armor...
-	if (numberofclients > 1) {
+	if (NumberOfClients() > 1) {
 		if (has_weapon && !self->fb.bot_evade) {
 			if ((self->s.v.health > 80) && (self->s.v.armorvalue > 100)) {
 				if ((self->s.v.ammo_cells > 15) || (self->s.v.ammo_rockets > 3)) {
@@ -782,12 +782,12 @@ void DM6CampLogic() {
 						if (search_entity->s.v.origin[2] <= self->s.v.origin[2] + 18) {
 							if (VectorDistance(search_entity->s.v.origin, self->s.v.origin) < 200) {
 								if (random() < 0.9) {
-									self->fb.camp_state = self->fb.camp_state | CAMPBOT;
+									self->fb.camp_state |= CAMPBOT;
 									linked_marker_ = touch_marker_;
 								}
 							}
 							else  {
-								self->fb.camp_state = self->fb.camp_state - (self->fb.camp_state & CAMPBOT);
+								self->fb.camp_state &= ~CAMPBOT;
 							}
 						}
 					}

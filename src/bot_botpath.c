@@ -446,7 +446,7 @@ void frogbot_marker_touch() {
 	STOP_DEBUGGING
 
 	// "check if fully on lift - if not then continue moving to linked_marker_"
-	if (streq(touch_marker_->s.v.classname, "door") && streq(deathtype, "squish")) {
+	if (streq(touch_marker_->s.v.classname, "door") && self->deathtype == dtSQUISH) {
 		if (linked_marker_->s.v.absmin[2] + linked_marker_->s.v.view_ofs[2] > self->s.v.origin[2] + 18) {
 			if (teamplay) {
 				self->fb.state &= ~HELP_TEAMMATE;
