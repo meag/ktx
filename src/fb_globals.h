@@ -185,10 +185,6 @@
 #ifndef DELIBERATE_AIR_WAIT_GROUND
 #define DELIBERATE_AIR_WAIT_GROUND 393216
 #endif
-//extern float RA_type;
-//#ifndef THROUGH_NODE
-//#define THROUGH_NODE 1
-//#endif
 #ifndef UNREACHABLE
 #define UNREACHABLE 1
 #endif
@@ -512,11 +508,7 @@ extern float next_marker_time;
 extern qbool hazard_time;
 extern float next_hazard_time;
 
-extern gedict_t* targ;
-extern float damage;
-extern gedict_t* ignore;
 gedict_t* AddToList(gedict_t* first_in_list, gedict_t* ent);
-extern float enemy_visible;
 extern float predict_dist;
 
 extern gedict_t* enemy_;
@@ -546,7 +538,6 @@ extern float P_time;
 extern int m_D;
 extern int new_path_state;
 extern float nextthink_;
-extern float try_shoot;
 extern qbool markers_loaded;
 extern float goal_index;
 extern gedict_t* current_load_position;
@@ -620,7 +611,6 @@ extern vec3_t last_clear_point;
 extern vec3_t last_clear_velocity;
 extern float jumpspeed;
 extern float look_score;
-extern vec3_t dir_look;
 extern float best_goal_score;
 extern float current_goal_time;
 extern float current_goal_time_125;
@@ -713,9 +703,6 @@ extern float ledge_backup;
 extern float try_jump_ledge;
 extern float being_blocked;
 extern float forward;
-extern char* deathstring;
-extern char* deathstring2;
-extern gedict_t* removebot_self;
 extern vec3_t start;
 extern vec3_t end;
 extern float component_speed;
@@ -726,10 +713,6 @@ extern gedict_t* array_sub_object_;
 extern float bind_char;
 extern float dodge_factor;
 extern gedict_t* dodge_missile;
-extern gedict_t* killed_self;
-extern gedict_t* rune_self;
-extern gedict_t* door_enemy;
-extern gedict_t* multi_ent;
 
 extern gedict_t* bodyque_head;
 extern vec3_t rocket_endpos;
@@ -765,51 +748,15 @@ extern float RA_time;
 extern float enemy_time_squared;
 float IsVisible(gedict_t* ent);
 
-extern float intermission_getting_closer;
 float ExistsPath(gedict_t* from_marker, gedict_t* to_marker);
 float boomstick_only(void);
 
 extern float ar_time;
-extern float lock;
-extern float duel_mode;
-extern float team_mode;
-extern float a_rep;
-extern char* string_null;
+
 float CountTeams(void);
 qbool EnemyDefenceless (gedict_t* self);
 
 float enemy_shaft_attack(void);
-extern float pingupdate;
-extern gedict_t* team0;
-extern gedict_t* team1;
-extern gedict_t* team2;
-extern gedict_t* team3;
-extern gedict_t* team4;
-extern gedict_t* updatebot;
-extern float cvar_;
-extern float print_;
-extern float reset_;
-extern char* varg;
-extern float var_;
-extern float min_;
-extern float max_;
-extern float idleprint_time;
-extern float last_action_time;
-extern float force_time;
-extern float users;
-extern float inter_print;
-extern float loadbot_time;
-extern float loadingbots;
-extern float check_loadingbots;
-extern float game_drop;
-extern float game_damage;
-extern float game_raspawn;
-extern float teams;
-extern float a_nextthink;
-extern float initialized;
-extern float updatestuff;
-extern float a_sounds;
-extern char* a_spawn;
 float W_BestWeapon(void);
 
 gedict_t* LocateMarker(vec3_t org);

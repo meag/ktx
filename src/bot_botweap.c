@@ -416,7 +416,7 @@ static int DesiredWeapon(void) {
 			search_entity = identify_teammate_(self);
 			if (!search_entity->invincible_time) {
 				if (VisibleEntity(search_entity)) {
-					if (enemy_visible) {
+					if (self->fb.enemy_visible) {
 						if (VectorDistance(search_entity->s.v.origin, enemy_->s.v.origin) < 150) {
 							if (self->s.v.ammo_shells) {
 								return IT_SHOTGUN;

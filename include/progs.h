@@ -552,10 +552,8 @@ typedef struct fb_entvars_s {
 	// Debugging
 	qbool               debug;           // If set, trace logic
 
-	// Frogbot code messes with size, keep track of item centre
-	// vec3_t              true_centre;
-
-	qbool                  be_quiet;
+	qbool               be_quiet;
+	qbool               enemy_visible;
 } fb_entvars_t;
 
 //typedef (void(*)(gedict_t *)) one_edict_func;

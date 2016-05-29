@@ -614,7 +614,7 @@ void map_dm4() {
 }
 
 void DM4CampLogic() {
-	if (duel_mode) {
+	if (isDuel()) {
 		if ((int)self->s.v.items & (IT_ROCKET_LAUNCHER | IT_LIGHTNING) && !self->fb.bot_evade) {
 			if ((self->s.v.health > 50) && (self->s.v.armorvalue > 30)) {
 				if ((self->s.v.ammo_cells > 15) || (self->s.v.ammo_rockets > 3)) {

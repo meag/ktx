@@ -7,6 +7,10 @@ void POVDMM4LookDoor(gedict_t* self);
 void AMPHI2BotInLava(void);
 qbool DM6FireAtDoor (gedict_t* self);
 
+// FIXME: Move to bot.skill
+#define CHANCE_EVADE_DUEL 0.08
+#define CHANCE_EVADE_NONDUEL 0.1
+
 static void BotSetDesiredAngles (gedict_t* self, vec3_t rel_pos)
 {
 	vectoangles(rel_pos, self->fb.desired_angle);
@@ -31,6 +35,8 @@ static void BotSetDesiredAngles (gedict_t* self, vec3_t rel_pos)
 
 static void BotSetMouseParameters (gedict_t* self)
 {
+	return;
+
 	VectorSubtract(self->fb.desired_angle, self->s.v.v_angle, self->fb.angle_error);
 	self->fb.angle_error[0] -= (1 - self->fb.skill.fast_aim) * (self->fb.pitchspeed * self->fb.skill.firing_reflex);
 	self->fb.angle_error[1] -= (1 - self->fb.skill.fast_aim) * (self->fb.yawspeed * self->fb.skill.firing_reflex);
@@ -542,16 +548,16 @@ void ThinkTime(gedict_t* self) {
 void BotEvadeLogic(gedict_t* self) {
 	self->fb.bot_evade = FALSE;
 	if (deathmatch <= 3 && !isRA()) {
-		if (isDuel() && random() < 0.08) {
+		if (isDuel() && random() < CHANCE_EVADE_DUEL) {
 			if ((self->s.v.origin[2] + 18) > (enemy_->s.v.absmin[2] + enemy_->s.v.view_ofs[2])) {
 				if ((int)self->s.v.items & IT_ROCKET_LAUNCHER && self->s.v.ammo_rockets > 4) {
 					if (!self->s.v.waterlevel) {
-						self->fb.bot_evade = (qbool) (self->s.v.health > 70) && (self->s.v.armorvalue > 100) && !enemy_visible;
+						self->fb.bot_evade = (qbool) (self->s.v.health > 70) && (self->s.v.armorvalue > 100) && !self->fb.enemy_visible;
 					}
 				}
 			}
 		}
-		else if (! isDuel() && random() < 0.1) {
+		else if (! isDuel() && random() < CHANCE_EVADE_NONDUEL) {
 			if ((self->s.v.origin[2] + 18) > (enemy_->s.v.absmin[2] + enemy_->s.v.view_ofs[2])) {
 				if (((int)self->s.v.items & IT_ROCKET_LAUNCHER) || ((int)self->s.v.items & IT_LIGHTNING)) {
 					if ((self->s.v.ammo_cells >= 20) || (self->s.v.ammo_rockets > 3)) {

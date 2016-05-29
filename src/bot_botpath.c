@@ -254,7 +254,7 @@ static float EvalPath(fb_path_eval_t* eval, qbool allowRocketJumps, qbool trace_
 }
 
 // FIXME: globals
-static void EvalLook(float* best_score) {
+static void EvalLook(float* best_score, vec3_t dir_look) {
 	vec3_t temp;
 
 	VectorAdd(from_marker->s.v.absmin, from_marker->s.v.view_ofs, temp);
@@ -488,10 +488,11 @@ void frogbot_marker_touch() {
 	self->fb.path_state = new_path_state;
 	self->fb.linked_marker_time = g_globalvars.time + (touch_marker_ == linked_marker_ ? 0.3 : 5);
 	self->fb.old_linked_marker = touch_marker_;
-	DM6MarkerTouchLogic (self, goalentity_marker, touch_marker_);
 
 	// Logic past this point appears to be deciding what to look at...
-	self->fb.state &= NOT_NOTARGET_ENEMY;
+	DM6MarkerTouchLogic (self, goalentity_marker, touch_marker_);
+
+	self->fb.state &= ~NOTARGET_ENEMY;
 	if ((int)self->s.v.flags & FL_ONGROUND && self->fb.wasinwater) {
 		self->fb.wasinwater = false;
 		self->fb.path_state &= ~WATERJUMP_;
@@ -553,33 +554,36 @@ void frogbot_marker_touch() {
 		}
 	}
 
-	if (touch_marker_ == linked_marker_) {
-		VectorClear(dir_look);
-	}
-	else {
-		vec3_t diff;
-		VectorAdd(linked_marker_->s.v.absmin, linked_marker_->s.v.view_ofs, linked_marker_origin);
-		VectorSubtract(linked_marker_origin, origin_, diff);
-		normalize(diff, dir_look);
-	}
-	trap_makevectors(self->s.v.v_angle);
+	// Either look at the next marker or the marker after that...
 	{
-		vec3_t temp;
-		VectorScale(self->s.v.velocity, inv_sv_maxspeed, temp);
-		VectorAdd(temp, g_globalvars.v_forward, temp);
-		VectorAdd(temp, dir_look, temp);
-		normalize(temp, dir_look);
-	}
+		vec3_t dir_look = { 0 };
 
-	// Look at the next marker...
-	VectorAdd(linked_marker_->s.v.absmin, linked_marker_->s.v.view_ofs, linked_marker_origin);
-	best_score = PATH_SCORE_NULL;
-	{
-		int i = 0;
-		for (i = 0; i < NUMBER_PATHS; ++i) {
-			from_marker = linked_marker_->fb.paths[i].next_marker;
-			if (from_marker) {
-				EvalLook(&best_score);
+		if (touch_marker_ != linked_marker_) {
+			vec3_t diff;
+			VectorAdd(linked_marker_->s.v.absmin, linked_marker_->s.v.view_ofs, linked_marker_origin);
+			VectorSubtract(linked_marker_origin, origin_, diff);
+			normalize(diff, dir_look);
+		}
+
+		trap_makevectors(self->s.v.v_angle);
+		{
+			vec3_t temp;
+			VectorScale(self->s.v.velocity, inv_sv_maxspeed, temp);
+			VectorAdd(temp, g_globalvars.v_forward, temp);
+			VectorAdd(temp, dir_look, temp);
+			normalize(temp, dir_look);
+		}
+
+		// Look at the next marker...
+		VectorAdd(linked_marker_->s.v.absmin, linked_marker_->s.v.view_ofs, linked_marker_origin);
+		best_score = PATH_SCORE_NULL;
+		{
+			int i = 0;
+			for (i = 0; i < NUMBER_PATHS; ++i) {
+				from_marker = linked_marker_->fb.paths[i].next_marker;
+				if (from_marker) {
+					EvalLook(&best_score, dir_look);
+				}
 			}
 		}
 	}

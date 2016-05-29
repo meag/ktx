@@ -42,7 +42,7 @@ void BotDeathThink(void) {
 
 void BotSetCommand(gedict_t* self) {
 	float msec = min ((g_globalvars.time - self->fb.last_cmd_sent) * 1000, 255);
-
+	/*
 	float pitchspeed_ = self->fb.pitchspeed + self->fb.pitchaccel * g_globalvars.frametime;
 	float yawspeed_ = self->fb.yawspeed + self->fb.yawaccel * g_globalvars.frametime;
 	float total_pitchspeed = 0;
@@ -60,7 +60,7 @@ void BotSetCommand(gedict_t* self) {
 	total_pitchspeed = bound(-450, total_pitchspeed, 450);
 	self->fb.pitchspeed = bound (-450, pitchspeed_, 450);
 	self->fb.real_pitch = bound(-71.71875, self->fb.real_pitch + total_pitchspeed * g_globalvars.frametime, 78.75);
-
+	*/
 	a_rocketjump(self);
 
 	/*
