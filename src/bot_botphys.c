@@ -284,7 +284,7 @@ void BotDetectTrapped(gedict_t* self) {
 	else if (content1 == CONTENT_SOLID) {
 		unstick_time = unstick_time + g_globalvars.frametime;
 		if (unstick_time <= NumberOfClients()) {
-			no_bots_stuck = FALSE;
+			no_bots_stuck = false;
 			//self->s.v.velocity[2] = JUMPSPEED;
 			self->fb.jumping = true;
 		}
@@ -316,8 +316,7 @@ void BotDetectTrapped(gedict_t* self) {
 }
 
 void FrogbotPrePhysics2() {
-	g_globalvars.frametime = real_frametime;
-	no_bots_stuck = TRUE;
+	no_bots_stuck = true;
 
 	for (self = world; self = find_plr (self); ) {
 		if (self->isBot) {
@@ -331,7 +330,7 @@ void FrogbotPrePhysics2() {
 						self->fb.oldvelocity[2] = self->s.v.velocity[2] = 0;
 					}
 					if (self->fb.fl_ontrain) {
-						self->fb.fl_ontrain = FALSE;
+						self->fb.fl_ontrain = false;
 					}
 					else {
 						self->s.v.flags = self->s.v.flags - FL_ONGROUND;
@@ -339,7 +338,7 @@ void FrogbotPrePhysics2() {
 				}
 				else  {
 					self->jump_flag = self->s.v.velocity[2];
-					self->fb.fl_ontrain = FALSE;
+					self->fb.fl_ontrain = false;
 				}
 
 				// FIXME: Should standard logic deal with this now?
@@ -362,9 +361,7 @@ void FrogbotPrePhysics2() {
 	}
 }
 
-void FrogbotPostPhysics1() {
-	g_globalvars.frametime = real_frametime;
-
+void FrogbotPostPhysics(void) {
 	for (self = world; self = find_plr (self); ) {
 		if (self->isBot) {
 			self->s.v.waterlevel = self->fb.oldwaterlevel;
@@ -399,18 +396,3 @@ void FrogbotPostPhysics1() {
 		}
 	}
 }
-
-void FrogbotPostPhysics2() {
-	/*g_globalvars.frametime = real_frametime;
-	for (self = world; self = find_plr (self); ) {
-		if (self->s.v.movetype == MOVETYPE_STEP) {
-			PlayerPostThink_apply();
-		}
-	}*/
-}
-
-void FrogbotPostPhysics() {
-	FrogbotPostPhysics1();
-	FrogbotPostPhysics2();
-}
-

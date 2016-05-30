@@ -3,40 +3,40 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
-float EntVisible(vec3_t vec) {
-	traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2], vec[0], vec[1], vec[2], TRUE, self);
+qbool EntVisible(vec3_t vec) {
+	traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2], vec[0], vec[1], vec[2], true, self);
 	if ((g_globalvars.trace_fraction == 1) && !(g_globalvars.trace_inopen && g_globalvars.trace_inwater)) {
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
-float IsVisible(gedict_t* ent) {
+qbool IsVisible(gedict_t* ent) {
 	vec3_t vec;
 	if (EntVisible(ent->s.v.origin)) {
-		return TRUE;
+		return true;
 	}
 	VectorCopy(ent->s.v.origin, vec);
 	vec[2] = ent->s.v.absmin[2];
 	if (EntVisible(vec)) {
-		return TRUE;
+		return true;
 	}
 	vec[2] = ent->s.v.absmax[2];
 	if (EntVisible(vec)) {
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
-float VisibleEntity(gedict_t* ent) {
+qbool VisibleEntity(gedict_t* ent) {
 	vec3_t vec;
 	if (EntVisible(ent->s.v.origin)) {
-		return TRUE;
+		return true;
 	}
 	VectorCopy(ent->s.v.origin, vec);
 	vec[2] = ent->s.v.absmin[2];
 	if (EntVisible(vec)) {
-		return TRUE;
+		return true;
 	}
 	vec[2] = ent->s.v.absmax[2];
 	return EntVisible(vec);
@@ -56,7 +56,7 @@ gedict_t* identify_teammate_(gedict_t* me) {
 			normalize(me->s.v.angles, point);
 			VectorSubtract(diff, point, diff);
 			currclose = vlen(diff);
-			traceline(me->s.v.origin[0], me->s.v.origin[1], me->s.v.origin[2], p->s.v.origin[0], p->s.v.origin[1], p->s.v.origin[2], FALSE, me);
+			traceline(me->s.v.origin[0], me->s.v.origin[1], me->s.v.origin[2], p->s.v.origin[0], p->s.v.origin[1], p->s.v.origin[2], false, me);
 			if (PROG_TO_EDICT(g_globalvars.trace_ent) == p) {
 				if (closeness == -1) {
 					closeness = currclose;
@@ -73,13 +73,13 @@ gedict_t* identify_teammate_(gedict_t* me) {
 	return g ? g : world;
 }
 
-float visible_teammate(gedict_t* me) {
+qbool visible_teammate(gedict_t* me) {
 	float ang,
 	      curang;
 	gedict_t* p;
 
 	if (teamplay == 0 || teamplay == 1 || teamplay == 5) {
-		return 0;
+		return false;
 	}
 
 	for (p = find_plr(world); p; p = find_plr(world)) {
@@ -90,14 +90,15 @@ float visible_teammate(gedict_t* me) {
 					VectorSubtract(p->s.v.origin, me->s.v.origin, diff);
 					curang = vectoyaw(diff);
 					ang = anglemod(me->s.v.angles[1] - curang);
+					// FIXME: fb.skill
 					if (ang < 20 || ang > 340) {
-						return 1;
+						return true;
 					}
 				}
 			}
 		}
 	}
-	return 0;
+	return false;
 }
 
 float near_teammate(gedict_t* me) {

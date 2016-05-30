@@ -140,7 +140,7 @@ static void BotWaitLogic(gedict_t* touch_marker_) {
 		vec3_t linkedPos, lookPos;
 		VectorAdd(linked_marker_->s.v.absmin, linked_marker_->s.v.view_ofs, linkedPos);
 		VectorAdd(look_object_->s.v.absmin, look_object_->s.v.view_ofs, lookPos);
-		traceline(linkedPos[0], linkedPos[1], linkedPos[2] + 32, lookPos[0], lookPos[1], lookPos[2] + 32, TRUE, self);
+		traceline(linkedPos[0], linkedPos[1], linkedPos[2] + 32, lookPos[0], lookPos[1], lookPos[2] + 32, true, self);
 		if (g_globalvars.trace_fraction != 1) {
 			linked_marker_ = touch_marker_;
 			new_path_state = 0;
@@ -155,7 +155,7 @@ static void BotWaitLogic(gedict_t* touch_marker_) {
 static qbool DetectIncomingRocket(qbool rocket_alert, vec3_t marker_pos) {
 	// if the path location is too close to an incoming rocket, 
 	if (rocket_alert && VectorDistance(marker_pos, rocket_endpos) < 200) {
-		traceline(rocket_endpos[0], rocket_endpos[1], rocket_endpos[2], marker_pos[0], marker_pos[1], marker_pos[2], TRUE, self);
+		traceline(rocket_endpos[0], rocket_endpos[1], rocket_endpos[2], marker_pos[0], marker_pos[1], marker_pos[2], true, self);
 		return (g_globalvars.trace_fraction == 1);
 	}
 
@@ -299,12 +299,12 @@ static qbool CheckForRocketEnemyAim (gedict_t* self)
 			// Fixme: use view offset
 			VectorCopy(enemy_->s.v.origin, src);
 			src[2] += 16;
-			traceline(src[0], src[1], src[2], origin_[0], origin_[1], origin_[2], TRUE, self);
+			traceline(src[0], src[1], src[2], origin_[0], origin_[1], origin_[2], true, self);
 
 			// Fixme: Only avoid rocket aim if there's a direct line, rather than if they are within range of the explosion...
 			if (g_globalvars.trace_fraction != 1) {
 				trap_makevectors(enemy_->s.v.v_angle);
-				traceline(src[0], src[1], src[2], src[0] + g_globalvars.v_forward[0] * 500, src[1] + g_globalvars.v_forward[1] * 500, src[2] + g_globalvars.v_forward[2] * 500, TRUE, self);
+				traceline(src[0], src[1], src[2], src[0] + g_globalvars.v_forward[0] * 500, src[1] + g_globalvars.v_forward[1] * 500, src[2] + g_globalvars.v_forward[2] * 500, true, self);
 				VectorCopy(g_globalvars.trace_endpos, rocket_endpos);
 				return true;
 			}
@@ -381,7 +381,7 @@ void frogbot_marker_touch() {
 			}
 			self->fb.goal_respawn_time = 0;
 			goalentity_marker = best_away_marker;
-			self->fb.path_normal_ = TRUE;
+			self->fb.path_normal_ = true;
 		}
 	}
 

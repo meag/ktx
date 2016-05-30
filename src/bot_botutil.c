@@ -85,7 +85,7 @@ static qbool VisibilityTest (gedict_t* self, gedict_t* visible_object, float min
 		}
 
 		// If we can draw straight line between the two...
-		traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 32, visible_object->s.v.origin[0], visible_object->s.v.origin[1], visible_object->s.v.origin[2] + 32, TRUE, self);
+		traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 32, visible_object->s.v.origin[0], visible_object->s.v.origin[1], visible_object->s.v.origin[2] + 32, true, self);
 		if (g_globalvars.trace_fraction == 1) {
 			if (min_dot_product == 0) {
 				return true;
@@ -110,40 +110,3 @@ qbool Visible_infront(gedict_t* self, gedict_t* visible_object) {
 	// FIXME: Effective FOV should be in fb.skill
 	return (self->fb.enemy_visible = VisibilityTest (self, visible_object, 0.7071067f));
 }
-
-void TestTopBlock(void) {
-	float xDelta[4] = { -16,  16, -16,  16 };
-	float yDelta[4] = { -16, -16,  16,  16 };
-	int i = 0;
-	for (i = 0; i < 4; ++i)
-	{
-		traceline(last_clear_point[0] + xDelta[i], last_clear_point[1] + yDelta[i], last_clear_point[2] + 32, testplace[0] + xDelta[i], testplace[1] - yDelta[i], testplace[2] + 32, TRUE, self);
-		if (g_globalvars.trace_fraction != 1) {
-			if (g_globalvars.trace_plane_normal[2] <= 0) {
-				if (first_trace_fraction > g_globalvars.trace_fraction) {
-					first_trace_fraction = g_globalvars.trace_fraction;
-					VectorCopy(g_globalvars.trace_plane_normal, first_trace_plane_normal);
-				}
-			}
-		}
-	}
-}
-
-void TestBottomBlock(void) {
-	float xDelta[4] = { -16,  16, -16,  16 };
-	float yDelta[4] = { -16, -16,  16,  16 };
-	int i = 0;
-	for (i = 0; i < 4; ++i)
-	{
-		traceline(last_clear_point[0] + xDelta[i], last_clear_point[1] + yDelta[i], last_clear_point[2] - 24, testplace[0] + xDelta[i], testplace[1] - yDelta[i], testplace[2] - 24, TRUE, self);
-		if (g_globalvars.trace_fraction != 1) {
-			if (g_globalvars.trace_plane_normal[2] >= 0) {
-				if (first_trace_fraction > g_globalvars.trace_fraction) {
-					first_trace_fraction = g_globalvars.trace_fraction;
-					VectorCopy(g_globalvars.trace_plane_normal, first_trace_plane_normal);
-				}
-			}
-		}
-	}
-}
-

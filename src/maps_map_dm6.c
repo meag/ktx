@@ -857,7 +857,7 @@ void DM6MarkerTouchLogic (gedict_t* self, gedict_t* goalentity_marker, gedict_t*
 				normalize(temp, direction);
 				VectorCopy(origin_, src);
 				src[2] += 16;
-				traceline(src[0], src[1], src[2], src[0] + direction[0] * 2048, src[1] + direction[1] * 2048, src[2] + direction[2] * 2048, FALSE, self);
+				traceline(src[0], src[1], src[2], src[0] + direction[0] * 2048, src[1] + direction[1] * 2048, src[2] + direction[2] * 2048, false, self);
 				if (PROG_TO_EDICT(g_globalvars.trace_ent) == dm6_door) {
 					self->fb.path_state |= DM6_DOOR;
 				}

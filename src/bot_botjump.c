@@ -39,7 +39,7 @@ static qbool right_direction(gedict_t* self) {
 
 // Returns true if space above bot
 static float checkboven(gedict_t* self) {
-	traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2], self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 140, TRUE, self);
+	traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2], self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 140, true, self);
 	return (g_globalvars.trace_fraction == 1);
 }
 
@@ -49,7 +49,7 @@ static float checkground(gedict_t* self) {
 	g_globalvars.v_forward[2] = 0;
 	VectorNormalize(g_globalvars.v_forward);
 	VectorScale(g_globalvars.v_forward, 10, g_globalvars.v_forward);
-	traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2], self->s.v.origin[0] + g_globalvars.v_forward[0], self->s.v.origin[1] + g_globalvars.v_forward[1], self->s.v.origin[2] + g_globalvars.v_forward[2] -40, TRUE, self);
+	traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2], self->s.v.origin[0] + g_globalvars.v_forward[0], self->s.v.origin[1] + g_globalvars.v_forward[1], self->s.v.origin[2] + g_globalvars.v_forward[2] -40, true, self);
 	return (g_globalvars.trace_fraction != 1);
 }
 

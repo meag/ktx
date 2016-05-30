@@ -340,27 +340,24 @@ static void BotStopFiring() {
 	}
 }
 
+// FIXME: Magic numbers, take gravity into consideration
 static qbool PredictSpot(gedict_t* self, gedict_t* enemy_, vec3_t testplace, float rel_time) {
-	gedict_t* fallspot_self = self;
-	self = dropper;
-	VectorCopy(testplace, self->s.v.origin);
-	self->s.v.flags = FL_ONGROUND_PARTIALGROUND;
-	if (walkmove(self, 0, 0)) {
-		if (! droptofloor(self)) {
-			self = fallspot_self;
+	VectorCopy(testplace, dropper->s.v.origin);
+	dropper->s.v.flags = FL_ONGROUND_PARTIALGROUND;
+
+	if (walkmove(dropper, 0, 0)) {
+		if (! droptofloor(dropper)) {
 			testplace[2] = testplace[2] - 400 * (rel_time * rel_time) - 38;
 			return false;
 		}
 
-		if (self->s.v.origin[2] < fallheight) {
-			self = fallspot_self;
+		if (dropper->s.v.origin[2] < fallheight) {
 			testplace[2] = testplace[2] - 400 * (rel_time * rel_time) - 38;
 			return false;
 		}
-		self = fallspot_self;
 		return true;
 	}
-	self = fallspot_self;
+
 	VectorCopy(enemy_->s.v.origin, testplace);
 	return false;
 }
@@ -466,7 +463,7 @@ static void BotsFireLogic(void) {
 
 			// Aim lower over longer distances?  (FIXME)
 			if (self->s.v.weapon == IT_ROCKET_LAUNCHER && rel_dist > 96) {
-				traceline(origin_[0], origin_[1], origin_[2] + 16, origin_[0] + rel_pos[0], origin_[1] + rel_pos[1], origin_[2] + rel_pos[2] - 22, TRUE, self);
+				traceline(origin_[0], origin_[1], origin_[2] + 16, origin_[0] + rel_pos[0], origin_[1] + rel_pos[1], origin_[2] + rel_pos[2] - 22, true, self);
 				if (g_globalvars.trace_fraction == 1) {
 					rel_pos[2] = rel_pos[2] - 38;
 				}
@@ -546,7 +543,7 @@ void ThinkTime(gedict_t* self) {
 }
 
 void BotEvadeLogic(gedict_t* self) {
-	self->fb.bot_evade = FALSE;
+	self->fb.bot_evade = false;
 	if (deathmatch <= 3 && !isRA()) {
 		if (isDuel() && random() < CHANCE_EVADE_DUEL) {
 			if ((self->s.v.origin[2] + 18) > (enemy_->s.v.absmin[2] + enemy_->s.v.view_ofs[2])) {

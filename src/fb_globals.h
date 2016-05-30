@@ -1,12 +1,6 @@
 // Converted from .qc on 05/02/2016
-#ifndef FALSE
-#define FALSE 0
-#endif
-#ifndef TRUE
-#define TRUE 1
-#endif
 #ifndef FL_ONGROUND_PARTIALGROUND
-#define FL_ONGROUND_PARTIALGROUND 1536
+#define FL_ONGROUND_PARTIALGROUND (FL_ONGROUND | FL_PARTIALGROUND)
 #endif
 #ifndef IT_EITHER_NAILGUN
 #define IT_EITHER_NAILGUN (IT_NAILGUN | IT_SUPER_NAILGUN)
@@ -127,6 +121,7 @@
 #define JUMPSPEED 270
 #endif
 
+// Fall results
 #ifndef FALL_FALSE
 #define FALL_FALSE 0
 #endif
@@ -140,51 +135,54 @@
 #define FALL_DEATH 3
 #endif
 
+// Path flags
 #ifndef WATERJUMP_
-#define WATERJUMP_ 2
+#define WATERJUMP_ (1 << 1)
 #endif
 #ifndef DM6_DOOR
-#define DM6_DOOR 256
+#define DM6_DOOR (1 << 8)
 #endif
 #ifndef ROCKET_JUMP
-#define ROCKET_JUMP 512
+#define ROCKET_JUMP (1 << 9)
 #endif
 #ifndef JUMP_LEDGE
-#define JUMP_LEDGE 1024
+#define JUMP_LEDGE (1 << 10)
 #endif
 #ifndef VERTICAL_PLATFORM
-#define VERTICAL_PLATFORM 2048
+#define VERTICAL_PLATFORM (1 << 11)
 #endif
 #ifndef SAVED_DESCRIPTION
-#define SAVED_DESCRIPTION 3840
+#define SAVED_DESCRIPTION (DM6_DOOR | ROCKET_JUMP | JUMP_LEDGE | VERTICAL_PLATFORM)
 #endif
 #ifndef NOT_ROCKET_JUMP
-#define NOT_ROCKET_JUMP 65023
+#define NOT_ROCKET_JUMP (~ROCKET_JUMP)
 #endif
 #ifndef REVERSIBLE
-#define REVERSIBLE 16384
+#define REVERSIBLE (1 << 14)
 #endif
 #ifndef WATER_PATH
-#define WATER_PATH 32768
+#define WATER_PATH (1 << 15)
 #endif
 #ifndef DELIBERATE_AIR
-#define DELIBERATE_AIR 131072
+#define DELIBERATE_AIR (1 << 17)
 #endif
 #ifndef WAIT_GROUND
-#define WAIT_GROUND 262144
+#define WAIT_GROUND (1 << 18)
 #endif
 #ifndef STUCK_PATH
-#define STUCK_PATH 524288
+#define STUCK_PATH (1 << 19)
 #endif
 #ifndef AIR_ACCELERATION
-#define AIR_ACCELERATION 1048576
+#define AIR_ACCELERATION (1 << 20)
 #endif
 #ifndef NO_DODGE
-#define NO_DODGE 2097152
+#define NO_DODGE (1 << 21)
 #endif
 #ifndef DELIBERATE_AIR_WAIT_GROUND
-#define DELIBERATE_AIR_WAIT_GROUND 393216
+#define DELIBERATE_AIR_WAIT_GROUND (DELIBERATE_AIR | WAIT_GROUND)
 #endif
+
+// Bot flags
 #ifndef UNREACHABLE
 #define UNREACHABLE 1
 #endif
@@ -197,7 +195,6 @@
 #ifndef MARKER_IS_DM6_DOOR
 #define MARKER_IS_DM6_DOOR 8
 #endif
-
 #ifndef NOTARGET_ENEMY
 #define NOTARGET_ENEMY 32
 #endif
@@ -217,291 +214,27 @@
 #define WAIT 8192
 #endif
 #ifndef NOT_HURT_SELF
-#define NOT_HURT_SELF 16776191
+#define NOT_HURT_SELF (~HURT_SELF)
 #endif
 #ifndef NOT_NOTARGET_ENEMY
-#define NOT_NOTARGET_ENEMY 16777183
+#define NOT_NOTARGET_ENEMY ~(NOTARGET_ENEMY)
 #endif
 #ifndef NOT_AWARE_SURROUNDINGS
-#define NOT_AWARE_SURROUNDINGS 16777087
+#define NOT_AWARE_SURROUNDINGS ~(AWARE_SURROUNDINGS)
 #endif
+
 #ifndef CAMPBOT
 #define CAMPBOT 1
 #endif
 #ifndef SHOT_FOR_LUCK
 #define SHOT_FOR_LUCK 2
 #endif
-#ifndef NUMBER_LOAD_STAGE
-#define NUMBER_LOAD_STAGE 9
-#endif
-#ifndef NUMBERHARDBOTS
-#define NUMBERHARDBOTS 16
-#endif
-#ifndef SPAWN_SIZE
-#define SPAWN_SIZE 1
-#endif
-#ifndef PREF_FLASH
-#define PREF_FLASH 1
-#endif
 #ifndef IT_ROCKET_LIGHTNING
-#define IT_ROCKET_LIGHTNING 96
+#define IT_ROCKET_LIGHTNING (IT_ROCKET_LAUNCHER | IT_LIGHTNING)
 #endif
 #ifndef HELP_TEAMMATE
 #define HELP_TEAMMATE 128
 #endif
-#ifndef CP_WPSTATS
-#define CP_WPSTATS 1
-#endif
-#ifndef MSG_HIGH
-#define MSG_HIGH 3
-#endif
-#ifndef SVC_UPDATEPACKETLOSS
-#define SVC_UPDATEPACKETLOSS 53
-#endif
-#ifndef SVC_SETANGLE
-#define SVC_SETANGLE 10
-#endif
-#ifndef GAME_DROP
-#define GAME_DROP 524288
-#endif
-#ifndef GAME_ARENA
-#define GAME_ARENA 1048576
-#endif
-#ifndef GAME_DAMAGE
-#define GAME_DAMAGE 2097152
-#endif
-#ifndef GAME_RASPAWN
-#define GAME_RASPAWN 4194304
-#endif
-#ifndef GAME_BOTJUMP
-#define GAME_BOTJUMP 8388608
-#endif
-#ifndef exclamation
-#define exclamation 33
-#endif
-#ifndef period
-#define period 46
-#endif
-#ifndef IMP_DROP
-#define IMP_DROP 71
-#endif
-#ifndef IMP_ARENA
-#define IMP_ARENA 72
-#endif
-#ifndef IMP_DAMAGE
-#define IMP_DAMAGE 73
-#endif
-#ifndef IMP_SETTINGS
-#define IMP_SETTINGS 74
-#endif
-#ifndef IMP_DEFAULTS
-#define IMP_DEFAULTS 75
-#endif
-#ifndef IMP_RESTART
-#define IMP_RESTART 76
-#endif
-#ifndef IMP_FORCE
-#define IMP_FORCE 77
-#endif
-#ifndef IMP_SOUNDS
-#define IMP_SOUNDS 78
-#endif
-#ifndef IMP_ARMORTYPE
-#define IMP_ARMORTYPE 79
-#endif
-#ifndef IMP_SET_DEATHMATCH
-#define IMP_SET_DEATHMATCH 80
-#endif
-#ifndef IMP_SET_TEAMPLAY
-#define IMP_SET_TEAMPLAY 81
-#endif
-#ifndef IMP_SET_TIMELIMIT
-#define IMP_SET_TIMELIMIT 82
-#endif
-#ifndef IMP_SET_FRAGLIMIT
-#define IMP_SET_FRAGLIMIT 83
-#endif
-#ifndef IMP_SET_SKILL
-#define IMP_SET_SKILL 84
-#endif
-#ifndef IMP_SET_TEAMS
-#define IMP_SET_TEAMS 85
-#endif
-#ifndef IMP_SET_ROUNDS
-#define IMP_SET_ROUNDS 86
-#endif
-#ifndef IMP_SET_HEALTH
-#define IMP_SET_HEALTH 87
-#endif
-#ifndef IMP_SET_ARMOR
-#define IMP_SET_ARMOR 88
-#endif
-#ifndef IMP_SET_SHELLS
-#define IMP_SET_SHELLS 89
-#endif
-#ifndef IMP_SET_NAILS
-#define IMP_SET_NAILS 90
-#endif
-#ifndef IMP_SET_ROCKETS
-#define IMP_SET_ROCKETS 91
-#endif
-#ifndef IMP_SET_CELLS
-#define IMP_SET_CELLS 92
-#endif
-#ifndef IMP_SG
-#define IMP_SG 93
-#endif
-#ifndef IMP_SSG
-#define IMP_SSG 94
-#endif
-#ifndef IMP_NG
-#define IMP_NG 95
-#endif
-#ifndef IMP_SNG
-#define IMP_SNG 96
-#endif
-#ifndef IMP_GL
-#define IMP_GL 97
-#endif
-#ifndef IMP_RL
-#define IMP_RL 98
-#endif
-#ifndef IMP_LG
-#define IMP_LG 99
-#endif
-#ifndef IMP_NOTREADY
-#define IMP_NOTREADY 100
-#endif
-#ifndef IMP_OLDTEAM_BLUE
-#define IMP_OLDTEAM_BLUE 101
-#endif
-#ifndef IMP_OLDTEAM_RED
-#define IMP_OLDTEAM_RED 102
-#endif
-#ifndef IMP_OLDTEAM_YELLOW
-#define IMP_OLDTEAM_YELLOW 103
-#endif
-#ifndef IMP_OLDTEAM_GREEN
-#define IMP_OLDTEAM_GREEN 104
-#endif
-#ifndef IMP_RA
-#define IMP_RA 105
-#endif
-#ifndef IMP_BOTJUMP
-#define IMP_BOTJUMP 106
-#endif
-#ifndef IMP_ALIASES
-#define IMP_ALIASES 107
-#endif
-#ifndef IMP_COMMANDS
-#define IMP_COMMANDS 108
-#endif
-#ifndef IMP_BREAK
-#define IMP_BREAK 109
-#endif
-#ifndef IMP_TIMEDOWN
-#define IMP_TIMEDOWN 110
-#endif
-#ifndef IMP_TIMEUP
-#define IMP_TIMEUP 111
-#endif
-#ifndef IMP_FRAGSDOWN
-#define IMP_FRAGSDOWN 112
-#endif
-#ifndef IMP_FRAGSUP
-#define IMP_FRAGSUP 113
-#endif
-#ifndef IMP_SKILLDOWN
-#define IMP_SKILLDOWN 114
-#endif
-#ifndef IMP_SKILLUP
-#define IMP_SKILLUP 115
-#endif
-#ifndef IMP_JOIN
-#define IMP_JOIN 116
-#endif
-#ifndef IMP_OBSERVE
-#define IMP_OBSERVE 117
-#endif
-#ifndef IMP_LOCK
-#define IMP_LOCK 118
-#endif
-#ifndef IMP_ABOUT
-#define IMP_ABOUT 119
-#endif
-#ifndef IMP_SCORES
-#define IMP_SCORES 120
-#endif
-#ifndef IMP_CHDM
-#define IMP_CHDM 121
-#endif
-#ifndef IMP_CHTP
-#define IMP_CHTP 122
-#endif
-#ifndef IMP_SILENCE
-#define IMP_SILENCE 124
-#endif
-#ifndef IMP_NO_LG
-#define IMP_NO_LG 125
-#endif
-#ifndef IMP_WS_ON
-#define IMP_WS_ON 126
-#endif
-#ifndef IMP_WS_OFF
-#define IMP_WS_OFF 127
-#endif
-#ifndef IMP_WS_RES
-#define IMP_WS_RES 128
-#endif
-#ifndef IMP_SH_SPEED
-#define IMP_SH_SPEED 129
-#endif
-#ifndef IMP_NOCLIP
-#define IMP_NOCLIP 131
-#endif
-#ifndef IMP_END4
-#define IMP_END4 149
-#endif
-#ifndef WEAPON_BIG2
-#define WEAPON_BIG2 1
-#endif
-#ifndef WEAPON_SHOTGUN
-#define WEAPON_SHOTGUN 1
-#endif
-#ifndef WEAPON_ROCKET
-#define WEAPON_ROCKET 2
-#endif
-#ifndef WEAPON_SPIKES
-#define WEAPON_SPIKES 4
-#endif
-#ifndef WEAPON_BIG
-#define WEAPON_BIG 8
-#endif
-#ifndef DOOR_START_OPEN
-#define DOOR_START_OPEN 1
-#endif
-#ifndef DOOR_DONT_LINK
-#define DOOR_DONT_LINK 4
-#endif
-#ifndef DOOR_SILVER_GOLD_KEY
-#define DOOR_SILVER_GOLD_KEY 24
-#endif
-#ifndef DOOR_TOGGLE
-#define DOOR_TOGGLE 32
-#endif
-#ifndef SILENT
-#define SILENT 2
-#endif
-#ifndef PUSH_ONCE
-#define PUSH_ONCE 1
-#endif
-#ifndef PLAT_LOW_TRIGGER
-#define PLAT_LOW_TRIGGER 1
-#endif
-#ifndef START_OFF
-#define START_OFF 1
-#endif
-
 
 extern qbool marker_time;
 extern float next_marker_time;
@@ -571,7 +304,6 @@ extern vec3_t origin_;
 extern float impulse_;
 extern float time_start;
 extern float framecount_start;
-extern float real_frametime;
 extern float sv_accelerate;
 extern float sv_maxfriction;
 extern float sv_accelerate_frametime;
@@ -589,9 +321,6 @@ extern float current_maxspeed;
 extern vec3_t desired_accel;
 extern vec3_t hor_velocity;
 extern vec3_t new_velocity;
-extern vec3_t new_origin;
-extern vec3_t last_clear_hor_velocity;
-extern float last_clear_hor_speed;
 extern vec3_t jump_velocity;
 extern vec3_t jump_origin;
 extern float oldflags;
@@ -606,8 +335,6 @@ extern float current_fallspot;
 extern vec3_t edge_normal;
 extern vec3_t self_view;
 extern vec3_t testplace;
-extern float tries;
-extern vec3_t last_clear_point;
 extern vec3_t last_clear_velocity;
 extern float jumpspeed;
 extern float look_score;
@@ -699,14 +426,11 @@ extern gedict_t* trace_ent1;
 extern gedict_t* trace_ent2;
 extern gedict_t* old_self;
 extern gedict_t* old_other;
-extern float ledge_backup;
-extern float try_jump_ledge;
 extern float being_blocked;
 extern float forward;
 extern vec3_t start;
 extern vec3_t end;
 extern float component_speed;
-extern float do_jump;
 extern float dm;
 extern float count_;
 extern gedict_t* array_sub_object_;
@@ -746,7 +470,7 @@ extern gedict_t* best_away_marker;
 extern gedict_t* search_entity;
 extern float RA_time;
 extern float enemy_time_squared;
-float IsVisible(gedict_t* ent);
+qbool IsVisible(gedict_t* ent);
 
 float ExistsPath(gedict_t* from_marker, gedict_t* to_marker);
 float boomstick_only(void);
@@ -771,11 +495,11 @@ gedict_t* EntityAt(gedict_t* start_entity, float index_);
 float near_teammate(gedict_t* me);
 
 qbool able_rj(gedict_t* self);
-float EntVisible(vec3_t vec);
-float VisibleEntity(gedict_t* ent);
+qbool EntVisible(vec3_t vec);
+qbool VisibleEntity(gedict_t* ent);
 gedict_t* identify_teammate_(gedict_t* me);
 float anglemod(float v);
-float visible_teammate(gedict_t* me);
+qbool visible_teammate(gedict_t* me);
 gedict_t* HelpTeammate(void);
 
 // 
@@ -907,8 +631,6 @@ void bprint_g(int level, float f);
 
 // botutil.qc
 float BestArrowForDirection(gedict_t* self, vec3_t dir_move);
-void TestTopBlock (void); // same
-void TestBottomBlock (void);
 
 // botwater.qc
 void BotWaterMove (gedict_t* self);
@@ -943,7 +665,6 @@ void ResetEnemy(gedict_t* self);
 void NextLevel(void);
 
 // botwater.qc
-qbool JumpInWater(void);
 qbool BotShouldDischarge(void);
 
 // botphys.qc

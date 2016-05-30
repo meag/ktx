@@ -114,7 +114,7 @@ gedict_t* LocateMarker(vec3_t org) {
 
 			VectorAdd(marker_->s.v.absmin, marker_->s.v.view_ofs, marker_pos);
 			distance = VectorDistance(marker_pos, org);
-			traceline(org[0], org[1], org[2], marker_pos[0], marker_pos[1], marker_pos[2], TRUE, dropper);
+			traceline(org[0], org[1], org[2], marker_pos[0], marker_pos[1], marker_pos[2], true, dropper);
 			if (g_globalvars.trace_fraction != 1) {
 				distance = distance + 1000;
 			}
@@ -173,22 +173,22 @@ float ExistsPath(gedict_t* from_marker, gedict_t* to_marker) {
 	int i = 0;
 
 	if (from_marker == NULL || to_marker == NULL)
-		return FALSE;
+		return false;
 
 	for (i = 0; i < NUMBER_PATHS; ++i) {
 		if (from_marker->fb.paths[i].next_marker == to_marker) {
 			new_path_state = from_marker->fb.paths[i].flags;
-			return TRUE;
+			return true;
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
 void CheckWaterColumn(gedict_t* m, vec3_t m_pos, vec3_t testplace) {
 	m->fb.T |= T_WATER;
 	VectorCopy(m_pos, testplace);
-	while (TRUE) {
+	while (true) {
 		vec3_t point;
 
 		VectorCopy(testplace, self->s.v.origin);

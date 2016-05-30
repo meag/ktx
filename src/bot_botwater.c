@@ -10,7 +10,7 @@ static qbool BotCanReachMarker(gedict_t* self) {
 	       spot2;
 	VectorCopy(self->fb.linked_marker->s.v.origin, spot2);
 	VectorAdd(self->s.v.origin, self->s.v.view_ofs, spot1);
-	traceline(spot1[0], spot1[1], spot1[2], spot2[0], spot2[1], spot2[2], TRUE, self);
+	traceline(spot1[0], spot1[1], spot1[2], spot2[0], spot2[1], spot2[2], true, self);
 	return (g_globalvars.trace_fraction == 1);
 }
 
@@ -26,7 +26,7 @@ static qbool BotGoUpForAir(gedict_t* self, vec3_t dir_move) {
 	vec3_t temp;
 
 	if (g_globalvars.time > (self->air_finished - BOT_DROWN_SAFETY_TIME)) {
-		traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2], self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 64, TRUE, self);
+		traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2], self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 64, true, self);
 		if (g_globalvars.trace_fraction == 1) {
 			return (self->fb.swim_arrow = UP);
 		}
@@ -41,20 +41,20 @@ static qbool BotGoUpForAir(gedict_t* self, vec3_t dir_move) {
 
 		// Drowning...
 		if (g_globalvars.time > self->air_finished) {
-			traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2], self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 32, TRUE, self);
+			traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2], self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 32, true, self);
 			if (g_globalvars.trace_fraction != 1) {
 				return (self->fb.swim_arrow = UP);
 			}
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 static void SwimAwayFromWall(vec3_t dir_move) {
 	if (DotProduct(self->fb.obstruction_normal, rel_pos) > 0.5) {
 		VectorScale(dir_move, -1, dir_move);
 	}
-	traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2], self->s.v.origin[0] + g_globalvars.v_right[0] * 20, self->s.v.origin[1] + g_globalvars.v_right[1] * 20, self->s.v.origin[2] + g_globalvars.v_right[2] * 20, TRUE, self);
+	traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2], self->s.v.origin[0] + g_globalvars.v_right[0] * 20, self->s.v.origin[1] + g_globalvars.v_right[1] * 20, self->s.v.origin[2] + g_globalvars.v_right[2] * 20, true, self);
 	if (g_globalvars.trace_fraction != 1) {
 		vec3_t temp;
 
@@ -63,7 +63,7 @@ static void SwimAwayFromWall(vec3_t dir_move) {
 		VectorAdd(temp, dir_move, temp);
 		normalize(temp, dir_move);
 	}
-	traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2], self->s.v.origin[0] + g_globalvars.v_right[0] * (-20), self->s.v.origin[1] + g_globalvars.v_right[1] * (-20), self->s.v.origin[2] + g_globalvars.v_right[2] * (-20), TRUE, self);
+	traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2], self->s.v.origin[0] + g_globalvars.v_right[0] * (-20), self->s.v.origin[1] + g_globalvars.v_right[1] * (-20), self->s.v.origin[2] + g_globalvars.v_right[2] * (-20), true, self);
 	if (g_globalvars.trace_fraction != 1) {
 		vec3_t temp;
 
@@ -103,12 +103,12 @@ void BotWaterMove(gedict_t* self) {
 		}
 	}
 	else  {
-		traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2], self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 32, TRUE, self);
+		traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2], self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 32, true, self);
 		if (g_globalvars.trace_fraction == 1) {
 			self->fb.swim_arrow = UP;
 		}
 		else  {
-			traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2], self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + -32, TRUE, self);
+			traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2], self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + -32, true, self);
 			if (g_globalvars.trace_fraction == 1) {
 				self->fb.swim_arrow = DOWN;
 			}
@@ -128,30 +128,30 @@ qbool BotShouldDischarge (void)
 	float n;
 	gedict_t* p;
 	if (self->s.v.waterlevel != 3) {
-		return FALSE;
+		return false;
 	}
 	if (!((int)self->s.v.items & IT_LIGHTNING)) {
-		return FALSE;
+		return false;
 	}
 	if (self->s.v.ammo_cells < 25) {
-		return FALSE;
+		return false;
 	}
 	if (self->fb.enemy_dist > 600) {
-		return FALSE;
+		return false;
 	}
 	if (look_object_ != enemy_) {
-		return FALSE;
+		return false;
 	}
 	if (self->invincible_time > g_globalvars.time) {
 		if (trap_pointcontents (PASSVEC3 (enemy_->s.v.origin)) == CONTENT_WATER) {
-			return TRUE;
+			return true;
 		}
 	}
 	if (((int)self->s.v.items & IT_ROCKET_LIGHTNING) && (self->s.v.ammo_rockets > 25) && (self->s.v.ammo_cells > 25)) {
-		return FALSE;
+		return false;
 	}
 	if (((int)self->s.v.items & IT_NAILGUN_ROCKET) && (self->s.v.ammo_rockets > 25) && (self->s.v.ammo_nails > 25)) {
-		return FALSE;
+		return false;
 	}
 	n = 0;
 
@@ -174,12 +174,7 @@ qbool BotShouldDischarge (void)
 	if (n >= 2) {
 		return (random () < 0.003);
 	}
-	return FALSE;
-}
-
-// bothazard.qc
-qbool JumpInWater() {
-	return (trap_pointcontents(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] - 64) == CONTENT_WATER);
+	return false;
 }
 
 // client.qc

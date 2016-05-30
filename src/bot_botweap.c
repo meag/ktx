@@ -7,7 +7,7 @@ void DM6SelectWeaponToOpenDoor (gedict_t* self);
 
 static qbool WaterCombat(void) {
 	if (self->s.v.waterlevel < 2) {
-		return TRUE;
+		return true;
 	}
 	return ((trap_pointcontents(enemy_->s.v.origin[0], enemy_->s.v.origin[1], enemy_->s.v.origin[2]) == CONTENT_WATER) && (enemy_->s.v.origin[2] < origin_[2] - 32));
 }
@@ -108,7 +108,7 @@ qbool CheckNewWeapon(int desired_weapon) {
 
 static qbool ShotForLuck(vec3_t object) {
 	trap_makevectors(self->s.v.v_angle);
-	traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2], object[0], object[1], object[2], TRUE, self);
+	traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2], object[0], object[1], object[2], true, self);
 	return (g_globalvars.trace_fraction == 1);
 }
 
@@ -203,7 +203,7 @@ static void SpamRocketShot (gedict_t* self)
 					self->s.v.origin[0] + rel_pos[0], 
 					self->s.v.origin[1] + rel_pos[1], 
 					self->s.v.origin[2] + rel_pos[2] - 22, 
-					TRUE, self);
+					true, self);
 				if (g_globalvars.trace_fraction == 1) {
 					rel_pos[2] = rel_pos[2] - 38;
 				}
@@ -229,7 +229,7 @@ static void RocketLauncherShot (gedict_t* self, float risk)
 	VectorCopy(self->s.v.origin, rocket_origin);
 	rocket_origin[2] += 16;
 	trap_makevectors(self->s.v.v_angle);      // FIXME: desired angle?  will be one frame behind
-	traceline(rocket_origin[0], rocket_origin[1], rocket_origin[2], rocket_origin[0] + (g_globalvars.v_forward[0] * 600), rocket_origin[1] + (g_globalvars.v_forward[1] * 600), rocket_origin[2] + (g_globalvars.v_forward[2] * 600), FALSE, self);
+	traceline(rocket_origin[0], rocket_origin[1], rocket_origin[2], rocket_origin[0] + (g_globalvars.v_forward[0] * 600), rocket_origin[1] + (g_globalvars.v_forward[1] * 600), rocket_origin[2] + (g_globalvars.v_forward[2] * 600), false, self);
 	VectorCopy(g_globalvars.trace_endpos, rocket_endpos);
 	risk_strength = g_globalvars.trace_fraction;
 
@@ -250,7 +250,7 @@ static void RocketLauncherShot (gedict_t* self, float risk)
 				if (self->fb.allowedMakeNoise && self->fb.predict_shoot) {
 					VectorAdd(look_object_->s.v.absmin, look_object_->s.v.view_ofs, testplace);
 					from_marker = enemy_->fb.touch_marker;
-					path_normal = TRUE;
+					path_normal = true;
 					look_object_->fb.zone_marker();
 					look_object_->fb.sub_arrival_time();
 					predict_dist = (traveltime * sv_maxspeed) + VectorDistance(testplace, rocket_endpos);
@@ -264,7 +264,7 @@ static void RocketLauncherShot (gedict_t* self, float risk)
 
 		if (predict_dist <= (hit_radius / (1 - risk))) {
 			// See if the explosion would hurt that player
-			traceline(rocket_endpos[0], rocket_endpos[1], rocket_endpos[2], testplace[0], testplace[1], testplace[2], TRUE, self);
+			traceline(rocket_endpos[0], rocket_endpos[1], rocket_endpos[2], testplace[0], testplace[1], testplace[2], true, self);
 			if (g_globalvars.trace_fraction == 1) {
 				// Nothing blocking the explosion...
 				if ( ! SameTeam(test_enemy, self)) {
@@ -352,7 +352,7 @@ void SetFireButton(gedict_t* self) {
 		}
 
 		if (enemy_ && enemy_->fb.touch_marker) {
-			traceline(origin_[0], origin_[1], origin_[2] + 16, origin_[0] + rel_pos[0], origin_[1] + rel_pos[1], origin_[2] + rel_pos[2] + 16, FALSE, self);
+			traceline(origin_[0], origin_[1], origin_[2] + 16, origin_[0] + rel_pos[0], origin_[1] + rel_pos[1], origin_[2] + rel_pos[2] + 16, false, self);
 			if (g_globalvars.trace_fraction == 1) {
 				if (self->s.v.weapon != IT_ROCKET_LAUNCHER && look_object_ != enemy_) {
 					return;
@@ -375,7 +375,7 @@ void SetFireButton(gedict_t* self) {
 						if (!self->s.v.waterlevel) {
 							if (self->fb.allowedMakeNoise) {
 								if ((int)self->s.v.flags & FL_ONGROUND) {
-									traceline(origin_[0], origin_[1], origin_[2] + 32, origin_[0] + rel_pos[0], origin_[1] + rel_pos[1], origin_[2] + rel_pos[2] + 32 , FALSE, self);
+									traceline(origin_[0], origin_[1], origin_[2] + 32, origin_[0] + rel_pos[0], origin_[1] + rel_pos[1], origin_[2] + rel_pos[2] + 32 , false, self);
 									self->fb.jumping |= (g_globalvars.trace_fraction == 1);
 								}
 							}
@@ -435,7 +435,7 @@ static int DesiredWeapon(void) {
 				if (RocketSafe()) {
 					return IT_ROCKET_LAUNCHER;
 				}
-				avoid_rockets = TRUE;
+				avoid_rockets = true;
 			}
 		}
 	}
@@ -487,7 +487,7 @@ static int DesiredWeapon(void) {
 					return IT_ROCKET_LAUNCHER;
 				}
 				if (!((int)self->s.v.items & IT_INVULNERABILITY)) {
-					avoid_rockets = TRUE;
+					avoid_rockets = true;
 				}
 			}
 		}

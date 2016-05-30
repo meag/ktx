@@ -114,6 +114,8 @@ void PathScoringLogic (
 	qbool trace_bprint, float *best_score, gedict_t** linked_marker_, int* new_path_state
 );
 
+qbool CanJumpOver (gedict_t* self, vec3_t jump_origin, vec3_t jump_velocity, vec3_t last_clear_velocity, vec3_t last_clear_point);
+
 static void FrogbotsDebug (void)
 {
 	if (trap_CmdArgc () == 2) {
@@ -198,7 +200,24 @@ static void FrogbotsDebug (void)
 					}
 				}
 			}
+		}
+		else if (streq (sub_command, "jump")) {
+			vec3_t jumpo = { -502.6, 39.1, 280.0 };
+			vec3_t jumpv = { -324.2, 217.3, 270 };
+			vec3_t clearo = { -618.5, 124.3, 225.6 };
+			vec3_t clearv = { -292.8, 258.0, -328.0 };
 
+			qbool result;
+			
+			self->fb.oldsolid = self->s.v.solid;
+
+			fallheight = 242;
+			current_fallspot = 0;
+			result = CanJumpOver (self, jumpo, jumpv, clearv, clearo);
+			if (result)
+				G_sprint (self, 2, "CanJumpOver\n");
+			else
+				G_sprint (self, 2, "CanJumpOver: failed\n");
 		}
 	}
 }
@@ -239,22 +258,22 @@ void FrogbotsCommand (void)
 	}
 }
 
+static qbool TimeTrigger (float *next_time, float time_increment)
+{
+	qbool triggered = (g_globalvars.time >= *next_time);
+	if (triggered) {
+		*next_time += time_increment;
+		if (*next_time <= g_globalvars.time)
+			*next_time = g_globalvars.time + time_increment;
+	}
+	return triggered;
+}
+
 void BotStartFrame(int time_) {
 	int i = 0;
 
-	marker_time = (g_globalvars.time >= next_marker_time);
-	if (marker_time) {
-		next_marker_time = next_marker_time + 0.1;
-		if (next_marker_time <= g_globalvars.time)
-			next_marker_time = g_globalvars.time + 0.1;
-	}
-
-	hazard_time = (g_globalvars.time >= next_hazard_time);
-	if (hazard_time) {
-		next_hazard_time = next_hazard_time + 0.025;
-		if (next_hazard_time <= g_globalvars.time)
-			next_hazard_time = g_globalvars.time + 0.025;
-	}
+	marker_time = TimeTrigger (&next_marker_time, 0.1);
+	hazard_time = TimeTrigger (&next_hazard_time, 0.025);
 
 	FrogbotPrePhysics1 ();
 	//FrameThink ();
@@ -262,25 +281,8 @@ void BotStartFrame(int time_) {
 	FrogbotPostPhysics ();
 
 	for (i = 0; i < MAX_BOTS; ++i) {
-		// meag testing...
-		//bots[i].command.angles[0] = (int)(bots[i].command.angles[0] + 1) % 360;
-
 		if (bots[i].entity) {
 			BotSetCommand (&g_edicts[bots[i].entity]);
-			/*
-			trap_SetBotCMD(
-				bots[i].entity,
-				bots[i].command.msec,
-				bots[i].command.angles[0],
-				bots[i].command.angles[1],
-				bots[i].command.angles[2],
-				bots[i].command.velocity[0],
-				bots[i].command.velocity[1],
-				bots[i].command.velocity[2],
-				bots[i].command.buttons,
-				bots[i].command.impulse
-			);*/
-
 		}
 	}
 }

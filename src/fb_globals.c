@@ -65,7 +65,6 @@ vec3_t origin_ = { 0 };
 float impulse_ = 0;
 float time_start = 0;
 float framecount_start = 0;
-float real_frametime = 0;
 float sv_accelerate = 0;
 float sv_maxfriction = 0;
 float sv_accelerate_frametime = 0;
@@ -83,10 +82,7 @@ float current_maxspeed = 0;
 float max_accel_forward = 0;
 vec3_t desired_accel = { 0 };
 vec3_t hor_velocity = { 0 };
-vec3_t new_velocity = { 0 };
-vec3_t new_origin = { 0 };
-vec3_t last_clear_hor_velocity = { 0 };
-float last_clear_hor_speed = 0;
+vec3_t new_velocity = { 0 };                   // Can make local to functions that use it.
 vec3_t jump_velocity = { 0 };
 vec3_t jump_origin = { 0 };
 float oldflags = 0;
@@ -100,9 +96,7 @@ float new_fall = 0;
 float current_fallspot = 0;
 vec3_t edge_normal = { 0 };
 vec3_t self_view = { 0 };
-vec3_t testplace = { 0 };
-float tries = 0;
-vec3_t last_clear_point = { 0 };
+vec3_t testplace = { 0 };						// FIXME: Make local...
 vec3_t last_clear_velocity = { 0 };
 float jumpspeed = 0;
 float path_score = 0;
@@ -203,8 +197,6 @@ gedict_t* trace_ent1 = 0;
 gedict_t* trace_ent2 = 0;
 gedict_t* old_self = 0;
 gedict_t* old_other = 0;
-float ledge_backup = 0;
-float try_jump_ledge = 0;
 float being_blocked = 0;
 float forward = 0;
 vec3_t start = { 0 };
@@ -212,7 +204,6 @@ vec3_t end = { 0 };
 int description = 0;
 float path_time = 0;
 float component_speed = 0;
-float do_jump = 0;
 float dm = 0;
 float count_ = 0;
 gedict_t* array_sub_object_ = 0;
@@ -326,7 +317,7 @@ void PlayerPostThink_apply() {
 }
 
 qbool bots_enabled() {
-	return TRUE;	// FIXME: make a variable
+	return true;	// FIXME: make a variable
 }
 
 qbool SameTeam(gedict_t* p1, gedict_t* p2) {
@@ -342,7 +333,7 @@ static qbool EnemyHasRLorLG (gedict_t* self)
 {
 	gedict_t* enemy = &g_edicts[self->s.v.enemy];
 	if (self->s.v.enemy == 0)
-		return FALSE;
+		return false;
 
 	return ((((int)enemy->s.v.items & IT_ROCKET_LAUNCHER) && (enemy->s.v.ammo_rockets > 1)) || (((int)enemy->s.v.items & IT_LIGHTNING) && (enemy->s.v.ammo_cells > 5)));
 }
@@ -351,16 +342,16 @@ static qbool IsDanger (gedict_t* self)
 {
 	gedict_t* enemy = &g_edicts[self->s.v.enemy];
 	if (self->s.v.enemy == 0)
-		return FALSE;
+		return false;
 	
 	if ((self->s.v.health < enemy->s.v.health) && 
 		(self->s.v.armorvalue < enemy->s.v.armorvalue) && 
 		(self->s.v.armortype < enemy->s.v.armortype) && 
 		(self->fb.firepower < enemy->fb.firepower))
-		return TRUE;
+		return true;
 	if (((int)enemy->s.v.items & (IT_INVULNERABILITY | IT_QUAD | IT_INVISIBILITY)) && (!((int)self->s.v.items & (IT_INVULNERABILITY | IT_INVISIBILITY))))
-		return TRUE;
-	return FALSE;
+		return false;
+	return false;
 }
 
 qbool EnemyDefenceless(gedict_t* self)
@@ -368,5 +359,5 @@ qbool EnemyDefenceless(gedict_t* self)
 	if (!EnemyHasRLorLG(self) && HasRLOrLG (self)) {
 		return (!IsDanger(self) && (self->s.v.health > 50) && (self->s.v.armorvalue >= 50));
 	}
-	return FALSE; 
+	return false;
 }

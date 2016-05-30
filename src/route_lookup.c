@@ -317,7 +317,7 @@ void SightMarker(gedict_t* from_marker) {
 	
 	marker_ = from_marker->fb.Z_head;
 	while (marker_) {
-		traceline(to_marker_pos[0], to_marker_pos[1], to_marker_pos[2], marker_->s.v.absmin[0] + marker_->s.v.view_ofs[0], marker_->s.v.absmin[1] + marker_->s.v.view_ofs[1], marker_->s.v.absmin[2] + marker_->s.v.view_ofs[2] + 32, TRUE, world);
+		traceline(to_marker_pos[0], to_marker_pos[1], to_marker_pos[2], marker_->s.v.absmin[0] + marker_->s.v.view_ofs[0], marker_->s.v.absmin[1] + marker_->s.v.view_ofs[1], marker_->s.v.absmin[2] + marker_->s.v.view_ofs[2] + 32, true, world);
 		if (g_globalvars.trace_fraction == 1) {
 			marker_->fb.sub_arrival_time();
 			if (look_traveltime > traveltime) {
@@ -349,7 +349,7 @@ void HigherSightMarker(gedict_t* from_marker) {
 
 		if (marker_pos[2] - to_marker_pos[2] >= 40) {
 			if (VectorDistance(marker_pos, to_marker_pos) <= 1000) {
-				traceline(to_marker_pos[0], to_marker_pos[1], to_marker_pos[2], marker_pos[0], marker_pos[1], marker_pos[2], TRUE, world);
+				traceline(to_marker_pos[0], to_marker_pos[1], to_marker_pos[2], marker_pos[0], marker_pos[1], marker_pos[2], true, world);
 				if (g_globalvars.trace_fraction == 1) {
 					marker_->fb.sub_arrival_time();
 					if (look_traveltime > traveltime) {

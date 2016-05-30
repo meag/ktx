@@ -186,7 +186,7 @@ static qbool ZoneFromTimeAdjust(gedict_t* m, gedict_t* m_P, int x, float P_time,
 
 // was: Calc_G_time_6_path_apply
 static qbool Calc_G_time_6_path_apply(gedict_t* m, gedict_t* m_P, float P_time, int m_D) {
-	qbool no_change = TRUE;
+	qbool no_change = true;
 	int i = 0;
 
 	if (!m || m == world || !m_P || m_P == world) {
@@ -232,14 +232,14 @@ static qbool ZoneReverseTimeAdjust(gedict_t* m, gedict_t* m_P, int x, int m_D) {
 		m->fb.zones[x].reverse_time = P_time + m_P->fb.zones[x].reverse_time; 
 		m->fb.zones[x].reverse_next = m_P; 
 
-		return FALSE;
+		return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 static qbool Calc_G_time_8_path_apply(gedict_t* m, gedict_t* m_P, float P_time, int m_D) {
-	qbool no_change = TRUE;
+	qbool no_change = true;
 	int i = 0;
 
 	if (!m || m == world || !m_P || m_P == world) {
@@ -304,7 +304,7 @@ static void Calc_G_time_9(void) {
 			VectorAdd(m2->s.v.absmin, m2->s.v.view_ofs, m2_pos);
 			m2_pos[2] += 32;
 
-			traceline(m_pos[0], m_pos[1], m_pos[2], m2_pos[0], m2_pos[1], m2_pos[2], TRUE, world);
+			traceline(m_pos[0], m_pos[1], m_pos[2], m2_pos[0], m2_pos[1], m2_pos[2], true, world);
 			if (g_globalvars.trace_fraction == 1) {
 				if (strneq(m2->s.v.classname, "trigger_teleport")) {
 					Calc_G_time_9_apply(m, m2, m_pos, m2_pos);
@@ -317,14 +317,14 @@ static void Calc_G_time_9(void) {
 static qbool ZoneMinSightFromTimeCalc(gedict_t* m, gedict_t* m_P, int x, int m_D) {
 	if (m->fb.zones[x].sight_from_time < (m_P->fb.zones[x].sight_from_time - P_time)) {
 		m->fb.zones[x].sight_from_time = m_P->fb.zones[x].sight_from_time - P_time; 
-		return FALSE;
+		return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 static qbool Calc_G_time_10_path_apply(gedict_t* m, gedict_t* m_P, float P_time, int m_D) {
-	qbool no_change = TRUE;
+	qbool no_change = true;
 	int i = 0;
 
 	if (!m || m == world || !m_P || m_P == world) {
@@ -439,7 +439,7 @@ static void Calc_G_time_12(void) {
 					{
 						from_marker = prev_marker = next_marker;
 						runaway_dest->fb.sub_path_marker();
-						traceline(m_pos[0], m_pos[1], m_pos[2], next_marker->s.v.absmin[0] + next_marker->s.v.view_ofs[0], next_marker->s.v.absmin[1] + next_marker->s.v.view_ofs[1], next_marker->s.v.absmin[2] + next_marker->s.v.view_ofs[2] + 32, TRUE, world);
+						traceline(m_pos[0], m_pos[1], m_pos[2], next_marker->s.v.absmin[0] + next_marker->s.v.view_ofs[0], next_marker->s.v.absmin[1] + next_marker->s.v.view_ofs[1], next_marker->s.v.absmin[2] + next_marker->s.v.view_ofs[2] + 32, true, world);
 						if (g_globalvars.trace_fraction != 1) {
 							from_marker = m;
 							next_marker->fb.sub_arrival_time();

@@ -43,6 +43,7 @@ void InitParameters() {
 	setsize(dropper, PASSVEC3( VEC_HULL_MIN ), PASSVEC3( VEC_HULL_MAX ));
 	dropper->fb.desire = goal_NULL;
 	dropper->fb.virtual_goal = dropper;
+	
 	self = dropper;
 	NewItems();
 	InitBodyQue();

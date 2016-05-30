@@ -205,7 +205,7 @@ qbool pickup_supershotgun2(void) {
 }
 
 qbool pickup_true(void) {
-	return TRUE;
+	return true;
 }
 
 qbool pickup_nailgun2(void) {
@@ -582,6 +582,11 @@ static void fb_spawn_cells(gedict_t* ent) {
 	StartAmmoFB (ent);
 }
 
+// Also defined in items.qc ... support for older maps
+#define WEAPON_SHOTGUN  1
+#define WEAPON_ROCKET  2
+#define WEAPON_SPIKES  4
+#define WEAPON_BIG  8
 static void fb_spawn_weapon(gedict_t* ent) {
 	if ((int)ent->s.v.spawnflags & WEAPON_SHOTGUN) {
 		fb_spawn_shells(ent);

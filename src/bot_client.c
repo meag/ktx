@@ -26,9 +26,9 @@ void BotClientEntersEvent(gedict_t* self, gedict_t* spawn_pos) {
 	self->fb.arrow = 0;
 	ClearLookObject(self);
 	VectorSet(self->fb.oldvelocity, 0, 0, 0);
-	self->fb.jumping = FALSE;
+	self->fb.jumping = false;
 	self->fb.goal_refresh_time = 0;
-	self->fb.allowedMakeNoise = TRUE;
+	self->fb.allowedMakeNoise = true;
 
 	UpdateTotalDamage (self);
 	self->fb.weapon_refresh_time = 0;
@@ -36,7 +36,7 @@ void BotClientEntersEvent(gedict_t* self, gedict_t* spawn_pos) {
 
 // Called by client/PlayerDeathThink
 void BotDeathThink(void) {
-	self->fb.firing = FALSE;
+	self->fb.firing = false;
 	self->fb.jumping = (qbool) (random() >= 0.5); // 50% chance of respawning every frame
 }
 
@@ -187,12 +187,12 @@ void BotOutOfWater(gedict_t* self) {
 		VectorNormalize (g_globalvars.v_forward);
 		VectorScale (g_globalvars.v_forward, 24, g_globalvars.v_forward);
 		VectorAdd (start, g_globalvars.v_forward, end);
-		trap_traceline(PASSVEC3(start), PASSVEC3(end), TRUE, NUM_FOR_EDICT(self));
+		trap_traceline(PASSVEC3(start), PASSVEC3(end), true, NUM_FOR_EDICT(self));
 		if (g_globalvars.trace_fraction < 1) {
 			start[2] = self->s.v.origin[2] + self->s.v.maxs[2];
 			VectorAdd (start, g_globalvars.v_forward, end);
 			VectorScale (g_globalvars.trace_plane_normal, -50, self->s.v.movedir);
-			traceline(start[0], start[1], start[2], end[0], end[1], end[2], TRUE, self);
+			traceline(start[0], start[1], start[2], end[0], end[1], end[2], true, self);
 			if (g_globalvars.trace_fraction == 1) {
 				self->s.v.flags = ((int)self->s.v.flags | FL_WATERJUMP) & ~FL_JUMPRELEASED;
 				// FIXME
