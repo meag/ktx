@@ -11,7 +11,7 @@ void BotPlayerDeathEvent(gedict_t* self) {
 	ResetGoalEntity(self);
 	ResetEnemy(self);
 
-	ar_time = g_globalvars.time + 3;
+	self->fb.last_death = g_globalvars.time;
 }
 
 // Was: PutClientInServer_apply()
@@ -204,6 +204,7 @@ void BotOutOfWater(gedict_t* self) {
 	}
 }
 
+// Called for every player, if bots are enabled
 void BotPreThink(gedict_t* self) {
 	if (self->isBot) {
 		self->fb.firing = self->s.v.button0;

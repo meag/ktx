@@ -21,6 +21,7 @@ static const char* FallDescription (int fall)
 	}
 }
 
+// Input globals: first_trace_fraction, output: first_trace_fraction & first_trace_plane_normal
 static void TestTopBlock(gedict_t* self, vec3_t last_clear_point) {
 	float xDelta[4] = { -16,  16, -16,  16 };
 	float yDelta[4] = { -16, -16,  16,  16 };
@@ -194,12 +195,12 @@ static int FallSpotAir(vec3_t testplace) {
 
 	if (walkmove(dropper, 0, 0)) {
 		if (!JumpInWater (dropper->s.v.origin) && dropper->s.v.origin[2] > testplace[2]) {
-			G_bprint (2, ">>>> FALL_BLOCKED1\n");
+			//G_bprint (2, ">>>> FALL_BLOCKED1\n");
 			return FALL_BLOCKED;
 		}
 	}
 	else {
-		G_bprint (2, ">>>> FALL_BLOCKED2\n");
+		//G_bprint (2, ">>>> FALL_BLOCKED2\n");
 		return FALL_BLOCKED;
 	}
 
@@ -315,8 +316,9 @@ qbool CanJumpOver(gedict_t* self, vec3_t jump_origin, vec3_t jump_velocity, vec3
 static qbool JumpLedgeLogic (gedict_t* self)
 {
 	if (g_globalvars.time > self->fb.arrow_time2) {
-		VectorAdd(linked_marker_->s.v.absmin, linked_marker_->s.v.view_ofs, rel_pos);
+		VectorAdd(self->fb.linked_marker->s.v.absmin, self->fb.linked_marker->s.v.view_ofs, rel_pos);
 		VectorSubtract(rel_pos, self->s.v.origin, rel_pos);
+
 		if ((int)self->s.v.flags & FL_ONGROUND) {
 			qbool try_jump_ledge = true;
 			being_blocked = false;
@@ -397,10 +399,10 @@ static qbool JumpLedgeLogic (gedict_t* self)
 static qbool ObstructionLogic (gedict_t* self)
 {
 	if (g_globalvars.time > self->fb.arrow_time) {
-		if ((int)self->s.v.flags & FL_WATERJUMP) {
+		if ((int)self->s.v.flags & FL_WATERJUMP)
 			return true;
-		}
-		if (linked_marker_ != self->fb.touch_marker) {
+
+		if (self->fb.linked_marker != self->fb.touch_marker) {
 			if (vlen(oldvelocity_) <= 32) {
 				vec3_t dir_move;
 
@@ -422,7 +424,7 @@ static qbool ObstructionLogic (gedict_t* self)
 					normalize(new_velocity, norm_new_velocity);
 					VectorAdd(dir_move, norm_new_velocity, dir_move);
 				}
-				else  {
+				else {
 					VectorMA(self->fb.dir_move_, -0.5 * DotProduct(self->fb.obstruction_normal, self->fb.dir_move_), self->fb.obstruction_normal, dir_move);
 				}
 				dir_move[2] = 0;
@@ -435,7 +437,7 @@ static qbool ObstructionLogic (gedict_t* self)
 	return false;
 }
 
-static void AvoidHazardsOnGround (gedict_t* self, float hor_speed, vec3_t new_origin, vec3_t new_velocity)
+static void AvoidHazardsOnGround (gedict_t* self, float hor_speed, vec3_t new_origin, vec3_t new_velocity, float fallheight)
 {
 	int fall = 0;
 	vec3_t last_clear_point;
@@ -447,7 +449,7 @@ static void AvoidHazardsOnGround (gedict_t* self, float hor_speed, vec3_t new_or
 	VectorMA(last_clear_point, (16 / hor_speed), new_velocity, testplace);
 	fall = FallSpotGround(testplace, fallheight);
 	if (fall != FALL_FALSE) {
-		G_bprint (2, "FallSpotGround(%f %f %f, %f) = %s\n", PASSVEC3(testplace), fallheight, FallDescription (fall));
+		//G_bprint (2, "FallSpotGround(%f %f %f, %f) = %s\n", PASSVEC3(testplace), fallheight, FallDescription (fall));
 	}
 
 	if (fall == FALL_BLOCKED) {
@@ -607,7 +609,6 @@ void AvoidHazards(void) {
 	vec3_t new_origin = { 0 };
 
 	VectorCopy(self->s.v.velocity, new_velocity);
-	linked_marker_ = self->fb.linked_marker;
 	if ((int)self->fb.path_state & JUMP_LEDGE) {
 		if (JumpLedgeLogic (self))
 			return;
@@ -635,14 +636,14 @@ void AvoidHazards(void) {
 
 	// Calculate fall height
 	fallheight = self->s.v.origin[2] - 38; // FIXME: Why 38
-	if (linked_marker_) {
-		float min_second = linked_marker_->s.v.absmin[2] + linked_marker_->s.v.view_ofs[2] - 36; // FIXME: Why 36?
+	if (self->fb.linked_marker) {
+		float min_second = self->fb.linked_marker->s.v.absmin[2] + self->fb.linked_marker->s.v.view_ofs[2] - 36; // FIXME: Why 36?
 
 		fallheight = min (min_second, fallheight);
 	}
 
 	if ((int)self->s.v.flags & FL_ONGROUND) {
-		AvoidHazardsOnGround (self, hor_speed, new_origin, new_velocity);
+		AvoidHazardsOnGround (self, hor_speed, new_origin, new_velocity, fallheight);
 	}
 	else {
 		vec3_t last_clear_point = { 0 };

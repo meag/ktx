@@ -3,6 +3,9 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
+static float unstick_time = 0;
+static qbool no_bots_stuck = 0;
+
 int NumberOfClients (void)
 {
 	int count = 0;
@@ -134,7 +137,7 @@ void VelocityForArrow(gedict_t* self) {
 		if (self->s.v.waterlevel <= 1) {
 			return;
 		}
-		else  {
+		else {
 			if (self->fb.swim_arrow) {
 				if (self->fb.swim_arrow == UP) {
 					VectorSet(dir_forward, 0, 0, 1);
@@ -247,7 +250,7 @@ void VelocityForArrow(gedict_t* self) {
 
 void FrogbotPrePhysics1(void) {
 	// Set all players to non-solid so we can avoid hazards
-	if (hazard_time) {
+	if (IsHazardFrame()) {
 		for (self = world; self = find_plr(self); ) {
 			self->fb.oldsolid = self->s.v.solid;
 			self->s.v.solid = SOLID_NOT;
@@ -259,14 +262,14 @@ void FrogbotPrePhysics1(void) {
 		if (self->isBot && self->s.v.takedamage) {
 			VectorCopy(self->s.v.velocity, oldvelocity_);
 			VelocityForArrow(self);
-			if (hazard_time) {
+			if (IsHazardFrame()) {
 				AvoidHazards();
 			}
 		}
 	}
 
 	// Re-instate client entity types
-	if (hazard_time) {
+	if (IsHazardFrame()) {
 		for (self = world; self = find_plr(self); ) {
 			self->s.v.solid = self->fb.oldsolid;
 		}
@@ -362,6 +365,8 @@ void FrogbotPrePhysics2() {
 }
 
 void FrogbotPostPhysics(void) {
+	return;
+
 	for (self = world; self = find_plr (self); ) {
 		if (self->isBot) {
 			self->s.v.waterlevel = self->fb.oldwaterlevel;

@@ -2,11 +2,6 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
-qbool marker_time = false;
-float next_marker_time = 0;
-qbool hazard_time = false;
-float next_hazard_time = 0;
-
 float predict_dist = 0;
 gedict_t* enemy_ = 0;
 gedict_t* virtual_enemy = 0;
@@ -58,7 +53,6 @@ gedict_t* prev_marker = 0;
 vec3_t to_marker_pos = { 0 };
 gedict_t* goal_entity = 0;
 float weapon_refresh_time_ = 0;
-gedict_t* touch_marker_ = 0;
 float lookahead_time_ = 0;       // Safe to replace with self->fb.skill.lookahead_time
 float prediction_error_ = 0;
 vec3_t origin_ = { 0 };
@@ -101,20 +95,9 @@ vec3_t last_clear_velocity = { 0 };
 float jumpspeed = 0;
 float path_score = 0;
 float look_score = 0;
-/*
-gedict_t* best_goal = 0;
-float best_goal_desire = 0;
-float best_goal_time = 0;
-float best_score2 = 0;
-gedict_t* best_goal2 = 0;
-float goal_desire = 0;
-float enemy_desire = 0;
-float enemy_repel = 0;
-*/
 float best_goal_score = 0;
 float best_respawn_time = 0;
-gedict_t* goalentity_marker = 0;
-gedict_t* linked_marker_ = 0;
+//gedict_t* linked_marker_ = 0;
 vec3_t linked_marker_origin = { 0 };
 float goal_score = 0;
 float goal_score2 = 0;
@@ -211,38 +194,14 @@ float bind_char = 0;
 float dodge_factor = 0;
 gedict_t* dodge_missile = 0;
 gedict_t* bodyque_head = 0;
-vec3_t rocket_endpos = { 0 };
-float frogbot_number = 0;
-gedict_t* prephysics = 0;
-gedict_t* postphysics = 0;
-gedict_t* frogbot_spawned = 0;
-float use_ammo = 0;
-float check_parm_time = 0;
-float unstick_time = 0;
-float no_bots_stuck = 0;
 float first_trace_fraction = 0;
 vec3_t first_trace_plane_normal = { 0 };
 float turning_speed = 0;
 vec3_t hor_normal_vec = { 0 };
 vec3_t last_clear_angle = { 0 };
 vec3_t velocity_hor_angle = { 0 };
-float runaway_time = 0;
-float runaway_time_temp = 0;
-float runaway_score = 0;
-float runaway_score_temp = 0;
-gedict_t* runaway_dest = 0;
-float runaway_fail = 0;
-gedict_t* runaway_marker_temp = 0;
-gedict_t* runaway_prev_temp = 0;
-float min_traveltime = 0;
 gedict_t* to_zone = 0;
-float test_away_score = 0;
-float best_away_score = 0;
-gedict_t* best_away_marker = 0;
 gedict_t* search_entity = 0;
-float RA_time = 0;
-float enemy_time_squared = 0;
-float ar_time = 0;
 
 
 qbool fb_lg_disabled() {

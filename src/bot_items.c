@@ -291,7 +291,7 @@ static void fb_health_taken (gedict_t* item, gedict_t* player)
 
 static qbool fb_health_touch (gedict_t* item, gedict_t* player)
 {
-	if (marker_time)
+	if (IsMarkerFrame())
 		check_marker (item, player);
 	if (WaitingToRespawn(item) || self->s.v.think == (func_t) item_megahealth_rot)
 		return true;
@@ -349,13 +349,13 @@ static qbool fb_armor_touch (gedict_t* item, gedict_t* player)
 	qbool want_armor = player->s.v.goalentity == NUM_FOR_EDICT (item);
 	qbool targetting_player = player->fb.look_object && player->fb.look_object->ct == ctPlayer;
 
-	if (marker_time)
+	if (IsMarkerFrame())
 		check_marker (item, player);
 
 	if (WaitingToRespawn(item))
 		return true;
 
-	if (player->isBot && player->s.v.takedamage && want_armor && have_more_armor && marker_time && !targetting_player && !player->fb.firing) {
+	if (player->isBot && player->s.v.takedamage && want_armor && have_more_armor && IsMarkerFrame() && !targetting_player && !player->fb.firing) {
 		player->fb.state |= HURT_SELF;
 		player->fb.linked_marker = item;
 		player->fb.path_state = 0;
@@ -394,7 +394,7 @@ static void fb_spawn_armor(gedict_t* ent) {
 
 static qbool fb_weapon_touch (gedict_t* item, gedict_t* player)
 {
-	if (marker_time)
+	if (IsMarkerFrame())
 		check_marker (item, player);
 	if (WaitingToRespawn(item))
 		return true;
@@ -520,7 +520,7 @@ static void fb_spawn_lg(gedict_t* ent) {
 
 static qbool fb_ammo_touch (gedict_t* item, gedict_t* player)
 {
-	if (marker_time)
+	if (IsMarkerFrame())
 		check_marker (item, player);
 	if (WaitingToRespawn(item))
 		return true;
@@ -683,7 +683,7 @@ qbool BotsPreTeleport (gedict_t* self, gedict_t* other)
 {
 	if (NoItemTouch(self, other)) {
 		other->fb.near_teleport = self;
-		if (marker_time) {
+		if (IsMarkerFrame()) {
 			HazardTeleport (self, other);
 		}
 		return true;

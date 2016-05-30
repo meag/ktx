@@ -79,10 +79,3 @@ gedict_t* EntityAt(gedict_t* start_entity, float index_) {
 	return start_entity;
 }
 
-void InitFrogbots1() {
-	prephysics = spawn();
-	prephysics->s.v.think = (func_t) FrogbotPrePhysics2;
-	postphysics = frogbot_spawned = spawn();
-	postphysics->s.v.think = (func_t) FrogbotPostPhysics;
-}
-

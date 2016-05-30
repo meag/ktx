@@ -3,6 +3,9 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
+// FIXME: fb.skill
+#define ATTACK_RESPAWN_TIME 3
+
 void DM6SelectWeaponToOpenDoor (gedict_t* self);
 
 static qbool WaterCombat(void) {
@@ -42,7 +45,7 @@ void AttackRespawns(void) {
 	}
 
 	if (enemy_ != world && enemy_->s.v.health < 1) {
-		if (ar_time > g_globalvars.time) {
+		if (enemy_->fb.last_death <= g_globalvars.time + ATTACK_RESPAWN_TIME) {
 			if (self->fb.skill.skill_level >= 15) {
 				if ((int)self->s.v.items & IT_ROCKET_LAUNCHER) {
 					if (self->s.v.ammo_rockets > 3) {

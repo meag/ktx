@@ -1907,11 +1907,11 @@ void DM3CampLogic() {
 									if (vlen(diff) < 200) {
 										if (random() < 0.9) {
 											self->fb.camp_state |= CAMPBOT;
-											linked_marker_ = touch_marker_;
+											self->fb.linked_marker = self->fb.touch_marker;
 										}
 									}
 									else  {
-										self->fb.camp_state = self->fb.camp_state - (self->fb.camp_state & CAMPBOT);
+										self->fb.camp_state &= ~CAMPBOT;
 									}
 								}
 							}

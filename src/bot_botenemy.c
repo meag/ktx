@@ -140,10 +140,10 @@ void BestEnemy(gedict_t* self) {
 		if ( ! SameTeam(self, test_enemy) ) {
 			from_marker = test_enemy->fb.touch_marker;
 			if (from_marker) {
-				to_marker = touch_marker_;
+				to_marker = self->fb.touch_marker;
 				BestEnemy_apply(&best_score, &enemy_, &predict_dist);
 				to_marker = from_marker;
-				from_marker = touch_marker_;
+				from_marker = self->fb.touch_marker;
 				BestEnemy_apply(&best_score, &enemy_, &predict_dist);
 			}
 		}

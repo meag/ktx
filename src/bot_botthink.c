@@ -221,12 +221,12 @@ static void BotMoveTowardsLinkedMarker(gedict_t* self, vec3_t dir_move) {
 	vec3_t temp;
 	gedict_t* goalentity_ = &g_edicts[self->s.v.goalentity];
 
-	VectorAdd(linked_marker_->s.v.absmin, linked_marker_->s.v.view_ofs, temp);
+	VectorAdd(self->fb.linked_marker->s.v.absmin, self->fb.linked_marker->s.v.view_ofs, temp);
 	VectorSubtract(temp, origin_, temp);
 	normalize(temp, dir_move);
-	if (linked_marker_ == touch_marker_) {
-		if (goalentity_ == touch_marker_) {
-			if (WaitingToRespawn(touch_marker_)) {
+	if (self->fb.linked_marker == self->fb.touch_marker) {
+		if (goalentity_ == self->fb.touch_marker) {
+			if (WaitingToRespawn(self->fb.touch_marker)) {
 				VectorClear(dir_move);
 			}
 		}
@@ -236,7 +236,7 @@ static void BotMoveTowardsLinkedMarker(gedict_t* self, vec3_t dir_move) {
 	}
 }
 
-// Called when the bot touches a marker
+// Called when the bot has a touch marker set
 static void BotTouchMarkerLogic() {
 	TargetEnemyLogic();
 
@@ -248,14 +248,14 @@ static void BotTouchMarkerLogic() {
 		self->fb.old_linked_marker = NULL;
 	}
 
-	if (self->fb.old_linked_marker != touch_marker_) {
+	if (self->fb.old_linked_marker != self->fb.touch_marker) {
 		frogbot_marker_touch();
 	}
 
 	if (g_globalvars.time < self->fb.arrow_time) {
 		if (g_globalvars.time < self->fb.arrow_time2) {
 			if (random() < 0.5) {
-				linked_marker_ = self->fb.old_linked_marker = self->fb.linked_marker = touch_marker_;
+				self->fb.old_linked_marker = self->fb.linked_marker = self->fb.touch_marker;
 				self->fb.path_state = 0;
 				self->fb.linked_marker_time = g_globalvars.time + 0.3;
 			}
@@ -279,7 +279,6 @@ static void HumanTouchMarkerLogic() {
 	gedict_t* goalentity_ = &g_edicts[self->s.v.goalentity];
 
 	enemy_ = &g_edicts[self->s.v.enemy];
-	touch_marker_ = self->fb.touch_marker;
 	lookahead_time_ = self->fb.skill.lookahead_time;
 	VectorCopy(self->s.v.origin, origin_);
 	goalentity_ = &g_edicts[self->s.v.goalentity];
@@ -306,9 +305,7 @@ static void PeriodicAllClientLogic() {
 
 			enemy_ = &g_edicts[self->s.v.enemy];
 			look_object_ = self->fb.look_object;
-			touch_marker_ = self->fb.touch_marker;
 			lookahead_time_ = self->fb.skill.lookahead_time;
-			linked_marker_ = self->fb.linked_marker;
 
 			VectorCopy(self->s.v.origin, origin_);
 			goalentity_ = &g_edicts[self->s.v.goalentity];
@@ -340,8 +337,8 @@ static void BotStopFiring() {
 	}
 }
 
-// FIXME: Magic numbers, take gravity into consideration
-static qbool PredictSpot(gedict_t* self, gedict_t* enemy_, vec3_t testplace, float rel_time) {
+// FIXME: Magic numbers (400 = 0.5 * sv_gravity)
+static qbool PredictSpot(gedict_t* self, gedict_t* enemy_, vec3_t testplace, float rel_time, float fallheight) {
 	VectorCopy(testplace, dropper->s.v.origin);
 	dropper->s.v.flags = FL_ONGROUND_PARTIALGROUND;
 
@@ -364,14 +361,14 @@ static qbool PredictSpot(gedict_t* self, gedict_t* enemy_, vec3_t testplace, flo
 
 static void PredictEnemyLocationInFuture(gedict_t* enemy, float rel_time) {
 	vec3_t testplace;
+	float fallheight = enemy->s.v.origin[2] - 56 + enemy->s.v.velocity[2] * rel_time;
 
-	enemy_->fb.oldsolid = enemy_->s.v.solid;
-	enemy_->s.v.solid = SOLID_NOT;
-	fallheight = enemy_->s.v.origin[2] - 56 + enemy_->s.v.velocity[2] * rel_time;
-	VectorMA(enemy_->s.v.origin, rel_time, enemy_->s.v.velocity, testplace);
+	enemy->fb.oldsolid = enemy_->s.v.solid;
+	enemy->s.v.solid = SOLID_NOT;
+	VectorMA(enemy->s.v.origin, rel_time, enemy->s.v.velocity, testplace);
 	testplace[2] += 36;
 
-	if (PredictSpot(self, enemy_, testplace, rel_time)) {
+	if (PredictSpot(self, enemy, testplace, rel_time, fallheight)) {
 		VectorCopy(dropper->s.v.origin, self->fb.predict_origin);
 	}
 	else {

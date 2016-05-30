@@ -22,6 +22,10 @@ typedef struct frogbots_s {
 frogbots_t frogbots;
 */
 
+static float runaway_score = 0;
+static float min_traveltime = 0;
+static float runaway_time = 0;
+
 static void TravelTimeForPath (gedict_t* m, int i)
 {
 	gedict_t* m_P = m->fb.paths[i].next_marker;
@@ -382,7 +386,7 @@ static void Calc_G_time_11(void) {
 			from_marker = m;
 			m_zone->fb.zone_marker();
 			if (middle_marker != dropper && middle_marker != m) {
-				runaway_dest = middle_marker;
+				gedict_t* runaway_dest = middle_marker;
 				runaway_time = path_normal ? zone_time : zone_time + 5;
 				
 				runaway_score = runaway_time;

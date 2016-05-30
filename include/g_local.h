@@ -984,6 +984,4 @@ void LaunchLaser( vec3_t org, vec3_t vec );
 
 // bots
 qbool bots_enabled();
-void InitFrogbots1();
-void InitFrogbots2();
 void InitParameters();

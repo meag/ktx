@@ -8,6 +8,21 @@ void SetAttribs (gedict_t* self);
 #define MIN_FROGBOT_SKILL  0
 #define MAX_FROGBOT_SKILL 20
 
+static qbool marker_time;
+static float next_marker_time;
+static qbool hazard_time;
+static float next_hazard_time;
+
+qbool IsMarkerFrame (void)
+{
+	return marker_time;
+}
+
+qbool IsHazardFrame (void)
+{
+	return hazard_time;
+}
+
 typedef struct botcmd_s {
 	int msec;
 	vec3_t angles;
@@ -260,7 +275,7 @@ void FrogbotsCommand (void)
 	}
 }
 
-static qbool TimeTrigger (float *next_time, float time_increment)
+qbool TimeTrigger (float *next_time, float time_increment)
 {
 	qbool triggered = (g_globalvars.time >= *next_time);
 	if (triggered) {
@@ -271,20 +286,27 @@ static qbool TimeTrigger (float *next_time, float time_increment)
 	return triggered;
 }
 
-void BotStartFrame(int time_) {
-	int i = 0;
+void BotStartFrame(int framecount) {
+	if ( framecount == 3 ) {
+		InitParameters();
+	}
+	else if ( framecount == 20 ) {
+		LoadMap();
+	}
+	else if (framecount > 20) {
+		int i = 0;
 
-	marker_time = TimeTrigger (&next_marker_time, 0.1);
-	hazard_time = TimeTrigger (&next_hazard_time, 0.025);
+		marker_time = TimeTrigger (&next_marker_time, 0.1);
+		hazard_time = TimeTrigger (&next_hazard_time, 0.025);
 
-	FrogbotPrePhysics1 ();
-	//FrameThink ();
-	FrogbotPrePhysics2 ();
-	FrogbotPostPhysics ();
+		FrogbotPrePhysics1 ();
+		FrogbotPrePhysics2 ();
+		FrogbotPostPhysics ();
 
-	for (i = 0; i < MAX_BOTS; ++i) {
-		if (bots[i].entity) {
-			BotSetCommand (&g_edicts[bots[i].entity]);
+		for (i = 0; i < MAX_BOTS; ++i) {
+			if (bots[i].entity) {
+				BotSetCommand (&g_edicts[bots[i].entity]);
+			}
 		}
 	}
 }

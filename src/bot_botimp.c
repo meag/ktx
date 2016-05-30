@@ -51,17 +51,12 @@ void InitParameters() {
 	//initialize(); // TODO: RA initialization?
 
 	sv_accelerate = cvar("sv_accelerate");
-	use_ammo = (deathmatch != 4);
 
 	CalculatePhysicsVariables();
 }
 
 void SetSkill() {
 	bprint_fb(2, va("%s changed to %s\n", redtext("botskill"), dig3(cvar(FB_CVAR_SKILL))));
-}
-
-void CheckParameters() {
-	check_parm_time = floor(g_globalvars.time) + 1;
 }
 
 char* SetTeamNetName() {

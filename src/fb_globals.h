@@ -241,11 +241,6 @@
 #define HELP_TEAMMATE 128
 #endif
 
-extern qbool marker_time;
-extern float next_marker_time;
-extern qbool hazard_time;
-extern float next_hazard_time;
-
 gedict_t* AddToList(gedict_t* first_in_list, gedict_t* ent);
 extern float predict_dist;
 
@@ -302,7 +297,6 @@ extern gedict_t* prev_marker;
 extern vec3_t to_marker_pos;
 extern gedict_t* goal_entity;
 extern float weapon_refresh_time_;
-extern gedict_t* touch_marker_;
 extern float lookahead_time_;
 extern float prediction_error_;
 extern vec3_t origin_;
@@ -347,8 +341,7 @@ extern float best_goal_score;
 extern float current_goal_time;
 extern float current_goal_time_125;
 extern float best_respawn_time;
-extern gedict_t* goalentity_marker;
-extern gedict_t* linked_marker_;
+//extern gedict_t* linked_marker_;
 extern vec3_t linked_marker_origin;
 extern float goal_score;
 extern float goal_score2;
@@ -444,43 +437,20 @@ extern float dodge_factor;
 extern gedict_t* dodge_missile;
 
 extern gedict_t* bodyque_head;
-extern vec3_t rocket_endpos;
-extern float frogbot_number;
-extern gedict_t* prephysics;
-extern gedict_t* postphysics;
-extern gedict_t* frogbot_spawned;
-extern float use_ammo;
-extern float check_parm_time;
-extern float unstick_time;
-extern float no_bots_stuck;
 extern float first_trace_fraction;
 extern vec3_t first_trace_plane_normal;
 extern float turning_speed;
 extern vec3_t hor_normal_vec;
 extern vec3_t last_clear_angle;
 extern vec3_t velocity_hor_angle;
-extern float runaway_time;
-extern float runaway_time_temp;
-extern float runaway_score;
-extern float runaway_score_temp;
-extern gedict_t* runaway_dest;
-extern float runaway_fail;
-extern gedict_t* runaway_marker_temp;
-extern gedict_t* runaway_prev_temp;
-extern float min_traveltime;
 extern gedict_t* to_zone;
-extern float test_away_score;
-extern float best_away_score;
-extern gedict_t* best_away_marker;
 extern gedict_t* search_entity;
-extern float RA_time;
-extern float enemy_time_squared;
+
+
 qbool IsVisible(gedict_t* ent);
 
 float ExistsPath(gedict_t* from_marker, gedict_t* to_marker);
 float boomstick_only(void);
-
-extern float ar_time;
 
 float CountTeams(void);
 qbool EnemyDefenceless (gedict_t* self);
@@ -809,3 +779,7 @@ typedef struct fb_path_eval_s {
 qbool WaitingToRespawn (gedict_t* ent);
 
 int NumberOfClients (void);
+qbool TimeTrigger (float *next_time, float time_increment);
+
+qbool IsMarkerFrame (void);
+qbool IsHazardFrame (void);

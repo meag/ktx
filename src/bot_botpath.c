@@ -7,7 +7,7 @@ void DM3CampLogic();
 void DM4CampLogic();
 void DM6CampLogic();
 qbool DM6DoorClosed (fb_path_eval_t* eval);
-void DM6MarkerTouchLogic (gedict_t* self, gedict_t* goalentity_marker, gedict_t* touch_marker_);
+void DM6MarkerTouchLogic (gedict_t* self, gedict_t* goalentity_marker);
 qbool DM6LookAtDoor (gedict_t* self);
 static float EvalPath (fb_path_eval_t* eval, qbool allowRocketJumps, qbool trace_bprint, float current_goal_time, float current_goal_time_125);
 //static float best_score;
@@ -20,6 +20,9 @@ static float EvalPath (fb_path_eval_t* eval, qbool allowRocketJumps, qbool trace
 #define PATH_SCORE_NULL -1000000
 #define PATH_NOISE_PENALTY 2.5
 #define PATH_AVOID_PENALTY 2.5
+
+static vec3_t rocket_endpos = { 0 };
+
 
 static qbool HasItem (gedict_t* player, int mask)
 {
@@ -76,7 +79,7 @@ void PathScoringLogic(
 	G_bprint_debug (2, "  path_normal = %s\n", path_normal ? "true" : "false");
 	G_bprint_debug (2, "  player_origin = [%f %f %f]\n", PASSVEC3(player_origin));
 	G_bprint_debug (2, "  touch_marker_ = %d (%s)\n", touch_marker_->fb.index, touch_marker_->s.v.classname);
-	G_bprint_debug (2, "  goalentity_marker_  = %d (%s)\n", (goalentity_marker ? goalentity_marker->fb.index : -1), goalentity_marker ? goalentity_marker->s.v.classname : "(null)");
+	G_bprint_debug (2, "  goalentity_marker  = %d (%s)\n", (goalentity_marker ? goalentity_marker->fb.index : -1), goalentity_marker ? goalentity_marker->s.v.classname : "(null)");
 	G_bprint_debug (2, "  rocket_alert = %s\n", rocket_alert ? "true" : "false");
 	G_bprint_debug (2, "  rj_allowed = %s\n", rocket_jump_routes_allowed ? "true" : "false");
 	G_bprint_debug (2, "  *best_score = %f\n", *best_score);
@@ -134,15 +137,15 @@ void PathScoringLogic(
 }
 
 // FIXME: Globals
-static void BotWaitLogic(gedict_t* touch_marker_) {
+static void BotWaitLogic(gedict_t* touch_marker) {
 	// if we're not looking at a player
 	if (look_object_->ct != ctPlayer) {
 		vec3_t linkedPos, lookPos;
-		VectorAdd(linked_marker_->s.v.absmin, linked_marker_->s.v.view_ofs, linkedPos);
+		VectorAdd(self->fb.linked_marker->s.v.absmin, self->fb.linked_marker->s.v.view_ofs, linkedPos);
 		VectorAdd(look_object_->s.v.absmin, look_object_->s.v.view_ofs, lookPos);
 		traceline(linkedPos[0], linkedPos[1], linkedPos[2] + 32, lookPos[0], lookPos[1], lookPos[2] + 32, true, self);
 		if (g_globalvars.trace_fraction != 1) {
-			linked_marker_ = touch_marker_;
+			self->fb.linked_marker = touch_marker;
 			new_path_state = 0;
 		}
 	}
@@ -269,23 +272,25 @@ static void EvalLook(float* best_score, vec3_t dir_look) {
 	}
 }
 
-void EvalCloseRunAway() {
+static void EvalCloseRunAway(float runaway_time, float *best_away_score, gedict_t **best_away_marker, gedict_t* touch_marker) {
+	float test_away_score = 0;
+
 	from_marker = enemy_touch_marker;
 	to_marker->fb.zone_marker();
 	to_marker->fb.sub_arrival_time();
 	traveltime2 = traveltime;
-	from_marker = touch_marker_;
+	from_marker = touch_marker;
 	to_marker->fb.zone_marker();
 	to_marker->fb.sub_arrival_time();
 	if (look_traveltime) {
-		test_away_score = random() * RA_time * ((traveltime2 * traveltime2) - (look_traveltime_squared + (traveltime * traveltime))) / (look_traveltime * traveltime);
+		test_away_score = random() * runaway_time * ((traveltime2 * traveltime2) - (look_traveltime_squared + (traveltime * traveltime))) / (look_traveltime * traveltime);
 	}
-	else  {
-		test_away_score = random() * RA_time * (traveltime2 - traveltime);
+	else {
+		test_away_score = random() * runaway_time * (traveltime2 - traveltime);
 	}
-	if (test_away_score > best_away_score) {
-		best_away_marker = to_marker;
-		best_away_score = test_away_score;
+	if (test_away_score > *best_away_score) {
+		*best_away_marker = to_marker;
+		*best_away_score = test_away_score;
 	}
 }
 
@@ -314,7 +319,7 @@ static qbool CheckForRocketEnemyAim (gedict_t* self)
 	return false;
 }
 
-void frogbot_marker_touch() {
+void frogbot_marker_touch(void) {
 	gedict_t* goalentity_ = &g_edicts[self->s.v.goalentity];
 	gedict_t* goalentity_marker = (goalentity_ == world || (self->fb.state & RUNAWAY) ? NULL : goalentity_->fb.touch_marker);
 	qbool trace_bprint = self->fb.debug;
@@ -327,27 +332,27 @@ void frogbot_marker_touch() {
 	if ((self->fb.path_state & WAIT_GROUND) && !((int)self->s.v.flags & FL_ONGROUND))
 		return;
 
-	if (linked_marker_ == touch_marker_) {
-		if (goalentity_ == touch_marker_) {
-			if (! WaitingToRespawn(touch_marker_)) {
+	if (self->fb.linked_marker == self->fb.touch_marker) {
+		if (goalentity_ == self->fb.touch_marker) {
+			if (! WaitingToRespawn(self->fb.touch_marker)) {
 				return;
 			}
 		}
-		else if (goalentity_marker == touch_marker_) {
+		else if (goalentity_marker == self->fb.touch_marker) {
 			// FIXME: Create IsDynamicItem(ent)... should be dropped quads etc as well
 			if (streq(goalentity_->s.v.classname, "backpack")) {
 				if (IsVisible(goalentity_)) {
-					linked_marker_ = self->fb.linked_marker = goalentity_;
+					self->fb.linked_marker = goalentity_;
 					self->fb.linked_marker_time = g_globalvars.time + 5;
-					self->fb.old_linked_marker = touch_marker_;
+					self->fb.old_linked_marker = self->fb.touch_marker;
 					return;
 				}
 			}
 		}
 	}
 	else {
-		if (ExistsPath(self->fb.old_linked_marker, touch_marker_)) {
-			if (ExistsPath(touch_marker_, linked_marker_)) {
+		if (ExistsPath(self->fb.old_linked_marker, self->fb.touch_marker)) {
+			if (ExistsPath(self->fb.touch_marker, self->fb.linked_marker)) {
 				self->fb.path_state = new_path_state;
 				return;
 			}
@@ -360,27 +365,23 @@ void frogbot_marker_touch() {
 		enemy_touch_marker = enemy_->fb.touch_marker;
 		if (enemy_touch_marker) {
 			int i = 0;
-
-			best_away_marker = NULL;
-			best_away_score = 0;
-			to_marker = touch_marker_;
+			float best_away_score = 0;
+			gedict_t* best_away_marker = NULL;
+			
+			to_marker = self->fb.touch_marker;
 			enemy_touch_marker->fb.sight_from_time();
 			look_traveltime_squared = look_traveltime * look_traveltime;
 			path_normal = true;
 
 			for (i = 0; i < NUMBER_PATHS; ++i) {
-				to_marker = touch_marker_->fb.runaway[i].next_marker;
+				to_marker = self->fb.touch_marker->fb.runaway[i].next_marker;
 				if (to_marker) {
-					RA_time = touch_marker_->fb.runaway[i].time;
-					EvalCloseRunAway();
+					EvalCloseRunAway(self->fb.touch_marker->fb.runaway[i].time, &best_away_score, &best_away_marker, self->fb.touch_marker);
 				}
 			}
 
-			if (!best_away_marker) {
-				best_away_marker = touch_marker_;
-			}
 			self->fb.goal_respawn_time = 0;
-			goalentity_marker = best_away_marker;
+			goalentity_marker = (best_away_marker ? best_away_marker : self->fb.touch_marker);
 			self->fb.path_normal_ = true;
 		}
 	}
@@ -392,7 +393,7 @@ void frogbot_marker_touch() {
 					if (!avoid) {
 						to_marker = enemy_->fb.touch_marker;
 						if (to_marker) {
-							from_marker = touch_marker_;
+							from_marker = self->fb.touch_marker;
 							from_marker->fb.higher_sight_from_marker();
 							if (!look_marker) {
 								self->fb._highermarker = false;
@@ -420,7 +421,7 @@ void frogbot_marker_touch() {
 						if (enemy_->s.v.button0) {
 							to_marker = enemy_->fb.touch_marker;
 							if (to_marker) {
-								from_marker = touch_marker_;
+								from_marker = self->fb.touch_marker;
 								from_marker->fb.higher_sight_from_marker();
 								if (!look_marker) {
 									self->fb._highermarker = false;
@@ -442,21 +443,20 @@ void frogbot_marker_touch() {
 	normalize (self->s.v.velocity, player_direction);
 	self->fb.be_quiet = (look_object_ != enemy_ && enemy_ && !self->fb.allowedMakeNoise);
 
-	PathScoringLogic (self->fb.goal_respawn_time, self->fb.be_quiet, self->fb.path_normal_, self->s.v.origin, self->s.v.velocity, touch_marker_, goalentity_marker, rocket_alert, rocket_jump_routes_allowed, trace_bprint, &best_score, &linked_marker_, &new_path_state);
+	PathScoringLogic (self->fb.goal_respawn_time, self->fb.be_quiet, self->fb.path_normal_, self->s.v.origin, self->s.v.velocity, self->fb.touch_marker, goalentity_marker, rocket_alert, rocket_jump_routes_allowed, trace_bprint, &best_score, &self->fb.linked_marker, &new_path_state);
 	STOP_DEBUGGING
 
 	// "check if fully on lift - if not then continue moving to linked_marker_"
-	if (streq(touch_marker_->s.v.classname, "door") && self->deathtype == dtSQUISH) {
-		if (linked_marker_->s.v.absmin[2] + linked_marker_->s.v.view_ofs[2] > self->s.v.origin[2] + 18) {
-			if (teamplay) {
+	if (streq(self->fb.touch_marker->s.v.classname, "door") && self->deathtype == dtSQUISH) {
+		if (self->fb.linked_marker->s.v.absmin[2] + self->fb.linked_marker->s.v.view_ofs[2] > self->s.v.origin[2] + 18) {
+			if (teamplay)
 				self->fb.state &= ~HELP_TEAMMATE;
-			}
 
-			if (self->s.v.absmin[0] >= touch_marker_->s.v.absmin[0]) {
-				if (self->s.v.absmax[0] <= touch_marker_->s.v.absmax[0]) {
-					if (self->s.v.absmin[1] >= touch_marker_->s.v.absmin[1]) {
-						if (self->s.v.absmax[1] <= touch_marker_->s.v.absmax[1]) {
-							self->fb.linked_marker = linked_marker_ = touch_marker_;
+			if (self->s.v.absmin[0] >= self->fb.touch_marker->s.v.absmin[0]) {
+				if (self->s.v.absmax[0] <= self->fb.touch_marker->s.v.absmax[0]) {
+					if (self->s.v.absmin[1] >= self->fb.touch_marker->s.v.absmin[1]) {
+						if (self->s.v.absmax[1] <= self->fb.touch_marker->s.v.absmax[1]) {
+							self->fb.linked_marker = self->fb.touch_marker;
 							self->fb.path_state = 0;
 							self->fb.linked_marker_time = g_globalvars.time + 5;
 							self->fb.old_linked_marker = NULL;
@@ -469,7 +469,7 @@ void frogbot_marker_touch() {
 	}
 
 	if (self->fb.state & WAIT) {
-		BotWaitLogic(touch_marker_);
+		BotWaitLogic(self->fb.touch_marker);
 	}
 
 	// FIXME: Map specific waiting points
@@ -483,14 +483,13 @@ void frogbot_marker_touch() {
 		DM6CampLogic();
 	}
 
-	self->fb.linked_marker = linked_marker_;
-	G_bprint_debug (2, "New linked marker: %d\n", linked_marker_->fb.index);
+	G_bprint_debug (2, "New linked marker: %d\n", self->fb.linked_marker->fb.index);
 	self->fb.path_state = new_path_state;
-	self->fb.linked_marker_time = g_globalvars.time + (touch_marker_ == linked_marker_ ? 0.3 : 5);
-	self->fb.old_linked_marker = touch_marker_;
+	self->fb.linked_marker_time = g_globalvars.time + (self->fb.touch_marker == self->fb.linked_marker ? 0.3 : 5);
+	self->fb.old_linked_marker = self->fb.touch_marker;
 
 	// Logic past this point appears to be deciding what to look at...
-	DM6MarkerTouchLogic (self, goalentity_marker, touch_marker_);
+	DM6MarkerTouchLogic (self, goalentity_marker);
 
 	self->fb.state &= ~NOTARGET_ENEMY;
 	if ((int)self->s.v.flags & FL_ONGROUND && self->fb.wasinwater) {
@@ -527,7 +526,7 @@ void frogbot_marker_touch() {
 			from_marker = goalentity_marker;
 		}
 		if (from_marker) {
-			to_marker = linked_marker_;
+			to_marker = self->fb.linked_marker;
 			from_marker->fb.sight_from_marker();
 			if (look_marker) {
 				path_normal = true;
@@ -541,7 +540,7 @@ void frogbot_marker_touch() {
 
 			if (look_marker) {
 				to_marker = from_marker;
-				from_marker = linked_marker_;
+				from_marker = self->fb.linked_marker;
 				path_normal = true;
 				to_marker->fb.zone_marker();
 				to_marker->fb.sub_arrival_time();
@@ -558,9 +557,9 @@ void frogbot_marker_touch() {
 	{
 		vec3_t dir_look = { 0 };
 
-		if (touch_marker_ != linked_marker_) {
+		if (self->fb.touch_marker != self->fb.linked_marker) {
 			vec3_t diff;
-			VectorAdd(linked_marker_->s.v.absmin, linked_marker_->s.v.view_ofs, linked_marker_origin);
+			VectorAdd(self->fb.linked_marker->s.v.absmin, self->fb.linked_marker->s.v.view_ofs, linked_marker_origin);
 			VectorSubtract(linked_marker_origin, origin_, diff);
 			normalize(diff, dir_look);
 		}
@@ -575,12 +574,12 @@ void frogbot_marker_touch() {
 		}
 
 		// Look at the next marker...
-		VectorAdd(linked_marker_->s.v.absmin, linked_marker_->s.v.view_ofs, linked_marker_origin);
+		VectorAdd(self->fb.linked_marker->s.v.absmin, self->fb.linked_marker->s.v.view_ofs, linked_marker_origin);
 		best_score = PATH_SCORE_NULL;
 		{
 			int i = 0;
 			for (i = 0; i < NUMBER_PATHS; ++i) {
-				from_marker = linked_marker_->fb.paths[i].next_marker;
+				from_marker = self->fb.linked_marker->fb.paths[i].next_marker;
 				if (from_marker) {
 					EvalLook(&best_score, dir_look);
 				}

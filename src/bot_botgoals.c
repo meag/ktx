@@ -117,7 +117,7 @@ static void EvalGoal(gedict_t* self, gedict_t* goal_entity) {
 				to_marker->fb.sub_arrival_time();
 				goal_entity->fb.saved_enemy_time_squared = traveltime * traveltime;
 			}
-			if ((enemy_time_squared + (goal_time * goal_time)) >= goal_entity->fb.saved_enemy_time_squared) {
+			if (goal_time * goal_time >= goal_entity->fb.saved_enemy_time_squared) {
 				goal_entity->fb.saved_goal_desire = 0;
 				return;
 			}
@@ -153,7 +153,7 @@ static void EvalGoal2(gedict_t* goal_entity, gedict_t* best_goal_marker) {
 			traveltime2 = max(best_respawn_time, goal_time2 + traveltime);
 
 			if (self->fb.bot_evade && self->fb.goal_enemy_repel) {
-				if ((enemy_time_squared + traveltime2 * traveltime2) >= self->fb.best_goal->fb.saved_enemy_time_squared) {
+				if (traveltime2 * traveltime2 >= self->fb.best_goal->fb.saved_enemy_time_squared) {
 					traveltime2 = 1000000;
 				}
 			}
@@ -170,7 +170,7 @@ static void EvalGoal2(gedict_t* goal_entity, gedict_t* best_goal_marker) {
 			goal_marker2->fb.sub_arrival_time();
 			traveltime2 = max(self->fb.best_goal_time + traveltime, goal_entity->fb.saved_respawn_time);
 			if (self->fb.bot_evade && self->fb.goal_enemy_repel) {
-				if ((enemy_time_squared + traveltime2 * traveltime2) >= goal_entity->fb.saved_enemy_time_squared) {
+				if (traveltime2 * traveltime2 >= goal_entity->fb.saved_enemy_time_squared) {
 					return;
 				}
 			}
@@ -249,7 +249,7 @@ void UpdateGoal() {
 		self->fb.goal_enemy_desire = enemy_ && enemy_->fb.desire ? enemy_->fb.desire(self) : 0;
 		if (self->fb.goal_enemy_desire > 0) {
 			// Time from here to the enemy's last marker
-			from_marker = touch_marker_;
+			from_marker = self->fb.touch_marker;
 			enemy_touch_marker->fb.zone_marker();
 			enemy_touch_marker->fb.sub_arrival_time();
 			enemy_->fb.saved_respawn_time = 0;
@@ -275,7 +275,7 @@ void UpdateGoal() {
 
 	G_bprint_debug (2, "After enemy-eval: best_goal %s, best_score %f\n", self->fb.best_goal ? self->fb.best_goal->s.v.classname : "(none)", self->fb.best_goal_score);
 	for (i = 0; i < NUMBER_GOALS; ++i) {
-		EvalGoal(self, touch_marker_->fb.goals[i].next_marker->fb.virtual_goal);
+		EvalGoal(self, self->fb.touch_marker->fb.goals[i].next_marker->fb.virtual_goal);
 	}
 	G_bprint_debug (2, "After goal-eval1: best_goal %s, best_score %f\n", self->fb.best_goal ? self->fb.best_goal->s.v.classname : "(none)", self->fb.best_goal_score);
 
@@ -301,16 +301,14 @@ void UpdateGoal() {
 		G_bprint_debug (2, "After enemy-logic:  best_goal %s, best_score %f\n", self->fb.best_goal2 ? self->fb.best_goal2->s.v.classname : "(none)", self->fb.best_score2);
 
 		for (i = 0; i < NUMBER_GOALS; ++i) {
-			if (touch_marker_->fb.goals[i].next_marker) {
-				EvalGoal2 (touch_marker_->fb.goals[i].next_marker->fb.virtual_goal, self->fb.best_goal->fb.touch_marker);
-			}
+			if (self->fb.touch_marker->fb.goals[i].next_marker)
+				EvalGoal2 (self->fb.touch_marker->fb.goals[i].next_marker->fb.virtual_goal, self->fb.best_goal->fb.touch_marker);
 		}
 		G_bprint_debug (2, "After EvalGoal2:  best_goal %s, best_score %f\n", self->fb.best_goal2 ? self->fb.best_goal2->s.v.classname : "(none)", self->fb.best_score2);
 
 		for (goal_entity = world; goal_entity = ez_find(goal_entity, BACKPACK_CLASSNAME); ) {
-			if (goal_entity->fb.touch_marker) {
+			if (goal_entity->fb.touch_marker)
 				EvalGoal2 (goal_entity, self->fb.best_goal->fb.touch_marker);
-			}
 		}
 		G_bprint_debug (2, "After EvalGoal2-BP:  best_goal %s, best_score %f\n", self->fb.best_goal2 ? self->fb.best_goal2->s.v.classname : "(none)", self->fb.best_score2);
 

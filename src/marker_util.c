@@ -12,7 +12,7 @@ void BecomeMarker(gedict_t* marker) {
 	//dropper->fb.marker_link = first_marker;
 }
 
-// FIXME: Never called
+// FIXME: Never called (should be though... some markers are created then removed)
 void RemoveMarker(gedict_t* marker) {
 	gedict_t* e;
 	marker->fb.fl_marker = false;
@@ -23,6 +23,7 @@ void RemoveMarker(gedict_t* marker) {
 	e->fb.marker_link = marker->fb.marker_link;
 }
 
+// FIXME: Globals
 void spawn_marker(vec3_t org) {
 	marker_ = spawn();
 	marker_->s.v.classname = "marker";
@@ -69,14 +70,14 @@ void check_marker(gedict_t* self, gedict_t* other) {
 		// Trigger brute-force finding of closest marker if we don't touch another one in time
 		other->fb.touch_marker_time = g_globalvars.time + 5;
 
-		//if (!other->isBot) {
-		//	G_sprint (other, 2, "Marker %d touched\n", self->fb.index);
-		//}
+		if (!other->isBot) {
+			// G_sprint (other, 2, "Marker %d touched\n", self->fb.index);
+		}
 	}
 }
 
 void marker_touch() {
-	if (marker_time && other->ct == ctPlayer) {
+	if (IsMarkerFrame() && other->ct == ctPlayer) {
 		check_marker (self, other);
 	}
 }

@@ -1346,16 +1346,7 @@ void StartFrame( int time )
 	}
 
 	if ( bots_enabled() ) {
-		if ( framecount == 3 ) {
-			InitParameters();
-			InitFrogbots1();
-		}
-		else if ( framecount == 20 ) {
-			LoadMap();
-		}
-		else if ( framecount > 20 ) {
-			BotStartFrame( time );
-		}
+		BotStartFrame (framecount);
 	}
 
 	FixNoSpecs(); // if no players left turn off "no spectators" mode

@@ -783,7 +783,7 @@ void DM6CampLogic() {
 							if (VectorDistance(search_entity->s.v.origin, self->s.v.origin) < 200) {
 								if (random() < 0.9) {
 									self->fb.camp_state |= CAMPBOT;
-									linked_marker_ = touch_marker_;
+									self->fb.linked_marker = self->fb.touch_marker;
 								}
 							}
 							else  {
@@ -845,10 +845,10 @@ qbool DM6DoorClosed (fb_path_eval_t* eval)
 		   ((eval->description & DM6_DOOR) && dm6_door->s.v.origin[0] > -64);
 }
 
-void DM6MarkerTouchLogic (gedict_t* self, gedict_t* goalentity_marker, gedict_t* touch_marker_)
+void DM6MarkerTouchLogic (gedict_t* self, gedict_t* goalentity_marker)
 {
 	if (goalentity_marker && goalentity_marker->fb.Z_ == 1) {
-		if (touch_marker_->fb.zones[0].task & DM6_DOOR) {
+		if (self->fb.touch_marker->fb.zones[0].task & DM6_DOOR) {
 			if (dm6_door->s.v.takedamage) {
 				vec3_t temp, src;
 				VectorAdd(dm6_door->s.v.absmin, dm6_door->s.v.view_ofs, temp);
