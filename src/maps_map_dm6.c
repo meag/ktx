@@ -3,7 +3,7 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
-static gedict_t* dm6_door = 0;
+gedict_t* dm6_door = 0;
 
 qbool CheckNewWeapon (int weapon);
 

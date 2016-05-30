@@ -138,6 +138,9 @@ void SetZone(int zone, int marker_number) {
 	marker->fb.Z_head = zone_head[zone];
 }
 
+// FIXME: Map-specific hack for existing map-specific logic...
+extern gedict_t* dm6_door;
+
 void SetMarkerFlag(int marker_number, int flags) {
 	--marker_number;
 	
@@ -145,6 +148,9 @@ void SetMarkerFlag(int marker_number, int flags) {
 		return;
 
 	markers[marker_number]->fb.T |= flags;
+
+	if (flags & MARKER_IS_DM6_DOOR)
+		dm6_door = markers[marker_number];
 }
 
 void NameZone(float zoneNumber, char* name) {

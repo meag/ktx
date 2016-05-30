@@ -110,7 +110,7 @@ float near_teammate(gedict_t* me) {
 	}
 
 	p = identify_teammate_(me);
-	return ((VectorDistance(p->s.v.origin, me->s.v.origin)) < 140);
+	return VectorDistance(p->s.v.origin, me->s.v.origin) < 140;
 }
 
 gedict_t* HelpTeammate() {
@@ -144,7 +144,7 @@ gedict_t* HelpTeammate() {
 				if (((int)self->s.v.items & (IT_ROCKET_LAUNCHER | IT_LIGHTNING)) && (self->s.v.health > 65)) {
 					if ((self->s.v.ammo_rockets > 2) || (self->s.v.ammo_cells > 10)) {
 						if (IsVisible(goalent)) {
-							self->fb.state = self->fb.state | HELP_TEAMMATE;
+							self->fb.state |= HELP_TEAMMATE;
 							return goalent;
 						}
 					}
