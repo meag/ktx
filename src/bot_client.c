@@ -158,7 +158,7 @@ static float goal_client6(gedict_t* self) {
 // TODO: any preferences stored against the specific bot to be restored here?
 void BotClientConnectedEvent(gedict_t* self) {
 	self->fb.desire = (deathmatch <= 3 ? goal_client : goal_client6);
-	self->fb.T = UNREACHABLE;
+	self->fb.T = BOTFLAG_UNREACHABLE;
 	self->fb.skill.skill_level = g_globalvars.parm3;
 	self->fb.skill.lookahead_time = 30;
 	self->fb.skill.prediction_error = 0;

@@ -285,7 +285,7 @@ qbool CanJumpOver(gedict_t* self, vec3_t jump_origin, vec3_t jump_velocity, vec3
 				}
 
 				for (test_enemy = world; test_enemy = trap_findradius(test_enemy, testplace, 84); ) {
-					if (test_enemy->fb.T & UNREACHABLE) {
+					if (test_enemy->fb.T & BOTFLAG_UNREACHABLE) {
 						test_enemy = NULL;
 						do_jump = false;
 						break;

@@ -183,6 +183,11 @@
 #endif
 
 // Bot flags
+#ifndef BOTFLAG_UNREACHABLE
+#define BOTFLAG_UNREACHABLE 1
+#endif
+
+// Marker flags
 #ifndef UNREACHABLE
 #define UNREACHABLE 1
 #endif

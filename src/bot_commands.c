@@ -218,6 +218,8 @@ static void FrogbotsDebug (void)
 				G_sprint (self, 2, "CanJumpOver\n");
 			else
 				G_sprint (self, 2, "CanJumpOver: failed\n");
+
+			self->s.v.solid = self->fb.oldsolid;
 		}
 	}
 }
