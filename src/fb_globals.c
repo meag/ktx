@@ -7,9 +7,6 @@ gedict_t* enemy_ = 0;
 gedict_t* virtual_enemy = 0;
 gedict_t* look_object_ = 0;
 gedict_t* test_enemy = 0;
-gedict_t* viewport = 0;
-gedict_t* non_viewport = 0;
-gedict_t* self_aiment = 0;
 
 vec3_t oldvelocity_ = { 0 };
 vec3_t delta_velocity = { 0 };

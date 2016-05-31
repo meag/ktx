@@ -248,9 +248,6 @@ extern gedict_t* enemy_;
 extern gedict_t* virtual_enemy;
 extern gedict_t* look_object_;
 extern gedict_t* test_enemy;
-extern gedict_t* viewport;
-extern gedict_t* non_viewport;
-extern gedict_t* self_aiment;
 
 extern vec3_t oldvelocity_;
 extern vec3_t delta_velocity;
