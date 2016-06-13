@@ -8,7 +8,6 @@
 #define FROGBOT_CHANCE_HELP_TEAMMATE 0.25
 
 // FIXME: Globals
-extern gedict_t* virtual_enemy;
 extern gedict_t* dropper;
 
 // FIXME: Local Globals
@@ -250,7 +249,7 @@ void UpdateGoal(void) {
 	BotEvadeLogic(self);
 
 	if (enemy_->fb.touch_marker) {
-		virtual_enemy = enemy_;
+		self->fb.virtual_enemy = enemy_;
 		self->fb.goal_enemy_desire = enemy_ && enemy_->fb.desire ? enemy_->fb.desire(self) : 0;
 		if (self->fb.goal_enemy_desire > 0) {
 			// Time from here to the enemy's last marker
@@ -275,7 +274,7 @@ void UpdateGoal(void) {
 		}
 	}
 	else {
-		virtual_enemy = dropper;
+		self->fb.virtual_enemy = dropper;
 	}
 
 	G_bprint_debug (2, "After enemy-eval: best_goal %s, best_score %f\n", self->fb.best_goal ? self->fb.best_goal->s.v.classname : "(none)", self->fb.best_goal_score);

@@ -561,6 +561,8 @@ typedef struct fb_entvars_s {
 	qbool               be_quiet;
 	qbool               enemy_visible;
 	float               last_death;      // Last time this player died
+
+	struct gedict_s*    virtual_enemy;   //
 } fb_entvars_t;
 
 //typedef (void(*)(gedict_t *)) one_edict_func;

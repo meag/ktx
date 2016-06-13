@@ -196,7 +196,7 @@ void DebugZone(int i) {
 	DebugZoneByEnt(FirstZoneMarker(i));
 }
 
-void DebugZones() {
+void DebugZones(void) {
 	int i = 0;
 
 	bprint_fb(2, "Zones:\n");

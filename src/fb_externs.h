@@ -6,7 +6,6 @@ extern fb_spawn_t itemSpawnFunctions[];
 extern float predict_dist;
 
 extern gedict_t* enemy_;
-extern gedict_t* virtual_enemy;
 extern gedict_t* test_enemy;
 
 extern gedict_t* current_waiting_bot;

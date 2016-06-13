@@ -6,9 +6,6 @@
 void PlayerReady ();
 void SetMarker (gedict_t* client, gedict_t* marker);
 
-// FIXME: Globals
-extern gedict_t* virtual_enemy;
-
 // Called whenever a player dies
 void BotPlayerDeathEvent(gedict_t* self) {
 	ResetGoalEntity(self);
@@ -129,20 +126,20 @@ void BotSetCommand(gedict_t* self) {
 }
 
 static float goal_client(gedict_t* self) {
-	if (g_globalvars.time < virtual_enemy->invisible_finished) {
+	if (g_globalvars.time < self->fb.virtual_enemy->invisible_finished) {
 		return 0;     // don't chase enemies with eyes
 	}
-	else if (g_globalvars.time < virtual_enemy->invincible_finished) {
+	else if (g_globalvars.time < self->fb.virtual_enemy->invincible_finished) {
 		return 0;     // or with pent
 	}
 	else if (self->fb.look_object && self->s.v.enemy == NUM_FOR_EDICT(self->fb.look_object)) {
-		return ((self->fb.total_damage + 100) * self->fb.firepower - virtual_enemy->fb.total_damage * virtual_enemy->fb.firepower) * 0.01;
+		return ((self->fb.total_damage + 100) * self->fb.firepower - self->fb.virtual_enemy->fb.total_damage * self->fb.virtual_enemy->fb.firepower) * 0.01;
 	}
 	else if (EnemyDefenceless(self)) {
-		return ((self->fb.total_damage + 120) * self->fb.firepower - virtual_enemy->fb.total_damage * virtual_enemy->fb.firepower) * 0.01;
+		return ((self->fb.total_damage + 120) * self->fb.firepower - self->fb.virtual_enemy->fb.total_damage * self->fb.virtual_enemy->fb.firepower) * 0.01;
 	}
 	else {
-		return (self->fb.total_damage * self->fb.firepower - virtual_enemy->fb.total_damage * virtual_enemy->fb.firepower) * 0.01;
+		return (self->fb.total_damage * self->fb.firepower - self->fb.virtual_enemy->fb.total_damage * self->fb.virtual_enemy->fb.firepower) * 0.01;
 	}
 }
 
@@ -151,11 +148,11 @@ static float goal_client6(gedict_t* self) {
 		return 100;
 	}
 
-	if (g_globalvars.time < virtual_enemy->invisible_finished || g_globalvars.time < virtual_enemy->invincible_finished) {
+	if (g_globalvars.time < self->fb.virtual_enemy->invisible_finished || g_globalvars.time < self->fb.virtual_enemy->invincible_finished) {
 		return 0;     // or with pent
 	}
 
-	return (300 - min(virtual_enemy->fb.total_damage, 300));
+	return (300 - min(self->fb.virtual_enemy->fb.total_damage, 300));
 }
 
 // client.qc

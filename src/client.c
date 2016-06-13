@@ -2606,7 +2606,7 @@ void PlayerPreThink()
 	if( g_globalvars.frametime > self->fHighestFrameTime )
 		self->fHighestFrameTime = g_globalvars.frametime;
 
-	if( self->fDisplayIllegalFPS < g_globalvars.time && framechecks )
+	if( self->fDisplayIllegalFPS < g_globalvars.time && framechecks && ! self->isBot )
 	{
 		float fps;
 
