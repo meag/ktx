@@ -7,10 +7,6 @@
 #define ATTACK_RESPAWN_TIME 3
 
 // FIXME: globals, this is just setting
-extern gedict_t* look_object_;
-extern float risk_factor;
-extern float risk;
-
 void DM6SelectWeaponToOpenDoor (gedict_t* self);
 
 static qbool WaterCombat(gedict_t* self) {
@@ -72,7 +68,7 @@ void AttackRespawns(void) {
 
 												self->fb.botchose = 1;
 												self->fb.next_impulse = 7;
-												self->fb.look_object = look_object_ = resp;
+												self->fb.look_object = resp;
 												VectorCopy(resp->s.v.origin, self->fb.predict_origin);
 												self->fb.predict_origin[2] += 16;
 												self->fb.old_linked_marker = NULL;
@@ -234,7 +230,7 @@ static void SpamRocketShot (gedict_t* self)
 	}
 }
 
-static void RocketLauncherShot (gedict_t* self, float risk)
+static void RocketLauncherShot (gedict_t* self, float risk, float risk_factor)
 {
 	float hit_radius = 160;
 	vec3_t rocket_origin;     // where the rocket will be spawned from
@@ -270,8 +266,8 @@ static void RocketLauncherShot (gedict_t* self, float risk)
 					VectorAdd(self->fb.look_object->s.v.absmin, self->fb.look_object->s.v.view_ofs, testplace);
 					from_marker = g_edicts[self->s.v.enemy].fb.touch_marker;
 					path_normal = true;
-					look_object_->fb.zone_marker();
-					look_object_->fb.sub_arrival_time();
+					self->fb.look_object->fb.zone_marker();
+					self->fb.look_object->fb.sub_arrival_time();
 					predict_dist = (traveltime * sv_maxspeed) + VectorDistance(testplace, rocket_endpos);
 				}
 			}
@@ -288,7 +284,7 @@ static void RocketLauncherShot (gedict_t* self, float risk)
 				// Nothing blocking the explosion...
 				if ( ! SameTeam(test_enemy, self)) {
 					// Enemy
-					risk_factor = risk_factor / risk_strength;
+					risk_factor /= risk_strength;
 					if (self->fb.look_object == &g_edicts[self->s.v.enemy]) {
 						self->fb.firing = true;
 					}
@@ -358,7 +354,7 @@ void SetFireButton(gedict_t* self, vec3_t rel_pos, float rel_dist) {
 		return;
 	}
 
-	if (! SameTeam(look_object_, self)) {
+	if (! SameTeam(self->fb.look_object, self)) {
 		DM6SelectWeaponToOpenDoor (self);
 
 		// FIXME: what is this referring to?
@@ -377,7 +373,7 @@ void SetFireButton(gedict_t* self, vec3_t rel_pos, float rel_dist) {
 					return;
 				}
 			}
-			else if (PROG_TO_EDICT(g_globalvars.trace_ent) != look_object_) {
+			else if (PROG_TO_EDICT(g_globalvars.trace_ent) != self->fb.look_object) {
 				gedict_t* traced = PROG_TO_EDICT(g_globalvars.trace_ent);
 				if (traced->ct == ctPlayer) {
 					if (!SameTeam(traced, self)) {
@@ -408,17 +404,20 @@ void SetFireButton(gedict_t* self, vec3_t rel_pos, float rel_dist) {
 				return;
 			}
 
-			risk_factor = 0.5;
-			risk = random();
-			risk = risk * risk;
+			{
+				// FIXME: Skill-based
+				float risk_factor = 0.5;
+				float risk = random();
+				risk *= risk;
 
-			AvoidQuadBore (self);
+				AvoidQuadBore (self);
 
-			if (self->s.v.weapon == IT_ROCKET_LAUNCHER) {
-				RocketLauncherShot (self, risk);
-			}
-			else {
-				SetFireButtonBasedOnAngles (self, risk, risk_factor, rel_dist);
+				if (self->s.v.weapon == IT_ROCKET_LAUNCHER) {
+					RocketLauncherShot (self, risk, risk_factor);
+				}
+				else {
+					SetFireButtonBasedOnAngles (self, risk, risk_factor, rel_dist);
+				}
 			}
 		}
 	}

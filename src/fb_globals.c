@@ -17,7 +17,6 @@ gedict_t* m_P = 0;
 float P_time = 0;
 int m_D = 0;
 int new_path_state = 0;
-qbool markers_loaded = false;
 float goal_index = 0;
 gedict_t* current_load_position = 0;
 gedict_t* load_position = 0;

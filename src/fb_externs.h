@@ -20,7 +20,6 @@ extern float P_time;
 extern int m_D;
 extern int new_path_state;
 extern float nextthink_;
-extern qbool markers_loaded;
 extern float goal_index;
 extern gedict_t* current_load_position;
 extern gedict_t* load_position;

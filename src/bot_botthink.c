@@ -167,7 +167,7 @@ void TargetEnemyLogic() {
 	}
 }
 
-static void BotDodgeMovement(vec3_t dir_move) {
+static void BotDodgeMovement(gedict_t* self, vec3_t dir_move, float dodge_factor) {
 	if (dodge_factor) {
 		if (dodge_factor < 0) {
 			++dodge_factor;
@@ -181,12 +181,13 @@ static void BotDodgeMovement(vec3_t dir_move) {
 }
 
 static void BotOnGroundMovement(gedict_t* self, vec3_t dir_move) {
+	float dodge_factor = 0;
+
 	if ((int)self->s.v.flags & FL_ONGROUND) {
 		if (!(self->fb.path_state & NO_DODGE)) {
 			vec3_t temp;
 
 			// Dodge a rocket our enemy is firing at us
-			dodge_factor = 0;
 			if (dodge_missile) {
 				if (PROG_TO_EDICT(dodge_missile->s.v.owner)->ct == ctPlayer) {
 					vec3_t rel_pos;
@@ -216,7 +217,7 @@ static void BotOnGroundMovement(gedict_t* self, vec3_t dir_move) {
 				}
 			}
 
-			BotDodgeMovement(dir_move);
+			BotDodgeMovement(self, dir_move, dodge_factor);
 		}
 	}
 
@@ -319,7 +320,7 @@ static void PeriodicAllClientLogic() {
 				self->fb.old_linked_marker = NULL;
 				self->fb.state |= AWARE_SURROUNDINGS;
 			}
-			else if (markers_loaded) {
+			else {
 				self->fb.state |= AWARE_SURROUNDINGS;
 			}
 		}

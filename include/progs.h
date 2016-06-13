@@ -370,6 +370,7 @@ typedef struct fb_entvars_s {
 	fb_path_t paths[NUMBER_PATHS];
 	int path_state;
 
+	int index;                           // marker number
 	float oldsolid;                      // temp storage of ->s.v.solid, all clients are set to not solid when detecting hazards
 
 	float wait;
@@ -414,7 +415,6 @@ typedef struct fb_entvars_s {
 	float arrow_time2;
 	float linked_marker_time;
 	float touch_marker_time;
-	int index;
 
 	vec3_t oldvelocity;
 	vec3_t obstruction_normal;
