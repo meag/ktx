@@ -3,12 +3,15 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
+static int subzone_indexes[NUMBER_ZONES] = { 0 };
+static gedict_t* zone_tail[NUMBER_ZONES] = { 0 };
+
+// FIXME: Map-specific hack for existing map-specific logic...
+extern gedict_t* dm6_door;
+
 // FIXME: globals
 extern gedict_t* markers[];
-extern int subzone_indexes[];
 extern gedict_t* zone_tail[];
-extern gedict_t* zone_head[];
-extern gedict_t* zone_stack_head;
 extern gedict_t* first_marker;
 
 #define SUBZONEFUNCTIONS(name) \
@@ -134,20 +137,9 @@ void SetZone(int zone, int marker_number) {
 	marker->fb.sight_from_marker = zone_sight_from_marker_functions[zone];
 	marker->fb.higher_sight_from_marker = zone_higher_sight_from_marker_functions[zone];
 	marker->fb.sight_from_time = zone_sight_from_time_functions[zone];
-	if (zone_tail[zone]) {
-		zone_tail[zone]->fb.Z_next = marker;
-		zone_tail[zone] = marker;
-	}
-	else  {
-		zone_head[zone] = zone_tail[zone] = marker;
-		zone_head[zone]->fb.zone_stack_next = zone_stack_head;
-		zone_stack_head = zone_head[zone];
-	}
-	marker->fb.Z_head = zone_head[zone];
-}
 
-// FIXME: Map-specific hack for existing map-specific logic...
-extern gedict_t* dm6_door;
+	AddZoneMarker (marker);
+}
 
 void SetMarkerFlag(int marker_number, int flags) {
 	--marker_number;
@@ -179,11 +171,11 @@ void AdjustZone(gedict_t* zoneHead, float teamNumber, float strong, float adjust
 }
 
 void LeaveZone(int zoneNumber, float teamNumber, float strong) {
-	AdjustZone(zone_head[zoneNumber], teamNumber, strong, -1);
+	AdjustZone(FirstZoneMarker(zoneNumber), teamNumber, strong, -1);
 }
 
 void EnterZone(int zoneNumber, float teamNumber, float strong) {
-	AdjustZone(zone_head[zoneNumber], teamNumber, strong, 1);
+	AdjustZone(FirstZoneMarker(zoneNumber), teamNumber, strong, 1);
 }
 
 void DebugZoneByEnt(gedict_t* zone) {
@@ -201,7 +193,7 @@ void DebugZoneByEnt(gedict_t* zone) {
 }
 
 void DebugZone(int i) {
-	DebugZoneByEnt(zone_head[i]);
+	DebugZoneByEnt(FirstZoneMarker(i));
 }
 
 void DebugZones() {

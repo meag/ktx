@@ -17,10 +17,10 @@ static void Calc_G_time_12 (void);
 static float runaway_score = 0;
 static float min_traveltime = 0;
 static float runaway_time = 0;
+static float P_time = 0;
 
 // FIXME: Globals
 extern gedict_t* first_marker;
-extern float P_time;
 extern gedict_t* dropper;
 extern gedict_t* zone_stack_head;
 
@@ -380,7 +380,14 @@ static void Calc_G_time_11(void) {
 	gedict_t* m;
 
 	for (m = first_marker; m && m != world; m = m->fb.marker_link) {
-		for (m_zone = zone_stack_head; m_zone && m_zone != world; m_zone = m_zone->fb.zone_stack_next) {
+		int zone;
+
+		for (zone = 0; zone < NUMBER_ZONES; ++zone) {
+		//for (m_zone = zone_stack_head; m_zone && m_zone != world; m_zone = m_zone->fb.zone_stack_next) {
+			m_zone = FirstZoneMarker (zone);
+			if (m_zone == NULL)
+				continue;
+
 			from_marker = m;
 			m_zone->fb.zone_marker();
 			if (middle_marker != dropper && middle_marker != m) {
@@ -407,7 +414,6 @@ static void Calc_G_time_11(void) {
 		}
 	}
 
-	m_zone = zone_stack_head;
 	if (path_normal) {
 		path_normal = false;
 	}

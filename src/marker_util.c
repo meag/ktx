@@ -6,7 +6,6 @@
 // Globals
 extern gedict_t* first_marker;
 extern gedict_t* dropper;
-extern gedict_t* zone_head[];
 
 void SUB_regen ();
 
@@ -157,7 +156,7 @@ void AssignVirtualGoal_apply(gedict_t* marker_) {
 void AssignVirtualGoal(gedict_t* item) {
 	gedict_t* marker_;
 
-	for (marker_ = zone_head[item->fb.Z_]; marker_; marker_ = marker_->fb.Z_next) {
+	for (marker_ = FirstZoneMarker(item->fb.Z_); marker_; marker_ = marker_->fb.Z_next) {
 		AssignVirtualGoal_apply(marker_);
 	}
 }

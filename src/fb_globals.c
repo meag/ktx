@@ -13,7 +13,6 @@ gedict_t* first_marker = 0;
 gedict_t* dropper = 0;
 float fallheight = 0;
 gedict_t* m_P = 0;
-float P_time = 0;
 int m_D = 0;
 float goal_index = 0;
 gedict_t* current_load_position = 0;
@@ -21,12 +20,10 @@ gedict_t* load_position = 0;
 float goal_number = 0;
 gedict_t* test_goal = 0;
 float same_zone = 0;
-gedict_t* zone_stack_head = 0;
 
 gedict_t* markers[NUMBER_MARKERS] = { 0 };
 gedict_t* zone_head[NUMBER_ZONES] = { 0 };
 gedict_t* zone_tail[NUMBER_ZONES] = { 0 };
-int subzone_indexes[NUMBER_ZONES] = { 0 };
 
 qbool path_normal = false;
 gedict_t* from_marker = 0;
@@ -294,4 +291,23 @@ qbool EnemyDefenceless(gedict_t* self)
 		return (!IsDanger(self) && (self->s.v.health > 50) && (self->s.v.armorvalue >= 50));
 	}
 	return false;
+}
+
+gedict_t* FirstZoneMarker (int zone)
+{
+	return zone_head[zone];
+}
+
+void AddZoneMarker (gedict_t* marker)
+{
+	int zone = marker->fb.Z_;
+
+	if (zone_tail[zone]) {
+		zone_tail[zone]->fb.Z_next = marker;
+		zone_tail[zone] = marker;
+	}
+	else {
+		zone_head[zone] = zone_tail[zone] = marker;
+	}
+	marker->fb.Z_head = zone_head[zone]; // FIXME: this can't be trustworthy in future?
 }

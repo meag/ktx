@@ -15,7 +15,6 @@ extern gedict_t* first_marker;
 extern gedict_t* dropper;
 extern float fallheight;
 extern gedict_t* m_P;
-extern float P_time;
 extern int m_D;
 extern float nextthink_;
 extern float goal_index;
@@ -25,12 +24,8 @@ extern gedict_t* load_position;
 extern float goal_number;
 extern gedict_t* test_goal;
 extern float same_zone;
-extern gedict_t* zone_stack_head;
 
 extern gedict_t* markers[NUMBER_MARKERS];
-extern gedict_t* zone_head[NUMBER_ZONES];
-extern gedict_t* zone_tail[NUMBER_ZONES];
-extern int subzone_indexes[NUMBER_ZONES];
 
 //extern gedict_t* test_marker;
 extern gedict_t* prev_marker;

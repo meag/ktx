@@ -599,3 +599,7 @@ qbool TimeTrigger (float *next_time, float time_increment);
 
 qbool IsMarkerFrame (void);
 qbool IsHazardFrame (void);
+
+// fb_globals.c
+gedict_t* FirstZoneMarker (int zone);
+void AddZoneMarker (gedict_t* marker);
