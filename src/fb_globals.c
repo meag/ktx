@@ -8,7 +8,6 @@ gedict_t* virtual_enemy = 0;
 gedict_t* look_object_ = 0;
 gedict_t* test_enemy = 0;
 
-vec3_t oldvelocity_ = { 0 };
 gedict_t* current_waiting_bot = 0;
 gedict_t* first_marker = 0;
 gedict_t* dropper = 0;
@@ -174,7 +173,6 @@ gedict_t* array_sub_object_ = 0;
 float bind_char = 0;
 float dodge_factor = 0;
 gedict_t* bodyque_head = 0;
-float turning_speed = 0;
 vec3_t hor_normal_vec = { 0 };
 vec3_t last_clear_angle = { 0 };
 vec3_t velocity_hor_angle = { 0 };

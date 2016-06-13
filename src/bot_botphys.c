@@ -6,10 +6,6 @@
 static float unstick_time = 0;
 static qbool no_bots_stuck = 0;
 
-// FIXME: Globals
-extern float turning_speed;
-extern vec3_t oldvelocity_;
-
 int NumberOfClients (void)
 {
 	int count = 0;
@@ -80,7 +76,7 @@ void VelocityForArrow(gedict_t* self) {
 	float velocity_forward = 0;
 	float current_maxspeed = 0;
 
-	turning_speed = 0;
+	self->fb.turning_speed = 0;
 	if (!self->s.v.waterlevel) {
 		if (g_globalvars.time > self->fb.arrow_time2) {
 			float hor_speed = 0;
@@ -103,20 +99,20 @@ void VelocityForArrow(gedict_t* self) {
 
 				// ??? ... not sure why horizontal speed increases turning speed...
 				if (DotProduct(rel_pos, rel_pos) != 0) {
-					turning_speed = 114.59156 * hor_speed * DotProduct(rel_pos, hor_normal_vec) / DotProduct(rel_pos, rel_pos);
+					self->fb.turning_speed = 114.59156 * hor_speed * DotProduct(rel_pos, hor_normal_vec) / DotProduct(rel_pos, rel_pos);
 				}
 
-				if (fabs(turning_speed) > 270) {
+				if (fabs(self->fb.turning_speed) > 270) {
 					if (self->fb.path_state & AIR_ACCELERATION) {
-						if (turning_speed > 0) {
-							turning_speed = 270;
+						if (self->fb.turning_speed > 0) {
+							self->fb.turning_speed = 270;
 						}
 						else  {
-							turning_speed = -270;
+							self->fb.turning_speed = -270;
 						}
 					}
-					else  {
-						turning_speed = 0;
+					else {
+						self->fb.turning_speed = 0;
 					}
 				}
 
@@ -124,7 +120,7 @@ void VelocityForArrow(gedict_t* self) {
 				if (!((int)self->s.v.flags & FL_ONGROUND)) {
 					vec3_t temp;
 					float max_accel_forward = sv_accelerate * g_globalvars.frametime * sv_maxspeed;
-					vec3_t velocity_hor_angle = { 0, vectoyaw(hor_velocity) + (turning_speed * g_globalvars.frametime), 0 };
+					vec3_t velocity_hor_angle = { 0, vectoyaw(hor_velocity) + (self->fb.turning_speed * g_globalvars.frametime), 0 };
 					vec3_t desired_accel;
 
 					trap_makevectors(velocity_hor_angle);
@@ -278,7 +274,7 @@ void FrogbotPrePhysics1(void) {
 	// 
 	for (self = world; self = find_plr (self); ) {
 		if (self->isBot && self->s.v.takedamage) {
-			VectorCopy(self->s.v.velocity, oldvelocity_);
+			VectorCopy(self->s.v.velocity, self->fb.oldvelocity);
 			VelocityForArrow(self);
 			if (IsHazardFrame()) {
 				AvoidHazards();

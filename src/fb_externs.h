@@ -9,7 +9,6 @@ extern gedict_t* enemy_;
 extern gedict_t* virtual_enemy;
 extern gedict_t* test_enemy;
 
-extern vec3_t oldvelocity_;
 extern gedict_t* current_waiting_bot;
 extern gedict_t* first_marker;
 
@@ -171,7 +170,6 @@ extern float bind_char;
 extern float dodge_factor;
 
 extern gedict_t* bodyque_head;
-extern float turning_speed;
 extern vec3_t hor_normal_vec;
 extern vec3_t last_clear_angle;
 extern vec3_t velocity_hor_angle;

@@ -421,6 +421,7 @@ typedef struct fb_entvars_s {
 	vec3_t obstruction_direction;           // Instead of storing in rel_pos, store direction to obstruction here (for BotWaterMove)
 	vec3_t velocity_normal;
 	qbool  avoiding;                        // Avoiding next path marker, due to incoming rocket or arrow_time in future
+	float  turning_speed;
 
 	struct gedict_s* marker_link;           // linked list, this points to next marker
 	qbool fl_marker;                        // true if the current item is considered a marker (used when finding all objects in given radius)

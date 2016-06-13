@@ -6,9 +6,7 @@
 // A lot of this is the bot 'cheating'?..
 
 // FIXME: Globals
-extern vec3_t oldvelocity_;
 extern gedict_t* dropper;
-extern float turning_speed;
 
 // FIXME: Local globals
 static float first_trace_fraction = 0;
@@ -74,11 +72,11 @@ static void TestBottomBlock(gedict_t* self, vec3_t last_clear_point, vec3_t test
 static void AvoidEdge(void) {
 	vec3_t dir_forward;
 
-	VectorCopy(oldvelocity_, dir_forward);
+	VectorCopy(self->fb.oldvelocity, dir_forward);
 	dir_forward[2] = 0;
 	if (dir_forward[0] || dir_forward[1] || dir_forward[2]) {
 		vec3_t dir_move;
-		oldvelocity_[0] = oldvelocity_[1] = 0;  // lavacheat always enabled
+		self->fb.oldvelocity[0] = self->fb.oldvelocity[1] = 0;  // lavacheat always enabled
 		VectorScale(dir_forward, -1, dir_move);
 		NewVelocityForArrow(self, dir_move);
 		self->fb.arrow_time2 = self->fb.arrow_time;
@@ -157,6 +155,7 @@ void NewVelocityForArrow(gedict_t* self, vec3_t dir_move) {
 		VectorCopy(dir_move, self->fb.dir_move_);
 		self->fb.arrow = best_arrow;
 		self->fb.arrow_time = g_globalvars.time + 0.15;
+		// FIXME: Not convinced what is going on here
 		//VectorCopy(oldvelocity_, self->s.v.velocity);
 		//VectorCopy(oldvelocity_, self->fb.real_direction);
 		VelocityForArrow(self);
@@ -316,11 +315,11 @@ qbool CanJumpOver(gedict_t* self, vec3_t jump_origin, vec3_t jump_velocity, vec3
 			return do_jump;
 		}
 
-		if (turning_speed) {
+		if (self->fb.turning_speed) {
 			vec3_t last_clear_angle;
 			vectoangles(last_clear_velocity, last_clear_angle);
 			last_clear_angle[0] = 0 - last_clear_angle[0];
-			last_clear_angle[1] = last_clear_angle[1] + (turning_speed * 32 / last_clear_hor_speed);
+			last_clear_angle[1] = last_clear_angle[1] + (self->fb.turning_speed * 32 / last_clear_hor_speed);
 			trap_makevectors(last_clear_angle);
 			VectorScale(g_globalvars.v_forward, vlen(last_clear_velocity), last_clear_velocity);
 		}
@@ -344,7 +343,7 @@ static qbool JumpLedgeLogic (gedict_t* self, vec3_t new_velocity)
 		if ((int)self->s.v.flags & FL_ONGROUND) {
 			qbool try_jump_ledge = true;
 			qbool being_blocked = false;
-			if (vlen(oldvelocity_) <= 100) {
+			if (vlen(self->fb.oldvelocity) <= 100) {
 				VectorCopy(rel_pos, rel_hor_dir);
 				rel_hor_dir[2] = 0;
 				try_jump_ledge = (vlen(rel_hor_dir) <= 80);
@@ -425,7 +424,7 @@ static qbool ObstructionLogic (gedict_t* self, vec3_t new_velocity)
 			return true;
 
 		if (self->fb.linked_marker != self->fb.touch_marker) {
-			if (vlen(oldvelocity_) <= 32) {
+			if (vlen(self->fb.oldvelocity) <= 32) {
 				vec3_t dir_move;
 
 				VectorMA(new_velocity, -DotProduct(self->fb.obstruction_normal, new_velocity), self->fb.obstruction_normal, dir_move);
@@ -434,7 +433,7 @@ static qbool ObstructionLogic (gedict_t* self, vec3_t new_velocity)
 					VectorScale(self->fb.obstruction_normal, -1, dir_move);
 					self->fb.path_state |= STUCK_PATH;
 				}
-				else if ((oldvelocity_[0] == 0) && (oldvelocity_[1] == 0)) {
+				else if ((self->fb.oldvelocity[0] == 0) && (self->fb.oldvelocity[1] == 0)) {
 					if (random() < 0.5) {
 						VectorScale(dir_move, -1, dir_move);
 					}
@@ -515,7 +514,7 @@ static void AvoidHazardsOnGround (gedict_t* self, float hor_speed, vec3_t new_or
 				jump_origin[2] = jump_origin[2] + (jump_velocity[2] * (16 / hor_speed));
 				jump_velocity[2] = jump_velocity[2] - (6400 / hor_speed);
 				if (CanJumpOver(self, jump_origin, jump_velocity, last_clear_velocity, last_clear_point, fallheight, fall)) {
-					self->fb.path_state |= DELIBERATE_AIR_WAIT_GROUND | (turning_speed ? AIR_ACCELERATION : 0);
+					self->fb.path_state |= DELIBERATE_AIR_WAIT_GROUND | (self->fb.turning_speed ? AIR_ACCELERATION : 0);
 					return;
 				}
 				VectorCopy(new_origin, jump_origin);
@@ -523,7 +522,7 @@ static void AvoidHazardsOnGround (gedict_t* self, float hor_speed, vec3_t new_or
 				jump_velocity[2] += JUMPSPEED;
 				if (CanJumpOver(self, jump_origin, jump_velocity, last_clear_velocity, last_clear_point, fallheight, fall)) {
 					self->fb.jumping = true;
-					self->fb.path_state |= DELIBERATE_AIR_WAIT_GROUND | (turning_speed ? AIR_ACCELERATION : 0);
+					self->fb.path_state |= DELIBERATE_AIR_WAIT_GROUND | (self->fb.turning_speed ? AIR_ACCELERATION : 0);
 					return;
 				}
 			}
