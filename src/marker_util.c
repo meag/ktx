@@ -5,8 +5,6 @@
 
 // Globals
 extern gedict_t* first_marker;
-extern gedict_t* dropper;
-
 void SUB_regen ();
 
 void BecomeMarker(gedict_t* marker) {

@@ -5,9 +5,6 @@
 
 // A lot of this is the bot 'cheating'?..
 
-// FIXME: Globals
-extern gedict_t* dropper;
-
 // FIXME: Local globals
 static float first_trace_fraction = 0;
 static vec3_t first_trace_plane_normal = { 0 };

@@ -7,9 +7,6 @@
 #define BACKPACK_CLASSNAME "backpack"
 #define FROGBOT_CHANCE_HELP_TEAMMATE 0.25
 
-// FIXME: Globals
-extern gedict_t* dropper;
-
 // FIXME: Local Globals
 static float best_respawn_time = 0;
 

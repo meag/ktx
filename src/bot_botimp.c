@@ -5,9 +5,6 @@
 
 void SetSkill();
 
-// FIXME: Globals
-extern gedict_t* dropper;
-
 // TODO: Exchange standard attributes for different bot characters/profiles
 void SetAttribs(gedict_t* self) {
 	float smartness = 10;

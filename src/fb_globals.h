@@ -45,6 +45,8 @@ extern float half_sv_maxspeed;
 extern float inv_sv_maxspeed;
 extern float sv_accelerate;
 
+extern gedict_t* dropper;
+
 #ifndef FL_ONGROUND_PARTIALGROUND
 #define FL_ONGROUND_PARTIALGROUND (FL_ONGROUND | FL_PARTIALGROUND)
 #endif

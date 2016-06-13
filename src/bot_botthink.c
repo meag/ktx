@@ -7,12 +7,7 @@ void POVDMM4LookDoor(gedict_t* self);
 void AMPHI2BotInLava(void);
 qbool DM6FireAtDoor (gedict_t* self);
 
-// FIXME: Globals
-extern float dodge_factor;
-extern qbool markers_loaded;
-extern gedict_t* dropper;
-
-static gedict_t* dodge_missile;
+static gedict_t* dodge_missile = NULL;
 
 // FIXME: Move to bot.skill
 #define CHANCE_EVADE_DUEL 0.08

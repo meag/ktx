@@ -21,8 +21,6 @@ static float P_time = 0;
 
 // FIXME: Globals
 extern gedict_t* first_marker;
-extern gedict_t* dropper;
-extern gedict_t* zone_stack_head;
 
 static void TravelTimeForPath (gedict_t* m, int i)
 {
