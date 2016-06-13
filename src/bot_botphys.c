@@ -381,8 +381,6 @@ void FrogbotPrePhysics2() {
 }
 
 void FrogbotPostPhysics(void) {
-	return;
-
 	for (self = world; self = find_plr (self); ) {
 		if (self->isBot) {
 			self->s.v.waterlevel = self->fb.oldwaterlevel;

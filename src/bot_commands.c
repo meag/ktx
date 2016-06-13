@@ -136,7 +136,7 @@ void PathScoringLogic (
 	qbool trace_bprint, float *best_score, gedict_t** linked_marker_, int* new_path_state
 );
 
-qbool CanJumpOver (gedict_t* self, vec3_t jump_origin, vec3_t jump_velocity, vec3_t last_clear_velocity, vec3_t last_clear_point, float fallheight);
+qbool CanJumpOver (gedict_t* self, vec3_t jump_origin, vec3_t jump_velocity, vec3_t last_clear_velocity, vec3_t last_clear_point, float fallheight, int current_fallspot);
 
 static void FrogbotsDebug (void)
 {
@@ -232,8 +232,7 @@ static void FrogbotsDebug (void)
 			
 			self->fb.oldsolid = self->s.v.solid;
 
-			current_fallspot = 0;
-			result = CanJumpOver (self, jumpo, jumpv, clearv, clearo, 242);
+			result = CanJumpOver (self, jumpo, jumpv, clearv, clearo, 242, 0);
 			if (result)
 				G_sprint (self, 2, "CanJumpOver\n");
 			else

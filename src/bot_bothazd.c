@@ -236,7 +236,7 @@ static int FallSpotAir(vec3_t testplace, float fallheight) {
 	return FALL_FALSE;
 }
 
-qbool CanJumpOver(gedict_t* self, vec3_t jump_origin, vec3_t jump_velocity, vec3_t last_clear_velocity, vec3_t last_clear_point, float fallheight) {
+qbool CanJumpOver(gedict_t* self, vec3_t jump_origin, vec3_t jump_velocity, vec3_t last_clear_velocity, vec3_t last_clear_point, float fallheight, int current_fallspot) {
 	int i = 0;
 	int tries = 0;
 	float last_clear_hor_speed = 0;
@@ -330,8 +330,10 @@ qbool CanJumpOver(gedict_t* self, vec3_t jump_origin, vec3_t jump_velocity, vec3
 }
 
 // Only called if self->fb.path_state & JUMP_LEDGE
-static qbool JumpLedgeLogic (gedict_t* self)
+static qbool JumpLedgeLogic (gedict_t* self, vec3_t new_velocity)
 {
+	vec3_t rel_hor_dir;
+
 	if (g_globalvars.time > self->fb.arrow_time2) {
 		vec3_t rel_pos;
 
@@ -342,7 +344,6 @@ static qbool JumpLedgeLogic (gedict_t* self)
 			qbool try_jump_ledge = true;
 			qbool being_blocked = false;
 			if (vlen(oldvelocity_) <= 100) {
-				vec3_t rel_hor_dir;
 				VectorCopy(rel_pos, rel_hor_dir);
 				rel_hor_dir[2] = 0;
 				try_jump_ledge = (vlen(rel_hor_dir) <= 80);
@@ -352,8 +353,9 @@ static qbool JumpLedgeLogic (gedict_t* self)
 
 			if (try_jump_ledge && rel_pos[2] > 18) {
 				vec3_t hor_normal_vec = { 0 - rel_pos[1], rel_pos[0], 0 };
+				float jumpspeed  = new_velocity[2] + JUMPSPEED;
+
 				VectorNormalize(hor_normal_vec);
-				jumpspeed = new_velocity[2] + JUMPSPEED;
 				if ((jumpspeed * jumpspeed * 0.000625) >= rel_pos[2]) {
 					self->fb.jumping = true;
 					self->fb.path_state |= WAIT_GROUND;
@@ -415,7 +417,7 @@ static qbool JumpLedgeLogic (gedict_t* self)
 }
 
 // Called only if current path isn't flagged as JUMP_LEDGE, but we still have
-static qbool ObstructionLogic (gedict_t* self)
+static qbool ObstructionLogic (gedict_t* self, vec3_t new_velocity)
 {
 	if (g_globalvars.time > self->fb.arrow_time) {
 		if ((int)self->s.v.flags & FL_WATERJUMP)
@@ -456,10 +458,15 @@ static qbool ObstructionLogic (gedict_t* self)
 	return false;
 }
 
-static void AvoidHazardsOnGround (gedict_t* self, float hor_speed, vec3_t new_origin, vec3_t new_velocity, float fallheight)
+static void AvoidHazardsOnGround (gedict_t* self, float hor_speed, vec3_t new_origin, vec3_t new_velocity, float fallheight, vec3_t dir_forward)
 {
 	int fall = 0;
-	vec3_t last_clear_point;
+	int new_fall = 0;
+	vec3_t jump_origin = { 0, 0, 0 };
+	vec3_t last_clear_point = { 0, 0, 0 };
+	vec3_t jump_velocity;
+	vec3_t testplace;
+	vec3_t last_clear_velocity;
 
 	if (new_velocity[2] < 0) {
 		new_velocity[2] = 0;
@@ -473,7 +480,7 @@ static void AvoidHazardsOnGround (gedict_t* self, float hor_speed, vec3_t new_or
 
 	if (fall == FALL_BLOCKED) {
 		first_trace_fraction = 1;
-		TestTopBlock(self, last_clear_point);
+		TestTopBlock(self, last_clear_point, testplace);
 		if (first_trace_fraction != 1) {
 			vec3_t hor_velocity;
 
@@ -502,19 +509,18 @@ static void AvoidHazardsOnGround (gedict_t* self, float hor_speed, vec3_t new_or
 		}
 		if (new_fall > fall) {
 			if (g_globalvars.time > self->fb.arrow_time2) {
-				current_fallspot = fall;
 				VectorCopy(new_velocity, jump_velocity);
 				jump_velocity[2] = jump_velocity[2] - (6400 / hor_speed);
 				jump_origin[2] = jump_origin[2] + (jump_velocity[2] * (16 / hor_speed));
 				jump_velocity[2] = jump_velocity[2] - (6400 / hor_speed);
-				if (CanJumpOver (self, jump_origin, jump_velocity, last_clear_velocity, last_clear_point, fallheight)) {
+				if (CanJumpOver(self, jump_origin, jump_velocity, last_clear_velocity, last_clear_point, fallheight, fall)) {
 					self->fb.path_state |= DELIBERATE_AIR_WAIT_GROUND | (turning_speed ? AIR_ACCELERATION : 0);
 					return;
 				}
 				VectorCopy(new_origin, jump_origin);
 				VectorCopy(new_velocity, jump_velocity);
 				jump_velocity[2] += JUMPSPEED;
-				if (CanJumpOver(self, jump_origin, jump_velocity, last_clear_velocity, last_clear_point, fallheight)) {
+				if (CanJumpOver(self, jump_origin, jump_velocity, last_clear_velocity, last_clear_point, fallheight, fall)) {
 					self->fb.jumping = true;
 					self->fb.path_state |= DELIBERATE_AIR_WAIT_GROUND | (turning_speed ? AIR_ACCELERATION : 0);
 					return;
@@ -529,8 +535,8 @@ static void AvoidHazardsOnGround (gedict_t* self, float hor_speed, vec3_t new_or
 	VectorMA(testplace, 16 / hor_speed, new_velocity, testplace);
 	fall = FallSpotGround (testplace, fallheight);
 	if (fall >= FALL_LAND) {
-		VectorCopy(testplace, jump_origin);
 		new_fall = fall;
+		VectorCopy(testplace, jump_origin);
 		VectorCopy(self->s.v.origin, testplace);
 		fall = FallSpotGround (testplace, fallheight);
 		if ((int)self->fb.path_state & DELIBERATE_AIR) {
@@ -541,21 +547,21 @@ static void AvoidHazardsOnGround (gedict_t* self, float hor_speed, vec3_t new_or
 		}
 		if (new_fall > fall) {
 			float normal_comp = 0;
+			vec3_t edge_normal;
 
 			if (g_globalvars.time > self->fb.arrow_time2) {
-				current_fallspot = fall;
 				VectorCopy(new_velocity, jump_velocity);
 				jump_velocity[2] = jump_velocity[2] - (6400 / hor_speed);
 				jump_origin[2] = jump_origin[2] + (jump_velocity[2] * (16 / hor_speed));
 				jump_velocity[2] = jump_velocity[2] - (6400 / hor_speed);
-				if (CanJumpOver(self, jump_origin, jump_velocity, last_clear_velocity, last_clear_point, fallheight)) {
+				if (CanJumpOver(self, jump_origin, jump_velocity, last_clear_velocity, last_clear_point, fallheight, fall)) {
 					self->fb.path_state |= NO_DODGE;
 					return;
 				}
 				VectorCopy(new_origin, jump_origin);
 				VectorCopy(new_velocity, jump_velocity);
 				jump_velocity[2] += JUMPSPEED;
-				if (CanJumpOver(self, jump_origin, jump_velocity, last_clear_velocity, last_clear_point, fallheight)) {
+				if (CanJumpOver(self, jump_origin, jump_velocity, last_clear_velocity, last_clear_point, fallheight, fall)) {
 					self->fb.path_state |= NO_DODGE;
 					return;
 				}
@@ -593,13 +599,13 @@ static void AvoidHazardsOnGround (gedict_t* self, float hor_speed, vec3_t new_or
 	}
 }
 
-static void AvoidHazardsInAir (gedict_t* self, float hor_speed, vec3_t new_origin, vec3_t last_clear_point, vec3_t testplace)
+static void AvoidHazardsInAir (gedict_t* self, float hor_speed, vec3_t new_origin, vec3_t new_velocity, vec3_t last_clear_point, vec3_t testplace, float fallheight)
 {
-	int fall = FallSpotAir(testplace);
+	int fall = FallSpotAir(testplace, fallheight);
 	if (fall >= FALL_LAND) {
 		int new_fall = fall;
 		VectorCopy(new_origin, testplace);
-		fall = FallSpotAir(testplace);
+		fall = FallSpotAir(testplace, fallheight);
 		if (self->fb.path_state & DELIBERATE_AIR) {
 			if (fall < FALL_LAND) {
 				return;
@@ -609,12 +615,14 @@ static void AvoidHazardsInAir (gedict_t* self, float hor_speed, vec3_t new_origi
 
 		if (new_fall > fall) {
 			VectorMA(new_origin, (16 / hor_speed), new_velocity, testplace);
-			fall = FallSpotAir(testplace);
+			fall = FallSpotAir(testplace, fallheight);
 			if (new_fall > fall) {
-				current_fallspot = fall;
+				vec3_t jump_origin, jump_velocity;
+				vec3_t last_clear_velocity;
+
 				VectorCopy(new_origin, jump_origin);
 				VectorCopy(new_velocity, jump_velocity);
-				if (CanJumpOver(self, jump_origin, jump_velocity, last_clear_velocity, last_clear_point, fallheight)) {
+				if (CanJumpOver(self, jump_origin, jump_velocity, last_clear_velocity, last_clear_point, fallheight, fall)) {
 					return;
 				}
 				AvoidEdge();
@@ -629,14 +637,18 @@ void AvoidHazards(void) {
 	float hor_speed = 0;
 	vec3_t new_origin = { 0 };
 	vec3_t new_velocity = { 0 };
+	vec3_t hor_velocity = { 0 };
+	vec3_t dir_forward;
+	vec3_t testplace;
+	float fallheight = 0;
 
 	VectorCopy(self->s.v.velocity, new_velocity);
 	if ((int)self->fb.path_state & JUMP_LEDGE) {
-		if (JumpLedgeLogic (self))
+		if (JumpLedgeLogic (self, new_velocity))
 			return;
 	}
 	else if (self->fb.obstruction_normal[0] || self->fb.obstruction_normal[1] || self->fb.obstruction_normal[2]) {
-		if (ObstructionLogic (self))
+		if (ObstructionLogic (self, new_velocity))
 			return;
 		//G_bprint (2, "Unhandled obstruction...");
 	}
@@ -665,7 +677,7 @@ void AvoidHazards(void) {
 	}
 
 	if ((int)self->s.v.flags & FL_ONGROUND) {
-		AvoidHazardsOnGround (self, hor_speed, new_origin, new_velocity, fallheight);
+		AvoidHazardsOnGround (self, hor_speed, new_origin, new_velocity, fallheight, dir_forward);
 	}
 	else {
 		vec3_t last_clear_point = { 0 };
@@ -673,7 +685,7 @@ void AvoidHazards(void) {
 		// FIXME: This was commented out, but testplace isn't set otherwise...
 		//VectorMA (new_origin, (32 / hor_speed), new_velocity, testplace);
 
-		AvoidHazardsInAir (self, hor_speed, new_origin, last_clear_point, testplace);
+		AvoidHazardsInAir (self, hor_speed, new_origin, new_velocity, last_clear_point, testplace, fallheight);
 	}
 }
 

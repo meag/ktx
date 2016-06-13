@@ -443,85 +443,88 @@ static void BotsFireAtPlayerLogic(gedict_t* self, vec3_t rel_pos, float* rel_dis
 	}
 }
 
-static void BotsFireLogic(vec3_t rel_pos) {
-	if (g_globalvars.time >= self->fb.fire_nextthink) {
-		self->fb.fire_nextthink = self->fb.fire_nextthink + (self->fb.skill.firing_reflex * (0.95 + (0.1 * random())));
-		if (self->fb.fire_nextthink <= g_globalvars.time) {
-			self->fb.fire_nextthink = g_globalvars.time + (self->fb.skill.firing_reflex * (0.95 + (0.1 * random())));
+static void BotsFireLogic(void) {
+	vec3_t rel_pos;
+
+	if (g_globalvars.time < self->fb.fire_nextthink)
+		return;
+
+	self->fb.fire_nextthink = self->fb.fire_nextthink + (self->fb.skill.firing_reflex * (0.95 + (0.1 * random())));
+	if (self->fb.fire_nextthink <= g_globalvars.time) {
+		self->fb.fire_nextthink = g_globalvars.time + (self->fb.skill.firing_reflex * (0.95 + (0.1 * random())));
+	}
+
+	// a_attackfix()
+	if (!self->fb.rocketjumping && self->s.v.enemy == 0 && !(self->state & SHOT_FOR_LUCK)) {
+		self->fb.firing = false;
+	}
+
+	if (look_object_) {
+		vec3_t pitch_tangent = { 0 };
+		vec3_t yaw_tangent = { 0 };
+		float mouse_vel = 0;
+		float rel_dist = 0;
+		vec3_t rel_dir = { 0 };
+		vec3_t rel_hor_dir = { 0 };
+		float hor_component = 0;
+
+		if (look_object_->ct == ctPlayer) {
+			BotsFireAtPlayerLogic(self, rel_pos, &rel_dist);
+			//G_bprint (2, "Firing @ %s @ rel(%f %f %f)\n", look_object_->s.v.netname, PASSVEC3 (rel_pos));
+		}
+		else {
+			BotsFireAtWorldLogic(self, rel_pos, &rel_dist);
+			//G_bprint (2, "Firing @ world @ rel(%f %f %f)\n", PASSVEC3 (rel_pos));
 		}
 
-		// a_attackfix()
-		if (!self->fb.rocketjumping && self->s.v.enemy == 0 && !(self->state & SHOT_FOR_LUCK)) {
-			self->fb.firing = false;
+		// Aim lower over longer distances?  (FIXME)
+		if (self->s.v.weapon == IT_ROCKET_LAUNCHER && rel_dist > 96) {
+			traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 16, self->s.v.origin[0] + rel_pos[0], self->s.v.origin[1] + rel_pos[1], self->s.v.origin[2] + rel_pos[2] - 22, true, self);
+			if (g_globalvars.trace_fraction == 1) {
+				rel_pos[2] = rel_pos[2] - 38;
+			}
 		}
 
-		if (look_object_) {
-			vec3_t pitch_tangent = { 0 };
-			vec3_t yaw_tangent = { 0 };
-			float mouse_vel = 0;
-			float rel_dist = 0;
-			vec3_t rel_dir = { 0 };
-			vec3_t rel_hor_dir = { 0 };
-			float hor_component = 0;
+		normalize(rel_pos, rel_dir);
+		VectorCopy(rel_pos, rel_hor_dir);
+		rel_hor_dir[2] = 0;
+		normalize(rel_hor_dir, rel_hor_dir);
 
-			if (look_object_->ct == ctPlayer) {
-				BotsFireAtPlayerLogic(self, rel_pos, &rel_dist);
-				//G_bprint (2, "Firing @ %s @ rel(%f %f %f)\n", look_object_->s.v.netname, PASSVEC3 (rel_pos));
-			}
-			else {
-				BotsFireAtWorldLogic(self, rel_pos, &rel_dist);
-				//G_bprint (2, "Firing @ world @ rel(%f %f %f)\n", PASSVEC3 (rel_pos));
-			}
+		hor_component = DotProduct(rel_dir, rel_hor_dir);
+		mouse_vel = 57.29578 / rel_dist;
 
-			// Aim lower over longer distances?  (FIXME)
-			if (self->s.v.weapon == IT_ROCKET_LAUNCHER && rel_dist > 96) {
-				traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 16, self->s.v.origin[0] + rel_pos[0], self->s.v.origin[1] + rel_pos[1], self->s.v.origin[2] + rel_pos[2] - 22, true, self);
-				if (g_globalvars.trace_fraction == 1) {
-					rel_pos[2] = rel_pos[2] - 38;
-				}
-			}
+		// rel_hor_dir and '0 0 1' are an orthogonal axis
+		// hor_component is the rel_hor_dir (horizontal) component of rel_dir
+		// rel_dir_z is the '0 0 1' (vertical) component of rel_dir
+		VectorScale(rel_hor_dir, rel_dir[2], pitch_tangent);
+		pitch_tangent[2] = 0 - hor_component;
 
-			normalize(rel_pos, rel_dir);
-			VectorCopy(rel_pos, rel_hor_dir);
-			rel_hor_dir[2] = 0;
-			normalize(rel_hor_dir, rel_hor_dir);
+		// pitch_tangent is the tangent normal vector to pitch angular velocity
+		VectorScale(pitch_tangent, mouse_vel, pitch_tangent);
 
-			hor_component = DotProduct(rel_dir, rel_hor_dir);
-			mouse_vel = 57.29578 / rel_dist;
+		// pitch_tangent has been scaled according to view object distance
+		yaw_tangent[0] = 0 - rel_hor_dir[1];
+		yaw_tangent[1] = rel_hor_dir[0];
+		yaw_tangent[2] = 0;
 
-			// rel_hor_dir and '0 0 1' are an orthogonal axis
-			// hor_component is the rel_hor_dir (horizontal) component of rel_dir
-			// rel_dir_z is the '0 0 1' (vertical) component of rel_dir
-			VectorScale(rel_hor_dir, rel_dir[2], pitch_tangent);
-			pitch_tangent[2] = 0 - hor_component;
+		// yaw_tangent is the tangent normal vector to yaw angular velocity
+		VectorScale(yaw_tangent, mouse_vel, yaw_tangent);
 
-			// pitch_tangent is the tangent normal vector to pitch angular velocity
-			VectorScale(pitch_tangent, mouse_vel, pitch_tangent);
+		// yaw_tangent has been scaled according to view object distance
+		{
+			vec3_t vdiff;
+			VectorSubtract(look_object_->s.v.velocity, self->s.v.velocity, vdiff);
 
-			// pitch_tangent has been scaled according to view object distance
-			yaw_tangent[0] = 0 - rel_hor_dir[1];
-			yaw_tangent[1] = rel_hor_dir[0];
-			yaw_tangent[2] = 0;
+			self->fb.track_pitchspeed = DotProduct(vdiff, pitch_tangent);
+			self->fb.track_yawspeed = DotProduct(vdiff, yaw_tangent);
+		}
 
-			// yaw_tangent is the tangent normal vector to yaw angular velocity
-			VectorScale(yaw_tangent, mouse_vel, yaw_tangent);
+		BotSetDesiredAngles (self, rel_pos);
 
-			// yaw_tangent has been scaled according to view object distance
-			{
-				vec3_t vdiff;
-				VectorSubtract(look_object_->s.v.velocity, self->s.v.velocity, vdiff);
+		BotSetMouseParameters (self);
 
-				self->fb.track_pitchspeed = DotProduct(vdiff, pitch_tangent);
-				self->fb.track_yawspeed = DotProduct(vdiff, yaw_tangent);
-			}
-
-			BotSetDesiredAngles (self, rel_pos);
-
-			BotSetMouseParameters (self);
-
-			if (!self->fb.rocketjumping) {
-				SetFireButton(self);
-			}
+		if (!self->fb.rocketjumping) {
+			SetFireButton(self);
 		}
 	}
 }
@@ -551,7 +554,7 @@ void ThinkTime(gedict_t* self) {
 			POVDMM4LookDoor(self);
 		}
 
-		BotsFireLogic(rel_pos);
+		BotsFireLogic();
 	}
 }
 
