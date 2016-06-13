@@ -456,6 +456,8 @@ static void AvoidHazardsOnGround (gedict_t* self, float hor_speed, vec3_t new_or
 		first_trace_fraction = 1;
 		TestTopBlock(self, last_clear_point);
 		if (first_trace_fraction != 1) {
+			vec3_t hor_velocity;
+
 			VectorMA(last_clear_point, (16 / hor_speed) * first_trace_fraction, new_velocity, testplace);
 			VectorMA(new_velocity, -DotProduct(first_trace_plane_normal, new_velocity), first_trace_plane_normal, new_velocity);
 			VectorCopy(new_velocity, hor_velocity);
@@ -607,6 +609,7 @@ static void AvoidHazardsInAir (gedict_t* self, float hor_speed, vec3_t new_origi
 void AvoidHazards(void) {
 	float hor_speed = 0;
 	vec3_t new_origin = { 0 };
+	vec3_t new_velocity = { 0 };
 
 	VectorCopy(self->s.v.velocity, new_velocity);
 	if ((int)self->fb.path_state & JUMP_LEDGE) {

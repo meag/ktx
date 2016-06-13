@@ -11,7 +11,6 @@ extern gedict_t* look_object_;
 extern gedict_t* test_enemy;
 
 extern vec3_t oldvelocity_;
-extern vec3_t delta_velocity;
 extern gedict_t* current_waiting_bot;
 extern gedict_t* first_ent;
 extern gedict_t* first_marker;
@@ -67,7 +66,6 @@ extern float sv_maxstrafespeed;
 extern float friction_factor;
 extern float old_time;
 extern float distance;
-extern vec3_t hor_direction;
 extern vec3_t dir_forward;
 extern float current_maxspeed;
 extern vec3_t desired_accel;

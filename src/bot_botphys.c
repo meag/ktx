@@ -19,7 +19,11 @@ int NumberOfClients (void)
 	return count;
 }
 
+//Sets self.obstruction_normal to be horizontal normal direction into wall obstruction encountered
+// during quake physics (ie. between PlayerPreThink and PlayerPostThink)
 void obstruction() {
+	vec3_t delta_velocity = { 0 };
+
 	VectorSubtract(self->fb.oldvelocity, self->s.v.velocity, delta_velocity);
 	if (abs(delta_velocity[0]) < 0.1 && abs(delta_velocity[1]) < 0.1) {
 		VectorClear(self->fb.obstruction_normal);
@@ -34,14 +38,19 @@ void obstruction() {
 	}
 
 	if (abs(delta_velocity[2]) < 0.1) {
+		vec3_t hor_velocity;
+
 		VectorCopy(self->s.v.velocity, hor_velocity);
 		hor_velocity[2] = 0;
 		if (hor_velocity[0] || hor_velocity[1] || hor_velocity[2]) {
 			if (self->ct == ctPlayer && !self->isBot) {
-				VectorNormalize(hor_direction);
+				// FIXME: this is doing nothing now?
+				vec3_t hor_direction;
+
+				normalize(hor_velocity, hor_direction);
 				VectorScale(hor_direction, DotProduct(hor_direction, self->fb.oldvelocity), hor_velocity);
-				self->s.v.velocity[0] = hor_velocity[0];
-				self->s.v.velocity[1] = hor_velocity[1];
+				//self->s.v.velocity[0] = hor_velocity[0];
+				//self->s.v.velocity[1] = hor_velocity[1];
 			}
 			VectorSubtract(self->fb.oldvelocity, hor_velocity, self->fb.velocity_normal);
 			self->fb.velocity_normal[2] = 0;

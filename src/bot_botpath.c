@@ -137,12 +137,15 @@ void PathScoringLogic(
 }
 
 // FIXME: Globals
-static void BotWaitLogic(gedict_t* touch_marker) {
+static void BotWaitLogic(gedict_t* self) {
+	gedict_t* touch_marker = self->fb.touch_marker;
+	gedict_t* look_object = self->fb.look_object;
+
 	// if we're not looking at a player
-	if (look_object_->ct != ctPlayer) {
+	if (look_object->ct != ctPlayer) {
 		vec3_t linkedPos, lookPos;
 		VectorAdd(self->fb.linked_marker->s.v.absmin, self->fb.linked_marker->s.v.view_ofs, linkedPos);
-		VectorAdd(look_object_->s.v.absmin, look_object_->s.v.view_ofs, lookPos);
+		VectorAdd(look_object->s.v.absmin, look_object->s.v.view_ofs, lookPos);
 		traceline(linkedPos[0], linkedPos[1], linkedPos[2] + 32, lookPos[0], lookPos[1], lookPos[2] + 32, true, self);
 		if (g_globalvars.trace_fraction != 1) {
 			self->fb.linked_marker = touch_marker;
@@ -469,7 +472,7 @@ void frogbot_marker_touch(void) {
 	}
 
 	if (self->fb.state & WAIT) {
-		BotWaitLogic(self->fb.touch_marker);
+		BotWaitLogic(self);
 	}
 
 	// FIXME: Map specific waiting points

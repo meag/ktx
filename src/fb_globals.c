@@ -9,7 +9,6 @@ gedict_t* look_object_ = 0;
 gedict_t* test_enemy = 0;
 
 vec3_t oldvelocity_ = { 0 };
-vec3_t delta_velocity = { 0 };
 gedict_t* current_waiting_bot = 0;
 gedict_t* first_ent = 0;
 gedict_t* first_marker = 0;
@@ -62,7 +61,6 @@ float sv_maxstrafespeed = 0;
 float friction_factor = 0;
 float old_time = 0;
 float distance = 0;
-vec3_t hor_direction = { 0 };
 vec3_t dir_forward = { 0 };
 float current_maxspeed = 0;
 float max_accel_forward = 0;
