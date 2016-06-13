@@ -5,6 +5,10 @@
 
 #define BOT_DROWN_SAFETY_TIME           2  // Time before air running out that the bot starts searching for air
 
+
+extern vec3_t rel_pos; // FIXME: globals
+
+
 static qbool BotCanReachMarker(gedict_t* self) {
 	vec3_t spot1,
 	       spot2;
@@ -26,6 +30,8 @@ static qbool BotGoUpForAir(gedict_t* self, vec3_t dir_move) {
 	vec3_t temp;
 
 	if (g_globalvars.time > (self->air_finished - BOT_DROWN_SAFETY_TIME)) {
+		vec3_t new_velocity;
+
 		traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2], self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 64, true, self);
 		if (g_globalvars.trace_fraction == 1) {
 			return (self->fb.swim_arrow = UP);
@@ -50,7 +56,7 @@ static qbool BotGoUpForAir(gedict_t* self, vec3_t dir_move) {
 	return false;
 }
 
-static void SwimAwayFromWall(vec3_t dir_move) {
+static void SwimAwayFromWall(gedict_t* self, vec3_t dir_move) {
 	if (DotProduct(self->fb.obstruction_normal, rel_pos) > 0.5) {
 		VectorScale(dir_move, -1, dir_move);
 	}
@@ -87,8 +93,9 @@ void BotWaterMove(gedict_t* self) {
 
 	self->fb.frogwatermove_time = self->fb.frogbot_nextthink + 0.1;
 	if (self->fb.obstruction_normal[0] || self->fb.obstruction_normal[1] || self->fb.obstruction_normal[2]) {
-		SwimAwayFromWall(dir_move);
+		SwimAwayFromWall(self, dir_move);
 	}
+
 	if (BotGoUpForAir (self, dir_move)) {
 		VelocityForArrow(self);
 		return;
@@ -127,6 +134,8 @@ qbool BotShouldDischarge (void)
 {
 	float n;
 	gedict_t* p;
+	gedict_t* enemy = &g_edicts[self->s.v.enemy];
+
 	if (self->s.v.waterlevel != 3) {
 		return false;
 	}
@@ -139,11 +148,11 @@ qbool BotShouldDischarge (void)
 	if (self->fb.enemy_dist > 600) {
 		return false;
 	}
-	if (look_object_ != enemy_) {
+	if (self->fb.look_object != enemy) {
 		return false;
 	}
 	if (self->invincible_time > g_globalvars.time) {
-		if (trap_pointcontents (PASSVEC3 (enemy_->s.v.origin)) == CONTENT_WATER) {
+		if (trap_pointcontents (PASSVEC3 (enemy->s.v.origin)) == CONTENT_WATER) {
 			return true;
 		}
 	}
@@ -161,10 +170,10 @@ qbool BotShouldDischarge (void)
 				if (p->s.v.takedamage) {
 					if (IsVisible (p)) {
 						if (!SameTeam (p, self)) {
-							n = n + 1;
+							++n;
 						}
 						else {
-							n = n - 1;
+							--n;
 						}
 					}
 				}

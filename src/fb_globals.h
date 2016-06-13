@@ -316,9 +316,6 @@ void Z_sight_from_marker_error(void);
 void Z_higher_sight_from_marker_error(void);
 void Z_sight_from_time_error(void);
 
-//
-void spawn_marker(vec3_t org);
-
 // route_calc.qc
 void InitialiseMarkerRoutes(void);
 

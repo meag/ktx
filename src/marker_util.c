@@ -23,22 +23,6 @@ void RemoveMarker(gedict_t* marker) {
 	e->fb.marker_link = marker->fb.marker_link;
 }
 
-// FIXME: Globals
-void spawn_marker(vec3_t org) {
-	marker_ = spawn();
-	marker_->s.v.classname = "marker";
-	marker_->s.v.flags = FL_ITEM;
-	BecomeMarker(marker_);
-	marker_->s.v.origin[0] = pr1_rint(org[0]);
-	marker_->s.v.origin[1] = pr1_rint(org[1]);
-	marker_->s.v.origin[2] = pr1_rint(org[2]);
-	marker_->s.v.solid = SOLID_TRIGGER;
-	marker_->s.v.touch = (func_t) marker_touch;
-	setmodel( marker_, "progs/w_g_key.mdl" );
-	VectorSet(marker_->s.v.view_ofs, 80, 80, 24);
-	setsize(marker_, -65, -65, -24, 65, 65, 32);
-}
-
 // self = item, other = player that just touched the marker
 // called even if the item is waiting to respawn
 void check_marker(gedict_t* self, gedict_t* other) {

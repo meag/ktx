@@ -614,6 +614,8 @@ void map_dm4() {
 }
 
 void DM4CampLogic() {
+	gedict_t* enemy_ = &g_edicts[self->s.v.enemy];
+
 	if (isDuel()) {
 		if ((int)self->s.v.items & (IT_ROCKET_LAUNCHER | IT_LIGHTNING) && !self->fb.bot_evade) {
 			if ((self->s.v.health > 50) && (self->s.v.armorvalue > 30)) {

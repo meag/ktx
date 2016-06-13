@@ -6,6 +6,9 @@
 static int marker_index = 0;
 #define MAX_TXTLEN	128
 
+// FIXME: globals
+extern gedict_t* markers[];
+
 void AddToQue(gedict_t* ent) {
 	markers[marker_index] = ent;
 	ent->fb.index = marker_index++;
@@ -20,16 +23,28 @@ void AddToQue(gedict_t* ent) {
 	ent->fb.sight_from_time = Z_sight_from_time_error;
 }
 
+static gedict_t* spawn_marker(float x, float y, float z) {
+	gedict_t* marker_ = spawn();
+	marker_->s.v.classname = "marker";
+	marker_->s.v.flags = FL_ITEM;
+	BecomeMarker(marker_);
+	marker_->s.v.origin[0] = pr1_rint(x);
+	marker_->s.v.origin[1] = pr1_rint(y);
+	marker_->s.v.origin[2] = pr1_rint(z);
+	marker_->s.v.solid = SOLID_TRIGGER;
+	marker_->s.v.touch = (func_t) marker_touch;
+	setmodel( marker_, "progs/w_g_key.mdl" );
+	VectorSet(marker_->s.v.view_ofs, 80, 80, 24);
+	setsize(marker_, -65, -65, -24, 65, 65, 32);
+	return marker_;
+}
+
 void CreateMarker(float x, float y, float z) {
-	vec3_t org = { x, y, z };
-	spawn_marker(org);
-	self = marker_;
-	AddToQue(marker_);
+	AddToQue(spawn_marker(x, y, z));
 }
 
 void AllMarkersLoaded() {
 	self = NULL;
-	m_zone = zone_stack_head;
 	path_normal = true;
 
 	InitialiseMarkerRoutes();

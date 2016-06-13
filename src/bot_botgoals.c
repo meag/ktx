@@ -234,7 +234,6 @@ void UpdateGoal() {
 	int items_ = self->s.v.items;
 
 	self->fb.goal_refresh_time = g_globalvars.time + 2 + random();
-	prediction_error_ = self->fb.skill.prediction_error;
 	enemy_ = &g_edicts[self->s.v.enemy];
 	enemy_touch_marker = enemy_->fb.touch_marker;
 	

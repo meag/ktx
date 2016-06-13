@@ -6,13 +6,18 @@
 // FIXME: fb.skill
 #define ATTACK_RESPAWN_TIME 3
 
+// FIXME: globals, this is just setting
+extern gedict_t* look_object_;
+
 void DM6SelectWeaponToOpenDoor (gedict_t* self);
 
-static qbool WaterCombat(void) {
+static qbool WaterCombat(gedict_t* self) {
+	gedict_t* enemy_ = &g_edicts[self->s.v.enemy];
+
 	if (self->s.v.waterlevel < 2) {
 		return true;
 	}
-	return ((trap_pointcontents(enemy_->s.v.origin[0], enemy_->s.v.origin[1], enemy_->s.v.origin[2]) == CONTENT_WATER) && (enemy_->s.v.origin[2] < origin_[2] - 32));
+	return ((trap_pointcontents(enemy_->s.v.origin[0], enemy_->s.v.origin[1], enemy_->s.v.origin[2]) == CONTENT_WATER) && (enemy_->s.v.origin[2] < self->s.v.origin[2] - 32));
 }
 
 static qbool RocketSafe(void) {
@@ -150,7 +155,7 @@ static void AvoidQuadBore (gedict_t* self)
 	if (!has_quad || !could_hurt_self)
 		return;
 
-	if (self->fb.look_object == enemy_ && self->fb.enemy_dist <= 250) {
+	if (self->fb.look_object == &g_edicts[self->s.v.enemy] && self->fb.enemy_dist <= 250) {
 		// Enemy is too close for explosion, fire something else instead.
 		int items_ = (int) self->s.v.items;
 		int desired_weapon = IT_AXE;
@@ -190,6 +195,9 @@ static void SpamRocketShot (gedict_t* self)
 	if (self->fb.look_object) {
 		// dist_sfl = threshold distance before attempting shot for luck
 		float dist_sfl = ((int)self->s.v.items & IT_QUAD) ? 300.0f : 250.0f;
+		vec3_t testplace;
+		vec3_t rel_pos;
+		float rel_dist;
 
 		// rel_dist = distance between player and the item they're about to fire at
 		VectorAdd(self->fb.look_object->s.v.absmin, self->fb.look_object->s.v.view_ofs, testplace);
@@ -202,13 +210,15 @@ static void SpamRocketShot (gedict_t* self)
 				// FIXME: Aim lower?  This looks like copy & paste from BotsFireLogic()
 				//        Why self->origin + rel_pos when rel_pos = testplace - origin, why not just testplace?
 				traceline(
-					origin_[0], origin_[1], origin_[2] + 16, 
-					self->s.v.origin[0] + rel_pos[0], 
-					self->s.v.origin[1] + rel_pos[1], 
-					self->s.v.origin[2] + rel_pos[2] - 22, 
+					self->s.v.origin[0],
+					self->s.v.origin[1],
+					self->s.v.origin[2] + 16,
+					self->s.v.origin[0] + rel_pos[0],
+					self->s.v.origin[1] + rel_pos[1],
+					self->s.v.origin[2] + rel_pos[2] - 22,
 					true, self);
 				if (g_globalvars.trace_fraction == 1) {
-					rel_pos[2] = rel_pos[2] - 38;
+					rel_pos[2] -= 38;
 				}
 				self->fb.state |= SHOT_FOR_LUCK;
 				self->fb.botchose = 1;
@@ -519,7 +529,7 @@ static int DesiredWeapon(void) {
 			if (items_ & IT_GRENADE_LAUNCHER) {
 				if (self->s.v.ammo_rockets) {
 					if (RocketSafe()) {
-						if (WaterCombat()) {
+						if (WaterCombat(self)) {
 							return IT_GRENADE_LAUNCHER;
 						}
 					}

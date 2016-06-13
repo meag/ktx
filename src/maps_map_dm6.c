@@ -7,6 +7,11 @@ gedict_t* dm6_door = 0;
 
 qbool CheckNewWeapon (int weapon);
 
+// FIXME: Globals
+extern gedict_t* look_object_;
+extern vec3_t rel_pos;
+extern gedict_t* markers[];
+
 void map_dm6() {
 	CreateMarker(152, -841, 171);
 	CreateMarker(1522, -1090, 40);
@@ -777,7 +782,7 @@ void DM6CampLogic() {
 		if (has_weapon && !self->fb.bot_evade) {
 			if ((self->s.v.health > 80) && (self->s.v.armorvalue > 100)) {
 				if ((self->s.v.ammo_cells > 15) || (self->s.v.ammo_rockets > 3)) {
-					search_entity = ez_find(world, "item_armorInv");
+					gedict_t* search_entity = ez_find(world, "item_armorInv");
 					if (search_entity) {
 						if (search_entity->s.v.origin[2] <= self->s.v.origin[2] + 18) {
 							if (VectorDistance(search_entity->s.v.origin, self->s.v.origin) < 200) {
@@ -850,12 +855,13 @@ void DM6MarkerTouchLogic (gedict_t* self, gedict_t* goalentity_marker)
 	if (goalentity_marker && goalentity_marker->fb.Z_ == 1) {
 		if (self->fb.touch_marker->fb.zones[0].task & DM6_DOOR) {
 			if (dm6_door->s.v.takedamage) {
-				vec3_t temp, src;
+				vec3_t temp, src, direction;
+
 				VectorAdd(dm6_door->s.v.absmin, dm6_door->s.v.view_ofs, temp);
-				VectorSubtract(temp, origin_, temp);
+				VectorSubtract(temp, self->s.v.origin, temp);
 				temp[2] -= 40;
 				normalize(temp, direction);
-				VectorCopy(origin_, src);
+				VectorCopy(self->s.v.origin, src);
 				src[2] += 16;
 				traceline(src[0], src[1], src[2], src[0] + direction[0] * 2048, src[1] + direction[1] * 2048, src[2] + direction[2] * 2048, false, self);
 				if (PROG_TO_EDICT(g_globalvars.trace_ent) == dm6_door) {
@@ -884,7 +890,7 @@ qbool DM6FireAtDoor (gedict_t* self)
 {
 	if (self->fb.path_state & DM6_DOOR) {
 		if (dm6_door->s.v.takedamage) {
-			rel_pos[2] = rel_pos[2] - 38;
+			rel_pos[2] -= 38;
 		}
 		else {
 			self->fb.path_state -= DM6_DOOR;

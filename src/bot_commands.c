@@ -13,6 +13,9 @@ static float next_marker_time;
 static qbool hazard_time;
 static float next_hazard_time;
 
+// FIXME: Globals
+extern gedict_t* markers[];
+
 qbool IsMarkerFrame (void)
 {
 	return marker_time;

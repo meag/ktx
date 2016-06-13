@@ -653,6 +653,11 @@ fb_spawn_t itemSpawnFunctions[] = {
 	{ "item_artifact_super_damage", fb_spawn_quad }
 };
 
+fb_spawn_t* ItemSpawnFunction (int i)
+{
+	return &itemSpawnFunctions[i];
+}
+
 int ItemSpawnFunctionCount (void)
 {
 	return sizeof (itemSpawnFunctions) / sizeof (itemSpawnFunctions[0]);

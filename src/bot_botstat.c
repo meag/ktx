@@ -57,7 +57,7 @@ void UpdateTotalDamage(gedict_t* client) {
 		}
 	}
 	if (client->s.v.health < 250) {
-		new_health = min (client->s.v.health + 100, 250);
+		float new_health = min (client->s.v.health + 100, 250);
 		min_first = new_health / (1 - client->s.v.armortype);
 		min_second = new_health + client->s.v.armorvalue;
 		client->fb.desire_health2 = min (min_first, min_second) - client->fb.total_damage;

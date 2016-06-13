@@ -4,11 +4,17 @@
 #include "fb_globals.h"
 
 void check_marker (gedict_t* self, gedict_t* other);
+qbool LoadBotRoutingFromFile (void);
+
+// fixme: also in doors.c
+#define SECRET_OPEN_ONCE 1	// stays open
 
 typedef struct fb_mapping_s {
 	char* name;
 	fb_void_func_t func;
 } fb_mapping_t;
+
+fb_spawn_t* ItemSpawnFunction (int i);
 
 static fb_mapping_t maps[] = {
 	{ "dm6", map_dm6 },
@@ -56,9 +62,6 @@ static void fb_spawn_spawnpoint(gedict_t* ent) {
 	BecomeMarker(ent);
 	adjust_view_ofs_z(ent);
 }
-
-// fixme: also in doors.c
-#define SECRET_OPEN_ONCE 1	// stays open
 
 static void fb_spawn_door(gedict_t* ent) {
 	AddToQue(ent);
@@ -157,8 +160,9 @@ static void CreateItemMarkers() {
 
 		// check for item spawn
 		for (i = 0; i < ItemSpawnFunctionCount(); ++i) {
-			if (streq(itemSpawnFunctions[i].name, item->s.v.classname)) {
-				itemSpawnFunctions[i].func(item);
+			fb_spawn_t* spawn = ItemSpawnFunction (i);
+			if (streq(spawn->name, item->s.v.classname)) {
+				spawn->func(item);
 				found = true;
 				break;
 			}
@@ -179,19 +183,20 @@ static void CreateItemMarkers() {
 // After all markers have been created, re-process items
 static void AssignVirtualGoals (void)
 {
+	gedict_t* item;
+
 	for (item = world; item = nextent(item); ) {
 		int i = 0;
 
 		for (i = 0; i < ItemSpawnFunctionCount(); ++i) {
-			if (streq(itemSpawnFunctions[i].name, item->s.v.classname)) {
+			fb_spawn_t* spawn = ItemSpawnFunction (i);
+			if (streq(spawn->name, item->s.v.classname)) {
 				AssignVirtualGoal_apply (item);
 				break;
 			}
 		}
 	}
 }
-
-qbool LoadBotRoutingFromFile (void);
 
 void LoadMap(void) {
 	// Need to do this anyway, otherwise teleporters will be broken
