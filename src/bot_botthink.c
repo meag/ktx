@@ -448,6 +448,11 @@ static void BotsFireLogic(void) {
 		}
 
 		if (look_object_) {
+			vec3_t pitch_tangent = { 0 };
+			vec3_t yaw_tangent = { 0 };
+			float mouse_vel = 0;
+
+
 			VectorCopy(self->s.v.origin, origin_);
 			if (look_object_->ct == ctPlayer) {
 				BotsFireAtPlayerLogic(rel_pos, &rel_dist);

@@ -42,6 +42,8 @@ void BotDeathThink(void) {
 
 void BotSetCommand(gedict_t* self) {
 	float msec = min ((g_globalvars.time - self->fb.last_cmd_sent) * 1000, 255);
+	float mouse_friction = 5400 * g_globalvars.frametime;
+
 	/*
 	float pitchspeed_ = self->fb.pitchspeed + self->fb.pitchaccel * g_globalvars.frametime;
 	float yawspeed_ = self->fb.yawspeed + self->fb.yawaccel * g_globalvars.frametime;
