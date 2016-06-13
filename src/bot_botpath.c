@@ -17,9 +17,6 @@ static float EvalPath (fb_path_eval_t* eval, qbool allowRocketJumps, qbool trace
 //#define G_bprint_debug(...)
 //#define STOP_DEBUGGING 
 
-// FIXME: Globals
-extern int new_path_state;
-
 #define PATH_SCORE_NULL -1000000
 #define PATH_NOISE_PENALTY 2.5
 #define PATH_AVOID_PENALTY 2.5
@@ -140,7 +137,7 @@ void PathScoringLogic(
 }
 
 // FIXME: Globals
-static void BotWaitLogic(gedict_t* self) {
+static void BotWaitLogic(gedict_t* self, int* new_path_state) {
 	gedict_t* touch_marker = self->fb.touch_marker;
 	gedict_t* look_object = self->fb.look_object;
 
@@ -152,7 +149,7 @@ static void BotWaitLogic(gedict_t* self) {
 		traceline(linkedPos[0], linkedPos[1], linkedPos[2] + 32, lookPos[0], lookPos[1], lookPos[2] + 32, true, self);
 		if (g_globalvars.trace_fraction != 1) {
 			self->fb.linked_marker = touch_marker;
-			new_path_state = 0;
+			*new_path_state = 0;
 		}
 	}
 	else  {
@@ -335,6 +332,7 @@ void frogbot_marker_touch(void) {
 	qbool rocket_alert = false;
 	float best_score = PATH_SCORE_NULL;
 	vec3_t player_direction;
+	int new_path_state = 0;
 
 	// Wait until we hit the ground
 	if ((self->fb.path_state & WAIT_GROUND) && !((int)self->s.v.flags & FL_ONGROUND))
@@ -359,8 +357,9 @@ void frogbot_marker_touch(void) {
 		}
 	}
 	else {
-		if (ExistsPath(self->fb.old_linked_marker, self->fb.touch_marker)) {
-			if (ExistsPath(self->fb.touch_marker, self->fb.linked_marker)) {
+		new_path_state = 0;
+		if (ExistsPath(self->fb.old_linked_marker, self->fb.touch_marker, &new_path_state)) {
+			if (ExistsPath(self->fb.touch_marker, self->fb.linked_marker, &new_path_state)) {
 				self->fb.path_state = new_path_state;
 				return;
 			}
@@ -482,7 +481,7 @@ void frogbot_marker_touch(void) {
 	}
 
 	if (self->fb.state & WAIT) {
-		BotWaitLogic(self);
+		BotWaitLogic(self, &new_path_state);
 	}
 
 	// FIXME: Map specific waiting points

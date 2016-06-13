@@ -407,7 +407,7 @@ typedef struct fb_entvars_s {
 	float desire_shells;
 
 	int state;                              // WAIT | RUNAWAY | NOTARGET_ENEMY | HELP_TEAMMATE | STATE_BOTTOM (doors) | SHOT_FOR_LUCK
-	int camp_state;                         // CAMPBOT
+	int camp_state;                         // CAMPBOT (FIXME: values set, but read value never acted on)
 	float arrow;
 	qbool wasinwater;
 	float swim_arrow;

@@ -291,7 +291,7 @@ gedict_t* AddToList(gedict_t* first_in_list, gedict_t* ent);
 
 qbool IsVisible(gedict_t* ent);
 
-float ExistsPath(gedict_t* from_marker, gedict_t* to_marker);
+qbool ExistsPath(gedict_t* from_marker, gedict_t* to_marker, int* new_path_state);
 float boomstick_only(void);
 
 float CountTeams(void);

@@ -17,7 +17,6 @@ extern float fallheight;
 extern gedict_t* m_P;
 extern float P_time;
 extern int m_D;
-extern int new_path_state;
 extern float nextthink_;
 extern float goal_index;
 extern gedict_t* current_load_position;

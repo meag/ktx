@@ -7,7 +7,6 @@
 extern gedict_t* first_marker;
 extern gedict_t* dropper;
 extern gedict_t* zone_head[];
-extern int new_path_state;
 
 void SUB_regen ();
 
@@ -163,7 +162,7 @@ void AssignVirtualGoal(gedict_t* item) {
 	}
 }
 
-float ExistsPath(gedict_t* from_marker, gedict_t* to_marker) {
+qbool ExistsPath(gedict_t* from_marker, gedict_t* to_marker, int* new_path_state) {
 	int i = 0;
 
 	if (from_marker == NULL || to_marker == NULL)
@@ -171,7 +170,7 @@ float ExistsPath(gedict_t* from_marker, gedict_t* to_marker) {
 
 	for (i = 0; i < NUMBER_PATHS; ++i) {
 		if (from_marker->fb.paths[i].next_marker == to_marker) {
-			new_path_state = from_marker->fb.paths[i].flags;
+			*new_path_state = from_marker->fb.paths[i].flags;
 			return true;
 		}
 	}
