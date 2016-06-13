@@ -26,7 +26,6 @@ typedef struct fb_path_eval_s {
 //#include "fb_externs.h"
 
 // Globals used for general path-finding
-extern gedict_t* look_object_;
 extern qbool path_normal;
 extern gedict_t* look_marker;
 extern gedict_t* from_marker;

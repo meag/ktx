@@ -135,7 +135,7 @@ static float goal_client(gedict_t* self) {
 	else if (g_globalvars.time < virtual_enemy->invincible_finished) {
 		return 0;     // or with pent
 	}
-	else if (self->s.v.enemy == NUM_FOR_EDICT(look_object_)) {
+	else if (self->fb.look_object && self->s.v.enemy == NUM_FOR_EDICT(self->fb.look_object)) {
 		return ((self->fb.total_damage + 100) * self->fb.firepower - virtual_enemy->fb.total_damage * virtual_enemy->fb.firepower) * 0.01;
 	}
 	else if (EnemyDefenceless(self)) {

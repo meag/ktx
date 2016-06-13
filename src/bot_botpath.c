@@ -19,7 +19,6 @@ static float EvalPath (fb_path_eval_t* eval, qbool allowRocketJumps, qbool trace
 
 // FIXME: Globals
 extern int new_path_state;
-extern qbool avoid;                 // FIXME: avoid was made local in other functions?  Why would it be used unset in marker_touch event, run during physics?
 
 #define PATH_SCORE_NULL -1000000
 #define PATH_NOISE_PENALTY 2.5
@@ -177,7 +176,6 @@ static float EvalPath(fb_path_eval_t* eval, qbool allowRocketJumps, qbool trace_
 	vec3_t marker_position;
 	float path_score;
 	float same_dir;
-	qbool avoid;
 	
 	// don't try and pass through closed doors
 	if (streq(eval->test_marker->s.v.classname, "door")) {
@@ -221,7 +219,7 @@ static float EvalPath(fb_path_eval_t* eval, qbool allowRocketJumps, qbool trace_
 	same_dir = DotProduct(eval->player_direction, direction_to_marker);
 
 	path_score = same_dir + random();
-	avoid = (g_globalvars.time < eval->test_marker->fb.arrow_time) || DetectIncomingRocket(eval->rocket_alert, marker_position);
+	self->fb.avoiding = (g_globalvars.time < eval->test_marker->fb.arrow_time) || DetectIncomingRocket(eval->rocket_alert, marker_position);
 	G_bprint_debug (2, "> Temp path_score = %f\n", path_score);
 
 	// If we'd pickup an item as we travel, negatively impact score
@@ -234,7 +232,7 @@ static float EvalPath(fb_path_eval_t* eval, qbool allowRocketJumps, qbool trace_
 		}
 	}
 
-	if (avoid) {
+	if (self->fb.avoiding) {
 		path_score -= PATH_AVOID_PENALTY;
 		G_bprint_debug (2, "> avoid penalty, final path_score %f\n", path_score);
 	}
@@ -265,7 +263,7 @@ static float EvalPath(fb_path_eval_t* eval, qbool allowRocketJumps, qbool trace_
 	return path_score;
 }
 
-static void EvalLook(float* best_score, vec3_t dir_look, vec3_t linked_marker_origin) {
+static void EvalLook(gedict_t* self, float* best_score, vec3_t dir_look, vec3_t linked_marker_origin) {
 	vec3_t temp;
 	float look_score;
 
@@ -274,10 +272,10 @@ static void EvalLook(float* best_score, vec3_t dir_look, vec3_t linked_marker_or
 	VectorNormalize(temp);
 
 	look_score = DotProduct(dir_look, temp);
-	look_score = look_score + random();
+	look_score = look_score + random();           // FIXME: Skill
 	if (look_score > *best_score) {
 		*best_score = look_score;
-		look_object_ = from_marker;
+		self->fb.look_object = from_marker;
 	}
 }
 
@@ -403,7 +401,7 @@ void frogbot_marker_touch(void) {
 		if (HasItem(self, IT_ROCKET_LAUNCHER)) {
 			if (self->s.v.ammo_rockets) {
 				if ((self->fb.firepower < g_edicts[self->s.v.enemy].fb.firepower) && (self->s.v.armorvalue < enemy_->s.v.armorvalue)) {
-					if (!avoid) {
+					if (!self->fb.avoiding) {
 						to_marker = enemy_->fb.touch_marker;
 						if (to_marker) {
 							from_marker = self->fb.touch_marker;
@@ -516,7 +514,7 @@ void frogbot_marker_touch(void) {
 	if (self->fb.path_state & WATERJUMP_) {
 		self->fb.wasinwater = true;
 		self->fb.state |= NOTARGET_ENEMY;
-		self->fb.look_object = look_object_ = self->fb.linked_marker;
+		self->fb.look_object = self->fb.linked_marker;
 		self->fb.jumping |= (random() < 0.003); // FIXME
 		return;
 	}
@@ -525,7 +523,7 @@ void frogbot_marker_touch(void) {
 	if (DM6LookAtDoor (self))
 		return;
 
-	if (look_object_ && look_object_->ct == ctPlayer) {
+	if (self->fb.look_object && self->fb.look_object->ct == ctPlayer) {
 		return;
 	}
 
@@ -560,7 +558,7 @@ void frogbot_marker_touch(void) {
 				to_marker->fb.zone_marker();
 				to_marker->fb.sub_arrival_time();
 				if (look_traveltime < traveltime) {
-					self->fb.look_object = look_object_ = look_marker;
+					self->fb.look_object = look_marker;
 					self->fb.predict_shoot = true;
 					return;
 				}
@@ -599,11 +597,10 @@ void frogbot_marker_touch(void) {
 			for (i = 0; i < NUMBER_PATHS; ++i) {
 				from_marker = self->fb.linked_marker->fb.paths[i].next_marker;
 				if (from_marker) {
-					EvalLook(&best_score, dir_look, linked_marker_origin);
+					EvalLook(self, &best_score, dir_look, linked_marker_origin);
 				}
 			}
 		}
 	}
-	self->fb.look_object = look_object_;
 	self->fb.predict_shoot = false;
 }

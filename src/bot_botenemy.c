@@ -11,7 +11,7 @@ void ClearLookObject(gedict_t* player) {
 
 // Sets the look object for the player
 void LookEnemy(gedict_t* player, gedict_t* enemy) {
-	look_object_ = player->fb.look_object = enemy;
+	player->fb.look_object = enemy;
 	VectorCopy(player->s.v.origin, player->fb.predict_origin);
 	self->fb.old_linked_marker = NULL;
 }

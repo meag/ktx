@@ -85,7 +85,6 @@ extern float current_goal_time_125;
 extern vec3_t linked_marker_origin;
 extern float goal_score;
 extern float goal_score2;
-extern float avoid;
 extern float enemy_score;
 extern vec3_t rel_pos;
 extern vec3_t rel_pos2;
@@ -171,7 +170,6 @@ extern float count_;
 extern gedict_t* array_sub_object_;
 extern float bind_char;
 extern float dodge_factor;
-extern gedict_t* dodge_missile;
 
 extern gedict_t* bodyque_head;
 extern float turning_speed;

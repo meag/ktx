@@ -8,10 +8,11 @@ void AMPHI2BotInLava(void);
 qbool DM6FireAtDoor (gedict_t* self);
 
 // FIXME: Globals
-extern gedict_t* dodge_missile;
 extern float dodge_factor;
 extern qbool markers_loaded;
 extern gedict_t* dropper;
+
+static gedict_t* dodge_missile;
 
 // FIXME: Move to bot.skill
 #define CHANCE_EVADE_DUEL 0.08
@@ -88,13 +89,13 @@ void SetNextThinkTime(gedict_t* ent) {
 	}
 }
 
-static void AvoidLookObjectsMissile() {
+static void AvoidLookObjectsMissile(gedict_t* self) {
 	gedict_t* rocket;
 
 	dodge_missile = NULL;
-	if (look_object_ && look_object_->ct == ctPlayer) {
+	if (self->fb.look_object && self->fb.look_object->ct == ctPlayer) {
 		for (rocket = world; rocket = ez_find (rocket, "rocket"); ) {
-			if (rocket->s.v.owner == EDICT_TO_PROG (look_object_)) {
+			if (rocket->s.v.owner == EDICT_TO_PROG (self->fb.look_object)) {
 				dodge_missile = rocket;
 				break;
 			}
@@ -102,22 +103,20 @@ static void AvoidLookObjectsMissile() {
 	}
 }
 
-static void LookingAtEnemyLogic() {
+static void LookingAtEnemyLogic(gedict_t* self) {
 	//UpdateEnemy
 	if (Visible_360(self, self->fb.look_object)) {
 		if (self->fb.look_object == &g_edicts[self->s.v.enemy]) {
-			self->fb.enemy_dist = VectorDistance (look_object_->s.v.origin, self->s.v.origin);
+			self->fb.enemy_dist = VectorDistance (self->fb.look_object->s.v.origin, self->s.v.origin);
 		}
-		else  {
+		else {
 			if (g_globalvars.time >= self->fb.enemy_time) {
 				ClearLookObject(self);
-				look_object_ = NULL;
 			}
 		}
 	}
 	else  {
 		ClearLookObject(self);
-		look_object_ = NULL;
 	}
 }
 
@@ -153,11 +152,11 @@ void TargetEnemyLogic() {
 	dodge_missile = NULL;
 
 	if (!(self->fb.state & NOTARGET_ENEMY)) {
-		if (look_object_ && look_object_->ct == ctPlayer) {
+		if (self->fb.look_object && self->fb.look_object->ct == ctPlayer) {
 			// Interesting - they only avoid missiles from objects they can see / are locked onto?
-			AvoidLookObjectsMissile();
+			AvoidLookObjectsMissile(self);
 
-			LookingAtEnemyLogic();
+			LookingAtEnemyLogic(self);
 		}
 		else if (&g_edicts[self->s.v.enemy]) {
 			NewlyPickedEnemyLogic();
@@ -204,12 +203,12 @@ static void BotOnGroundMovement(gedict_t* self, vec3_t dir_move) {
 			}
 
 			// Not dodging a missile, dodge away from the player instead
-			if (look_object_ && look_object_->ct == ctPlayer) {
+			if (self->fb.look_object && self->fb.look_object->ct == ctPlayer) {
 				if (!dodge_factor) {
 					vec3_t rel_pos;
 
 					VectorSubtract (self->s.v.origin, self->fb.look_object->s.v.origin, rel_pos);
-					trap_makevectors(look_object_->s.v.v_angle);
+					trap_makevectors(self->fb.look_object->s.v.v_angle);
 					if (DotProduct(rel_pos, g_globalvars.v_forward) > 0) {
 						normalize(rel_pos, temp);
 						dodge_factor = DotProduct(temp, g_globalvars.v_right);
@@ -426,7 +425,7 @@ static void BotsFireAtPlayerLogic(gedict_t* self, vec3_t rel_pos, float* rel_dis
 		if (self->s.v.enemy) {
 			PredictEnemyLocationInFuture(&g_edicts[self->s.v.enemy], rel_time);
 
-			if (look_object_ == &g_edicts[self->s.v.enemy]) {
+			if (self->fb.look_object == &g_edicts[self->s.v.enemy]) {
 				VectorSubtract(self->fb.predict_origin, self->s.v.origin, rel_pos);
 			}
 		}
@@ -449,7 +448,7 @@ static void BotsFireLogic(void) {
 		self->fb.firing = false;
 	}
 
-	if (look_object_) {
+	if (self->fb.look_object) {
 		vec3_t pitch_tangent = { 0 };
 		vec3_t yaw_tangent = { 0 };
 		float mouse_vel = 0;
@@ -458,7 +457,7 @@ static void BotsFireLogic(void) {
 		vec3_t rel_hor_dir = { 0 };
 		float hor_component = 0;
 
-		if (look_object_->ct == ctPlayer) {
+		if (self->fb.look_object->ct == ctPlayer) {
 			BotsFireAtPlayerLogic(self, rel_pos, &rel_dist);
 			//G_bprint (2, "Firing @ %s @ rel(%f %f %f)\n", look_object_->s.v.netname, PASSVEC3 (rel_pos));
 		}
@@ -503,7 +502,7 @@ static void BotsFireLogic(void) {
 		// yaw_tangent has been scaled according to view object distance
 		{
 			vec3_t vdiff;
-			VectorSubtract(look_object_->s.v.velocity, self->s.v.velocity, vdiff);
+			VectorSubtract(self->fb.look_object->s.v.velocity, self->s.v.velocity, vdiff);
 
 			self->fb.track_pitchspeed = DotProduct(vdiff, pitch_tangent);
 			self->fb.track_yawspeed = DotProduct(vdiff, yaw_tangent);
