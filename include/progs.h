@@ -418,6 +418,7 @@ typedef struct fb_entvars_s {
 
 	vec3_t oldvelocity;
 	vec3_t obstruction_normal;
+	vec3_t obstruction_direction;           // Instead of storing in rel_pos, store direction to obstruction here (for BotWaterMove)
 	vec3_t velocity_normal;
 
 	struct gedict_s* marker_link;           // linked list, this points to next marker

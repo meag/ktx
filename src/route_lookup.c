@@ -3,6 +3,7 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
+// FIXME: Globals
 extern gedict_t* dropper;
 
 void S_time_error() {

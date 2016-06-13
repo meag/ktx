@@ -506,7 +506,7 @@ void HigherSightMarker(gedict_t* from_marker);
 void UpdateWeapons(void);
 void SelectWeapon(void);
 void AttackRespawns(void);
-void SetFireButton(gedict_t* self);
+void SetFireButton(gedict_t* self, vec3_t rel_pos, float rel_dist);
 void DelayUpdateWeapons(gedict_t* self);
 
 // marker_util.qc

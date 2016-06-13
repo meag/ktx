@@ -339,6 +339,7 @@ static qbool JumpLedgeLogic (gedict_t* self, vec3_t new_velocity)
 
 		VectorAdd(self->fb.linked_marker->s.v.absmin, self->fb.linked_marker->s.v.view_ofs, rel_pos);
 		VectorSubtract(rel_pos, self->s.v.origin, rel_pos);
+		VectorCopy(rel_pos, self->fb.obstruction_direction);
 
 		if ((int)self->s.v.flags & FL_ONGROUND) {
 			qbool try_jump_ledge = true;

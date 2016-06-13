@@ -23,7 +23,6 @@ extern gedict_t* first_marker;
 extern float P_time;
 extern gedict_t* dropper;
 extern gedict_t* zone_stack_head;
-extern gedict_t* zone_stack_head;
 
 static void TravelTimeForPath (gedict_t* m, int i)
 {

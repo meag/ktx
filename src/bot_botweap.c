@@ -9,8 +9,6 @@
 // FIXME: globals, this is just setting
 extern gedict_t* look_object_;
 extern float risk_factor;
-extern vec3_t rel_pos;
-extern float rel_dist;
 extern float risk;
 
 void DM6SelectWeaponToOpenDoor (gedict_t* self);
@@ -326,7 +324,7 @@ static void RocketLauncherShot (gedict_t* self, float risk)
 	}
 }
 
-void SetFireButton(gedict_t* self) {
+void SetFireButton(gedict_t* self, vec3_t rel_pos, float rel_dist) {
 	// Only fire in pre-war if enemy attacked us
 	if (match_in_progress == 0 && (g_globalvars.time + random()) < g_edicts[self->s.v.enemy].attack_finished) {
 		self->fb.firing = false;

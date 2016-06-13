@@ -5,10 +5,6 @@
 
 #define BOT_DROWN_SAFETY_TIME           2  // Time before air running out that the bot starts searching for air
 
-
-extern vec3_t rel_pos; // FIXME: globals
-
-
 static qbool BotCanReachMarker(gedict_t* self) {
 	vec3_t spot1,
 	       spot2;
@@ -57,7 +53,7 @@ static qbool BotGoUpForAir(gedict_t* self, vec3_t dir_move) {
 }
 
 static void SwimAwayFromWall(gedict_t* self, vec3_t dir_move) {
-	if (DotProduct(self->fb.obstruction_normal, rel_pos) > 0.5) {
+	if (DotProduct(self->fb.obstruction_normal, self->fb.obstruction_direction) > 0.5) {
 		VectorScale(dir_move, -1, dir_move);
 	}
 	traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2], self->s.v.origin[0] + g_globalvars.v_right[0] * 20, self->s.v.origin[1] + g_globalvars.v_right[1] * 20, self->s.v.origin[2] + g_globalvars.v_right[2] * 20, true, self);

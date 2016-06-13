@@ -10,7 +10,6 @@ qbool DM6FireAtDoor (gedict_t* self);
 // FIXME: Globals
 extern gedict_t* dodge_missile;
 extern float dodge_factor;
-extern float lookahead_time_;
 extern qbool markers_loaded;
 extern gedict_t* dropper;
 
@@ -287,10 +286,6 @@ static void BotTouchMarkerLogic() {
 
 // Called when a human player touches a marker
 static void HumanTouchMarkerLogic() {
-	//enemy_ = &g_edicts[self->s.v.enemy];
-	//lookahead_time_ = self->fb.skill.lookahead_time;
-	//VectorCopy(self->s.v.origin, origin_);
-	//goalentity_ = &g_edicts[self->s.v.goalentity];
 	if (g_globalvars.time >= self->fb.enemy_time) {
 		BestEnemy(self);
 	}
@@ -312,11 +307,6 @@ static void PeriodicAllClientLogic() {
 		if (self->fb.state & AWARE_SURROUNDINGS) {
 			gedict_t* goalentity_ = &g_edicts[self->s.v.goalentity];
 
-			//enemy_ = &g_edicts[self->s.v.enemy];
-			//look_object_ = self->fb.look_object;
-			lookahead_time_ = self->fb.skill.lookahead_time;
-
-			goalentity_ = &g_edicts[self->s.v.goalentity];
 			if (self->isBot) {
 				BotTouchMarkerLogic();
 			}
@@ -524,7 +514,7 @@ static void BotsFireLogic(void) {
 		BotSetMouseParameters (self);
 
 		if (!self->fb.rocketjumping) {
-			SetFireButton(self);
+			SetFireButton(self, rel_pos, rel_dist);
 		}
 	}
 }
