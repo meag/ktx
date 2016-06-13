@@ -7,6 +7,13 @@ void POVDMM4LookDoor(gedict_t* self);
 void AMPHI2BotInLava(void);
 qbool DM6FireAtDoor (gedict_t* self);
 
+// FIXME: Globals
+extern gedict_t* dodge_missile;
+extern float dodge_factor;
+extern float lookahead_time_;
+extern qbool markers_loaded;
+extern gedict_t* dropper;
+
 // FIXME: Move to bot.skill
 #define CHANCE_EVADE_DUEL 0.08
 #define CHANCE_EVADE_NONDUEL 0.1
@@ -98,9 +105,9 @@ static void AvoidLookObjectsMissile() {
 
 static void LookingAtEnemyLogic() {
 	//UpdateEnemy
-	if (Visible_360(self, look_object_)) {
-		if (look_object_ == enemy_) {
-			self->fb.enemy_dist = VectorDistance(look_object_->s.v.origin, origin_);
+	if (Visible_360(self, self->fb.look_object)) {
+		if (self->fb.look_object == &g_edicts[self->s.v.enemy]) {
+			self->fb.enemy_dist = VectorDistance (look_object_->s.v.origin, self->s.v.origin);
 		}
 		else  {
 			if (g_globalvars.time >= self->fb.enemy_time) {
@@ -118,22 +125,22 @@ static void LookingAtEnemyLogic() {
 static void NewlyPickedEnemyLogic() {
 	gedict_t* goalentity_ = &g_edicts[self->s.v.goalentity];
 
-	if (goalentity_ == enemy_) {
-		if (Visible_360(self, enemy_)) {
-			LookEnemy(self, enemy_);
+	if (goalentity_ == &g_edicts[self->s.v.enemy]) {
+		if (Visible_360(self, &g_edicts[self->s.v.enemy])) {
+			LookEnemy(self, &g_edicts[self->s.v.enemy]);
 		}
 		else  {
 			if (g_globalvars.time >= self->fb.enemy_time) {
 				BestEnemy(self);
-				if (enemy_ != goalentity_) {
+				if (&g_edicts[self->s.v.enemy] != goalentity_) {
 					self->fb.goal_refresh_time = 0;
 				}
 			}
 		}
 	}
 	else {
-		if (Visible_infront(self, enemy_)) {
-			LookEnemy(self, enemy_);
+		if (Visible_infront(self, &g_edicts[self->s.v.enemy])) {
+			LookEnemy(self, &g_edicts[self->s.v.enemy]);
 		}
 		else {
 			if (g_globalvars.time >= self->fb.enemy_time) {
@@ -153,7 +160,7 @@ void TargetEnemyLogic() {
 
 			LookingAtEnemyLogic();
 		}
-		else if (enemy_) {
+		else if (&g_edicts[self->s.v.enemy]) {
 			NewlyPickedEnemyLogic();
 		}
 		else  {
@@ -184,7 +191,9 @@ static void BotOnGroundMovement(gedict_t* self, vec3_t dir_move) {
 			dodge_factor = 0;
 			if (dodge_missile) {
 				if (PROG_TO_EDICT(dodge_missile->s.v.owner)->ct == ctPlayer) {
-					VectorSubtract(origin_, dodge_missile->s.v.origin, rel_pos);
+					vec3_t rel_pos;
+
+					VectorSubtract(self->s.v.origin, dodge_missile->s.v.origin, rel_pos);
 					if (DotProduct(rel_pos, dodge_missile->fb.missile_forward) > 0.7071067) {
 						normalize(rel_pos, temp);
 						dodge_factor = DotProduct(temp, dodge_missile->fb.missile_right);
@@ -198,7 +207,9 @@ static void BotOnGroundMovement(gedict_t* self, vec3_t dir_move) {
 			// Not dodging a missile, dodge away from the player instead
 			if (look_object_ && look_object_->ct == ctPlayer) {
 				if (!dodge_factor) {
-					VectorSubtract(origin_, look_object_->s.v.origin, rel_pos);
+					vec3_t rel_pos;
+
+					VectorSubtract (self->s.v.origin, self->fb.look_object->s.v.origin, rel_pos);
 					trap_makevectors(look_object_->s.v.v_angle);
 					if (DotProduct(rel_pos, g_globalvars.v_forward) > 0) {
 						normalize(rel_pos, temp);
@@ -222,7 +233,7 @@ static void BotMoveTowardsLinkedMarker(gedict_t* self, vec3_t dir_move) {
 	gedict_t* goalentity_ = &g_edicts[self->s.v.goalentity];
 
 	VectorAdd(self->fb.linked_marker->s.v.absmin, self->fb.linked_marker->s.v.view_ofs, temp);
-	VectorSubtract(temp, origin_, temp);
+	VectorSubtract(temp, self->s.v.origin, temp);
 	normalize(temp, dir_move);
 	if (self->fb.linked_marker == self->fb.touch_marker) {
 		if (goalentity_ == self->fb.touch_marker) {
@@ -276,12 +287,10 @@ static void BotTouchMarkerLogic() {
 
 // Called when a human player touches a marker
 static void HumanTouchMarkerLogic() {
-	gedict_t* goalentity_ = &g_edicts[self->s.v.goalentity];
-
-	enemy_ = &g_edicts[self->s.v.enemy];
-	lookahead_time_ = self->fb.skill.lookahead_time;
-	VectorCopy(self->s.v.origin, origin_);
-	goalentity_ = &g_edicts[self->s.v.goalentity];
+	//enemy_ = &g_edicts[self->s.v.enemy];
+	//lookahead_time_ = self->fb.skill.lookahead_time;
+	//VectorCopy(self->s.v.origin, origin_);
+	//goalentity_ = &g_edicts[self->s.v.goalentity];
 	if (g_globalvars.time >= self->fb.enemy_time) {
 		BestEnemy(self);
 	}
@@ -303,11 +312,10 @@ static void PeriodicAllClientLogic() {
 		if (self->fb.state & AWARE_SURROUNDINGS) {
 			gedict_t* goalentity_ = &g_edicts[self->s.v.goalentity];
 
-			enemy_ = &g_edicts[self->s.v.enemy];
-			look_object_ = self->fb.look_object;
+			//enemy_ = &g_edicts[self->s.v.enemy];
+			//look_object_ = self->fb.look_object;
 			lookahead_time_ = self->fb.skill.lookahead_time;
 
-			VectorCopy(self->s.v.origin, origin_);
 			goalentity_ = &g_edicts[self->s.v.goalentity];
 			if (self->isBot) {
 				BotTouchMarkerLogic();
@@ -363,7 +371,7 @@ static void PredictEnemyLocationInFuture(gedict_t* enemy, float rel_time) {
 	vec3_t testplace;
 	float fallheight = enemy->s.v.origin[2] - 56 + enemy->s.v.velocity[2] * rel_time;
 
-	enemy->fb.oldsolid = enemy_->s.v.solid;
+	enemy->fb.oldsolid = enemy->s.v.solid;
 	enemy->s.v.solid = SOLID_NOT;
 	VectorMA(enemy->s.v.origin, rel_time, enemy->s.v.velocity, testplace);
 	testplace[2] += 36;
@@ -372,27 +380,28 @@ static void PredictEnemyLocationInFuture(gedict_t* enemy, float rel_time) {
 		VectorCopy(dropper->s.v.origin, self->fb.predict_origin);
 	}
 	else {
-		VectorSubtract(self->fb.predict_origin, enemy_->s.v.origin, dir_forward);
+		vec3_t dir_forward;
+
+		VectorSubtract(self->fb.predict_origin, enemy->s.v.origin, dir_forward);
 		dir_forward[2] = 0;
-		if ((vlen(dir_forward) > half_sv_maxspeed) || (DotProduct(dir_forward, enemy_->s.v.velocity) <= 0)) {
+		if ((vlen(dir_forward) > half_sv_maxspeed) || (DotProduct(dir_forward, enemy->s.v.velocity) <= 0)) {
 			VectorCopy(testplace, self->fb.predict_origin);
 		}
 	}
-	enemy_->s.v.solid = enemy_->fb.oldsolid;
+	enemy->s.v.solid = enemy->fb.oldsolid;
 }
 
 // This is when firing at buttons/doors etc
-static void BotsFireAtWorldLogic(vec3_t rel_pos, float* rel_dist) {
-	VectorAdd(look_object_->s.v.absmin, look_object_->s.v.view_ofs, rel_pos);
-	VectorSubtract(rel_pos, origin_, rel_pos);
+static void BotsFireAtWorldLogic(gedict_t* self, vec3_t rel_pos, float* rel_dist) {
+	VectorAdd(self->fb.look_object->s.v.absmin, self->fb.look_object->s.v.view_ofs, rel_pos);
+	VectorSubtract(rel_pos, self->s.v.origin, rel_pos);
 	*rel_dist = vlen(rel_pos);
 
 	if (DM6FireAtDoor (self))
 		return;
 
 	if (*rel_dist < 160) {
-		rel_pos2[0] = rel_pos[0];
-		rel_pos2[1] = rel_pos[1];
+		vec3_t rel_pos2 = { rel_pos[0], rel_pos[1], 0 };
 		VectorNormalize(rel_pos2);
 		VectorScale(rel_pos2, 160, rel_pos2);
 		rel_pos[0] = rel_pos2[0];
@@ -402,8 +411,10 @@ static void BotsFireAtWorldLogic(vec3_t rel_pos, float* rel_dist) {
 }
 
 // When firing at another player
-static void BotsFireAtPlayerLogic(vec3_t rel_pos, float* rel_dist) {
-	VectorSubtract(look_object_->s.v.origin, origin_, rel_pos);
+static void BotsFireAtPlayerLogic(gedict_t* self, vec3_t rel_pos, float* rel_dist) {
+	float rel_time = 0;
+
+	VectorSubtract(self->fb.look_object->s.v.origin, self->s.v.origin, rel_pos);
 	*rel_dist = vlen(rel_pos);
 
 	// If (not a hitscan weapon)
@@ -411,39 +422,36 @@ static void BotsFireAtPlayerLogic(vec3_t rel_pos, float* rel_dist) {
 		if ((int)self->s.v.weapon & IT_GRENADE_LAUNCHER) {
 			rel_time = *rel_dist / 600;
 		}
-		else  {
+		else {
 			rel_time = *rel_dist / 1000;
 			if ((int)self->ctf_flag & CTF_RUNE_HST) {
 				if ((int)self->s.v.weapon & IT_EITHER_NAILGUN) {
-					rel_time = rel_time * 0.5;
+					rel_time *= 0.5;
 				}
 			}
 		}
 
 		rel_time = min(rel_time, 0.5);
 
-		if (enemy_) {
-			PredictEnemyLocationInFuture(enemy_, rel_time);
+		if (self->s.v.enemy) {
+			PredictEnemyLocationInFuture(&g_edicts[self->s.v.enemy], rel_time);
 
-			if (look_object_ == enemy_) {
+			if (look_object_ == &g_edicts[self->s.v.enemy]) {
 				VectorSubtract(self->fb.predict_origin, self->s.v.origin, rel_pos);
 			}
 		}
 	}
 }
 
-static void BotsFireLogic(void) {
+static void BotsFireLogic(vec3_t rel_pos) {
 	if (g_globalvars.time >= self->fb.fire_nextthink) {
 		self->fb.fire_nextthink = self->fb.fire_nextthink + (self->fb.skill.firing_reflex * (0.95 + (0.1 * random())));
 		if (self->fb.fire_nextthink <= g_globalvars.time) {
 			self->fb.fire_nextthink = g_globalvars.time + (self->fb.skill.firing_reflex * (0.95 + (0.1 * random())));
 		}
 
-		look_object_ = self->fb.look_object;
-		enemy_ = &g_edicts[self->s.v.enemy];
-
 		// a_attackfix()
-		if (!self->fb.rocketjumping && enemy_ == world && !(self->state & SHOT_FOR_LUCK)) {
+		if (!self->fb.rocketjumping && self->s.v.enemy == 0 && !(self->state & SHOT_FOR_LUCK)) {
 			self->fb.firing = false;
 		}
 
@@ -451,21 +459,23 @@ static void BotsFireLogic(void) {
 			vec3_t pitch_tangent = { 0 };
 			vec3_t yaw_tangent = { 0 };
 			float mouse_vel = 0;
+			float rel_dist = 0;
+			vec3_t rel_dir = { 0 };
+			vec3_t rel_hor_dir = { 0 };
+			float hor_component = 0;
 
-
-			VectorCopy(self->s.v.origin, origin_);
 			if (look_object_->ct == ctPlayer) {
-				BotsFireAtPlayerLogic(rel_pos, &rel_dist);
+				BotsFireAtPlayerLogic(self, rel_pos, &rel_dist);
 				//G_bprint (2, "Firing @ %s @ rel(%f %f %f)\n", look_object_->s.v.netname, PASSVEC3 (rel_pos));
 			}
 			else {
-				BotsFireAtWorldLogic(rel_pos, &rel_dist);
+				BotsFireAtWorldLogic(self, rel_pos, &rel_dist);
 				//G_bprint (2, "Firing @ world @ rel(%f %f %f)\n", PASSVEC3 (rel_pos));
 			}
 
 			// Aim lower over longer distances?  (FIXME)
 			if (self->s.v.weapon == IT_ROCKET_LAUNCHER && rel_dist > 96) {
-				traceline(origin_[0], origin_[1], origin_[2] + 16, origin_[0] + rel_pos[0], origin_[1] + rel_pos[1], origin_[2] + rel_pos[2] - 22, true, self);
+				traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 16, self->s.v.origin[0] + rel_pos[0], self->s.v.origin[1] + rel_pos[1], self->s.v.origin[2] + rel_pos[2] - 22, true, self);
 				if (g_globalvars.trace_fraction == 1) {
 					rel_pos[2] = rel_pos[2] - 38;
 				}
@@ -475,6 +485,7 @@ static void BotsFireLogic(void) {
 			VectorCopy(rel_pos, rel_hor_dir);
 			rel_hor_dir[2] = 0;
 			normalize(rel_hor_dir, rel_hor_dir);
+
 			hor_component = DotProduct(rel_dir, rel_hor_dir);
 			mouse_vel = 57.29578 / rel_dist;
 
@@ -540,11 +551,13 @@ void ThinkTime(gedict_t* self) {
 			POVDMM4LookDoor(self);
 		}
 
-		BotsFireLogic();
+		BotsFireLogic(rel_pos);
 	}
 }
 
 void BotEvadeLogic(gedict_t* self) {
+	gedict_t* enemy_ = &g_edicts[self->s.v.enemy];
+
 	self->fb.bot_evade = false;
 	if (deathmatch <= 3 && !isRA()) {
 		if (isDuel() && random() < CHANCE_EVADE_DUEL) {

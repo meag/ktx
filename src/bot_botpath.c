@@ -17,6 +17,10 @@ static float EvalPath (fb_path_eval_t* eval, qbool allowRocketJumps, qbool trace
 //#define G_bprint_debug(...)
 //#define STOP_DEBUGGING 
 
+// FIXME: Globals
+extern int new_path_state;
+extern qbool avoid;                 // FIXME: avoid was made local in other functions?  Why would it be used unset in marker_touch event, run during physics?
+
 #define PATH_SCORE_NULL -1000000
 #define PATH_NOISE_PENALTY 2.5
 #define PATH_AVOID_PENALTY 2.5
@@ -29,7 +33,7 @@ static qbool HasItem (gedict_t* player, int mask)
 	return ((int)player->s.v.items & mask);
 }
 
-static void BotRouteEvaluation (qbool be_quiet, gedict_t* from_marker, gedict_t* to_marker, qbool rocket_alert, qbool rocket_jump_routes_allowed, vec3_t player_origin, vec3_t player_direction, qbool path_normal, qbool trace_bprint, float current_goal_time, float current_goal_time_125, float goal_late_time, float* best_score, gedict_t** next_marker, int* next_description)
+static void BotRouteEvaluation (qbool be_quiet, float lookahead_time, gedict_t* from_marker, gedict_t* to_marker, qbool rocket_alert, qbool rocket_jump_routes_allowed, vec3_t player_origin, vec3_t player_direction, qbool path_normal, qbool trace_bprint, float current_goal_time, float current_goal_time_125, float goal_late_time, float* best_score, gedict_t** next_marker, int* next_description)
 { 
 	fb_path_eval_t eval = { 0 };
 	int i = 0;
@@ -41,7 +45,7 @@ static void BotRouteEvaluation (qbool be_quiet, gedict_t* from_marker, gedict_t*
 	eval.path_normal = path_normal;
 	eval.touch_marker = from_marker;
 	eval.goal_late_time = goal_late_time;
-	eval.lookahead_time_ = lookahead_time_;
+	eval.lookahead_time_ = lookahead_time;
 	eval.be_quiet = be_quiet;
 
 	for (i = 0; i < NUMBER_PATHS; ++i) {
@@ -65,7 +69,7 @@ static void BotRouteEvaluation (qbool be_quiet, gedict_t* from_marker, gedict_t*
 }
 
 void PathScoringLogic(
-	float goal_respawn_time, qbool be_quiet, qbool path_normal, vec3_t player_origin, vec3_t player_direction, gedict_t* touch_marker_,
+	float goal_respawn_time, qbool be_quiet, float lookahead_time, qbool path_normal, vec3_t player_origin, vec3_t player_direction, gedict_t* touch_marker_,
 	gedict_t* goalentity_marker, qbool rocket_alert, qbool rocket_jump_routes_allowed,
 	qbool trace_bprint, float *best_score, gedict_t** linked_marker_, int* new_path_state
 )
@@ -113,7 +117,7 @@ void PathScoringLogic(
 		eval.touch_marker = touch_marker_;
 		eval.goalentity_marker = goalentity_marker;
 		eval.goal_late_time = goal_late_time;
-		eval.lookahead_time_ = lookahead_time_;
+		eval.lookahead_time_ = lookahead_time;
 		eval.be_quiet = be_quiet;
 		VectorCopy (player_origin, eval.player_origin);
 		VectorCopy (player_direction, eval.player_direction);
@@ -133,7 +137,7 @@ void PathScoringLogic(
 	}
 
 	// Evaluate all paths from touched marker to the goal entity
-	BotRouteEvaluation (be_quiet, touch_marker_, goalentity_marker, rocket_alert, rocket_jump_routes_allowed, player_origin, player_direction, path_normal, trace_bprint, current_goal_time, current_goal_time_125, goal_late_time, best_score, linked_marker_, new_path_state);
+	BotRouteEvaluation (be_quiet, lookahead_time, touch_marker_, goalentity_marker, rocket_alert, rocket_jump_routes_allowed, player_origin, player_direction, path_normal, trace_bprint, current_goal_time, current_goal_time_125, goal_late_time, best_score, linked_marker_, new_path_state);
 }
 
 // FIXME: Globals
@@ -172,6 +176,8 @@ static float EvalPath(fb_path_eval_t* eval, qbool allowRocketJumps, qbool trace_
 	vec3_t direction_to_marker;
 	vec3_t marker_position;
 	float path_score;
+	float same_dir;
+	qbool avoid;
 	
 	// don't try and pass through closed doors
 	if (streq(eval->test_marker->s.v.classname, "door")) {
@@ -259,9 +265,9 @@ static float EvalPath(fb_path_eval_t* eval, qbool allowRocketJumps, qbool trace_
 	return path_score;
 }
 
-// FIXME: globals
-static void EvalLook(float* best_score, vec3_t dir_look) {
+static void EvalLook(float* best_score, vec3_t dir_look, vec3_t linked_marker_origin) {
 	vec3_t temp;
+	float look_score;
 
 	VectorAdd(from_marker->s.v.absmin, from_marker->s.v.view_ofs, temp);
 	VectorSubtract(temp, linked_marker_origin, temp);
@@ -275,8 +281,9 @@ static void EvalLook(float* best_score, vec3_t dir_look) {
 	}
 }
 
-static void EvalCloseRunAway(float runaway_time, float *best_away_score, gedict_t **best_away_marker, gedict_t* touch_marker) {
+static void EvalCloseRunAway(float runaway_time, gedict_t* enemy_touch_marker, float look_traveltime_squared, float *best_away_score, gedict_t **best_away_marker, gedict_t* touch_marker) {
 	float test_away_score = 0;
+	float traveltime2;
 
 	from_marker = enemy_touch_marker;
 	to_marker->fb.zone_marker();
@@ -304,10 +311,10 @@ static qbool CheckForRocketEnemyAim (gedict_t* self)
 	if (enemy_ != world && HasItem(enemy_, IT_ROCKET_LAUNCHER) && !HasItem(self, IT_INVULNERABILITY)) {
 		// FIXME: random() call to determine behaviour, move threshold to bot's skill
 		if (enemy_->attack_finished <= g_globalvars.time + 0.2 && enemy_->s.v.ammo_rockets && random() < 0.5) {
-			// Fixme: use view offset
+			vec3_t src;
 			VectorCopy(enemy_->s.v.origin, src);
 			src[2] += 16;
-			traceline(src[0], src[1], src[2], origin_[0], origin_[1], origin_[2], true, self);
+			traceline(src[0], src[1], src[2], self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2], true, self);
 
 			// Fixme: Only avoid rocket aim if there's a direct line, rather than if they are within range of the explosion...
 			if (g_globalvars.trace_fraction != 1) {
@@ -365,10 +372,11 @@ void frogbot_marker_touch(void) {
 
 	self->fb.path_normal_ = true;
 	if (self->fb.state & RUNAWAY) {
-		enemy_touch_marker = enemy_->fb.touch_marker;
+		gedict_t* enemy_touch_marker = g_edicts[self->s.v.enemy].fb.touch_marker;
 		if (enemy_touch_marker) {
 			int i = 0;
 			float best_away_score = 0;
+			float look_traveltime_squared = 0;
 			gedict_t* best_away_marker = NULL;
 			
 			to_marker = self->fb.touch_marker;
@@ -379,7 +387,7 @@ void frogbot_marker_touch(void) {
 			for (i = 0; i < NUMBER_PATHS; ++i) {
 				to_marker = self->fb.touch_marker->fb.runaway[i].next_marker;
 				if (to_marker) {
-					EvalCloseRunAway(self->fb.touch_marker->fb.runaway[i].time, &best_away_score, &best_away_marker, self->fb.touch_marker);
+					EvalCloseRunAway(self->fb.touch_marker->fb.runaway[i].time, enemy_touch_marker, look_traveltime_squared, &best_away_score, &best_away_marker, self->fb.touch_marker);
 				}
 			}
 
@@ -390,9 +398,11 @@ void frogbot_marker_touch(void) {
 	}
 
 	if (random() < 0.5) {
+		gedict_t* enemy_ = &g_edicts[self->s.v.enemy];
+
 		if (HasItem(self, IT_ROCKET_LAUNCHER)) {
 			if (self->s.v.ammo_rockets) {
-				if ((self->fb.firepower < enemy_->fb.firepower) && (self->s.v.armorvalue < enemy_->s.v.armorvalue)) {
+				if ((self->fb.firepower < g_edicts[self->s.v.enemy].fb.firepower) && (self->s.v.armorvalue < enemy_->s.v.armorvalue)) {
 					if (!avoid) {
 						to_marker = enemy_->fb.touch_marker;
 						if (to_marker) {
@@ -415,6 +425,8 @@ void frogbot_marker_touch(void) {
 	}
 
 	if (isDuel()) {
+		gedict_t* enemy_ = &g_edicts[self->s.v.enemy];
+
 		if (HasItem(enemy_, IT_GRENADE_LAUNCHER)) {
 			if (enemy_->s.v.ammo_rockets > 6) {
 				if ((self->s.v.origin[2] + 18) < (enemy_->s.v.absmin[2] + enemy_->s.v.view_ofs[2])) {
@@ -444,9 +456,9 @@ void frogbot_marker_touch(void) {
 
 	rocket_alert = CheckForRocketEnemyAim (self);
 	normalize (self->s.v.velocity, player_direction);
-	self->fb.be_quiet = (look_object_ != enemy_ && enemy_ && !self->fb.allowedMakeNoise);
+	self->fb.be_quiet = (self->s.v.enemy && &g_edicts[self->s.v.enemy] != self->fb.look_object && !self->fb.allowedMakeNoise);
 
-	PathScoringLogic (self->fb.goal_respawn_time, self->fb.be_quiet, self->fb.path_normal_, self->s.v.origin, self->s.v.velocity, self->fb.touch_marker, goalentity_marker, rocket_alert, rocket_jump_routes_allowed, trace_bprint, &best_score, &self->fb.linked_marker, &new_path_state);
+	PathScoringLogic (self->fb.goal_respawn_time, self->fb.be_quiet, self->fb.skill.lookahead_time, self->fb.path_normal_, self->s.v.origin, self->s.v.velocity, self->fb.touch_marker, goalentity_marker, rocket_alert, rocket_jump_routes_allowed, trace_bprint, &best_score, &self->fb.linked_marker, &new_path_state);
 	STOP_DEBUGGING
 
 	// "check if fully on lift - if not then continue moving to linked_marker_"
@@ -524,7 +536,7 @@ void frogbot_marker_touch(void) {
 	}
 
 	if (random() < self->fb.skill.look_anywhere) {
-		from_marker = enemy_->fb.touch_marker;
+		from_marker = g_edicts[self->s.v.enemy].fb.touch_marker;
 		if (!from_marker) {
 			from_marker = goalentity_marker;
 		}
@@ -561,9 +573,10 @@ void frogbot_marker_touch(void) {
 		vec3_t dir_look = { 0 };
 
 		if (self->fb.touch_marker != self->fb.linked_marker) {
-			vec3_t diff;
+			vec3_t diff, linked_marker_origin;
+
 			VectorAdd(self->fb.linked_marker->s.v.absmin, self->fb.linked_marker->s.v.view_ofs, linked_marker_origin);
-			VectorSubtract(linked_marker_origin, origin_, diff);
+			VectorSubtract (linked_marker_origin, self->s.v.origin, diff);
 			normalize(diff, dir_look);
 		}
 
@@ -577,14 +590,16 @@ void frogbot_marker_touch(void) {
 		}
 
 		// Look at the next marker...
-		VectorAdd(self->fb.linked_marker->s.v.absmin, self->fb.linked_marker->s.v.view_ofs, linked_marker_origin);
-		best_score = PATH_SCORE_NULL;
 		{
 			int i = 0;
+			vec3_t linked_marker_origin = { 0 };
+
+			VectorAdd(self->fb.linked_marker->s.v.absmin, self->fb.linked_marker->s.v.view_ofs, linked_marker_origin);
+			best_score = PATH_SCORE_NULL;
 			for (i = 0; i < NUMBER_PATHS; ++i) {
 				from_marker = self->fb.linked_marker->fb.paths[i].next_marker;
 				if (from_marker) {
-					EvalLook(&best_score, dir_look);
+					EvalLook(&best_score, dir_look, linked_marker_origin);
 				}
 			}
 		}

@@ -11,7 +11,6 @@ extern gedict_t* test_enemy;
 
 extern vec3_t oldvelocity_;
 extern gedict_t* current_waiting_bot;
-extern gedict_t* first_ent;
 extern gedict_t* first_marker;
 
 extern gedict_t* dropper;
@@ -82,12 +81,10 @@ extern float look_score;
 extern float best_goal_score;
 extern float current_goal_time;
 extern float current_goal_time_125;
-extern float best_respawn_time;
 //extern gedict_t* linked_marker_;
 extern vec3_t linked_marker_origin;
 extern float goal_score;
 extern float goal_score2;
-extern float same_dir;
 extern float avoid;
 extern float enemy_score;
 extern vec3_t rel_pos;
@@ -177,8 +174,6 @@ extern float dodge_factor;
 extern gedict_t* dodge_missile;
 
 extern gedict_t* bodyque_head;
-extern float first_trace_fraction;
-extern vec3_t first_trace_plane_normal;
 extern float turning_speed;
 extern vec3_t hor_normal_vec;
 extern vec3_t last_clear_angle;

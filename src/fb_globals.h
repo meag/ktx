@@ -44,6 +44,7 @@ extern float sv_maxstrafespeed;
 extern float sv_maxwaterspeed;
 extern float half_sv_maxspeed;
 extern float inv_sv_maxspeed;
+extern float sv_accelerate;
 
 #ifndef FL_ONGROUND_PARTIALGROUND
 #define FL_ONGROUND_PARTIALGROUND (FL_ONGROUND | FL_PARTIALGROUND)

@@ -6,6 +6,10 @@
 static float unstick_time = 0;
 static qbool no_bots_stuck = 0;
 
+// FIXME: Globals
+extern float turning_speed;
+extern vec3_t oldvelocity_;
+
 int NumberOfClients (void)
 {
 	int count = 0;
@@ -70,22 +74,26 @@ void obstruction() {
 }
 
 void VelocityForArrow(gedict_t* self) {
+	vec3_t dir_forward = { 0, 0, 0 };
 	int arrow_ = 0;
 	float accel_forward = 0;
 	float velocity_forward = 0;
+	float current_maxspeed = 0;
 
 	turning_speed = 0;
 	if (!self->s.v.waterlevel) {
 		if (g_globalvars.time > self->fb.arrow_time2) {
 			float hor_speed = 0;
+			vec3_t hor_velocity;
 
 			VectorCopy(self->s.v.velocity, hor_velocity);
 			hor_velocity[2] = 0;
 			hor_speed = vlen(hor_velocity);
 			if ((hor_speed > 100) || ((self->fb.path_state & AIR_ACCELERATION))) {
 				// hor_normal_vec = right angle to velocity
-				hor_normal_vec[0] = 0 - self->s.v.velocity[1];
-				hor_normal_vec[1] = self->s.v.velocity[0];
+				vec3_t hor_normal_vec = { 0 - self->s.v.velocity[1], self->s.v.velocity[0], 0 };
+				vec3_t rel_pos;
+
 				VectorNormalize(hor_normal_vec);
 
 				// rel_pos = horizontal difference to linked marker
@@ -116,8 +124,9 @@ void VelocityForArrow(gedict_t* self) {
 				if (!((int)self->s.v.flags & FL_ONGROUND)) {
 					vec3_t temp;
 					float max_accel_forward = sv_accelerate * g_globalvars.frametime * sv_maxspeed;
+					vec3_t velocity_hor_angle = { 0, vectoyaw(hor_velocity) + (turning_speed * g_globalvars.frametime), 0 };
+					vec3_t desired_accel;
 
-					velocity_hor_angle[1] = vectoyaw(hor_velocity) + (turning_speed * g_globalvars.frametime);
 					trap_makevectors(velocity_hor_angle);
 					VectorScale(g_globalvars.v_forward, hor_speed, temp);
 					VectorSubtract(temp, hor_velocity, desired_accel);
@@ -239,7 +248,7 @@ void VelocityForArrow(gedict_t* self) {
 			current_maxspeed = 0.7 * current_maxspeed;
 		}
 	}
-	accel_forward = sv_accelerate_frametime * current_maxspeed;
+	accel_forward = sv_accelerate * g_globalvars.frametime * current_maxspeed;
 	velocity_forward = DotProduct(self->s.v.velocity, dir_forward);
 	if (!((int)self->s.v.flags & FL_ONGROUND) && self->s.v.waterlevel <= 1) {
 		current_maxspeed = min(current_maxspeed, 30);
@@ -288,7 +297,7 @@ void FrogbotPrePhysics1(void) {
 void BotDetectTrapped(gedict_t* self) {
 	// This tries to detect stuck bots, and fixes the situation by either jumping or committing suicide
 	vec3_t point = { self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] - 24 };
-	content1 = trap_pointcontents(point[0], point[1], point[2]);
+	int content1 = trap_pointcontents(point[0], point[1], point[2]);
 	if (content1 == CONTENT_EMPTY) {
 		self->fb.oldwaterlevel = 0;
 		self->fb.oldwatertype = CONTENT_EMPTY;
@@ -306,15 +315,13 @@ void BotDetectTrapped(gedict_t* self) {
 		}
 	}
 	else {
-		VectorSet(point, self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 4);
-		content2 = trap_pointcontents(point[0], point[1], point[2]);
+		int content2 = trap_pointcontents(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 4);
 		if (content2 == CONTENT_EMPTY) {
 			self->fb.oldwaterlevel = 1;
 			self->fb.oldwatertype = content1;
 		}
 		else  {
-			VectorSet(point, self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 22);
-			content3 = trap_pointcontents(point[0], point[1], point[2]);
+			int content3 = trap_pointcontents(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 22);
 			if (content3 == CONTENT_EMPTY) {
 				self->fb.oldwaterlevel = 2;
 				self->fb.oldwatertype = content2;
@@ -383,8 +390,10 @@ void FrogbotPostPhysics(void) {
 			obstruction();
 			if (self->fb.obstruction_normal[0] || self->fb.obstruction_normal[1] || self->fb.obstruction_normal[2]) {
 				vec3_t temp, originDiff;
+				vec3_t new_velocity;
 				float yaw = 0;
 				float dist = 0;
+				int oldflags = 0;
 
 				VectorAdd(self->s.v.velocity, self->fb.velocity_normal, new_velocity);
 				yaw = vectoyaw(self->fb.obstruction_normal);

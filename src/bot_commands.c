@@ -17,7 +17,6 @@ static float next_hazard_time;
 extern gedict_t* markers[];
 
 // FIXME: Globals (these only here for debugging)
-extern float lookahead_time_;
 extern float fallheight;
 extern float current_fallspot;
 
@@ -132,12 +131,12 @@ static void FrogbotsSetSkill (void)
 }
 
 void PathScoringLogic (
-	float respawn_time, qbool be_quiet, qbool path_normal, vec3_t player_origin, vec3_t player_direction, 
+	float respawn_time, qbool be_quiet, float lookahead_time, qbool path_normal, vec3_t player_origin, vec3_t player_direction, 
 	gedict_t* touch_marker_, gedict_t* goalentity_marker, qbool rocket_alert, qbool rocket_jump_routes_allowed,
 	qbool trace_bprint, float *best_score, gedict_t** linked_marker_, int* new_path_state
 );
 
-qbool CanJumpOver (gedict_t* self, vec3_t jump_origin, vec3_t jump_velocity, vec3_t last_clear_velocity, vec3_t last_clear_point);
+qbool CanJumpOver (gedict_t* self, vec3_t jump_origin, vec3_t jump_velocity, vec3_t last_clear_velocity, vec3_t last_clear_point, float fallheight);
 
 static void FrogbotsDebug (void)
 {
@@ -216,8 +215,7 @@ static void FrogbotsDebug (void)
 						int new_path_state = 0;
 						vec3_t player_direction = { 0, 0, 0 }; // Standing still, for sake of argument
 
-						lookahead_time_ = 30;
-						PathScoringLogic (to->fb.goal_respawn_time, false, true, from->s.v.origin, player_direction, from, to, false, true, true, &best_score, &linked_marker_, &new_path_state);
+						PathScoringLogic (to->fb.goal_respawn_time, false, 30, true, from->s.v.origin, player_direction, from, to, false, true, true, &best_score, &linked_marker_, &new_path_state);
 
 						G_sprint (self, 2, "Finished: next marker %d (%s), best_score %f\n", (linked_marker_ ? linked_marker_->fb.index : -1), (linked_marker_ ? linked_marker_->s.v.classname : "null"), best_score);
 					}
@@ -234,9 +232,8 @@ static void FrogbotsDebug (void)
 			
 			self->fb.oldsolid = self->s.v.solid;
 
-			fallheight = 242;
 			current_fallspot = 0;
-			result = CanJumpOver (self, jumpo, jumpv, clearv, clearo);
+			result = CanJumpOver (self, jumpo, jumpv, clearv, clearo, 242);
 			if (result)
 				G_sprint (self, 2, "CanJumpOver\n");
 			else

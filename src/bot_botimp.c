@@ -5,6 +5,9 @@
 
 void SetSkill();
 
+// FIXME: Globals
+extern gedict_t* dropper;
+
 // TODO: Exchange standard attributes for different bot characters/profiles
 void SetAttribs(gedict_t* self) {
 	float smartness = 10;
@@ -27,6 +30,7 @@ void SetAttribs(gedict_t* self) {
 }
 
 void CalculatePhysicsVariables() {
+	sv_accelerate = cvar("sv_accelerate");
 	sv_maxspeed = cvar("sv_maxspeed");
 	sv_maxstrafespeed = sv_maxspeed;
 	sv_maxwaterspeed = sv_maxspeed * 0.7;
@@ -36,8 +40,6 @@ void CalculatePhysicsVariables() {
 
 void InitParameters() {
 	char buffer[1024] = { 0 };
-
-	first_ent = nextent(world);
 
 	dropper = spawn();
 	setsize(dropper, PASSVEC3( VEC_HULL_MIN ), PASSVEC3( VEC_HULL_MAX ));
