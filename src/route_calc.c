@@ -18,9 +18,24 @@ static float runaway_score = 0;
 static float min_traveltime = 0;
 static float runaway_time = 0;
 static float P_time = 0;
+static gedict_t* first_marker = NULL;
 
-// FIXME: Globals
-extern gedict_t* first_marker;
+void BecomeMarker(gedict_t* marker) {
+	marker->fb.fl_marker = true;
+	marker->fb.marker_link = first_marker;
+	first_marker = marker;
+	//dropper->fb.marker_link = first_marker;
+}
+
+void NameZone(float zoneNumber, char* name) {
+	gedict_t* m;
+
+	for (m = first_marker; m; m = m->fb.marker_link) {
+		if (m->fb.Z_ == zoneNumber) {
+			m->s.v.netname = name;
+		}
+	}
+}
 
 static void TravelTimeForPath (gedict_t* m, int i)
 {

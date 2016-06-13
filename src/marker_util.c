@@ -4,15 +4,7 @@
 #include "fb_globals.h"
 
 // Globals
-extern gedict_t* first_marker;
 void SUB_regen ();
-
-void BecomeMarker(gedict_t* marker) {
-	marker->fb.fl_marker = true;
-	marker->fb.marker_link = first_marker;
-	first_marker = marker;
-	//dropper->fb.marker_link = first_marker;
-}
 
 // FIXME: Never called (should be though... some markers are created then removed)
 // FIXME: Needs fixed, dropper->fb.marker_link never set (see above)

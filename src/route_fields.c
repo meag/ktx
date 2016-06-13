@@ -11,7 +11,6 @@ extern gedict_t* dm6_door;
 
 // FIXME: globals
 extern gedict_t* markers[];
-extern gedict_t* zone_tail[];
 extern gedict_t* first_marker;
 
 #define SUBZONEFUNCTIONS(name) \
@@ -151,16 +150,6 @@ void SetMarkerFlag(int marker_number, int flags) {
 
 	if (flags & MARKER_IS_DM6_DOOR)
 		dm6_door = markers[marker_number];
-}
-
-void NameZone(float zoneNumber, char* name) {
-	gedict_t* m;
-
-	for (m = first_marker; m; m = m->fb.marker_link) {
-		if (m->fb.Z_ == zoneNumber) {
-			m->s.v.netname = name;
-		}
-	}
 }
 
 void AdjustZone(gedict_t* zoneHead, float teamNumber, float strong, float adjust) {

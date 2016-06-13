@@ -9,7 +9,6 @@ extern gedict_t* enemy_;
 extern gedict_t* test_enemy;
 
 extern gedict_t* current_waiting_bot;
-extern gedict_t* first_marker;
 
 extern float fallheight;
 extern gedict_t* m_P;
