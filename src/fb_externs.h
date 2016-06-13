@@ -7,7 +7,6 @@ extern float predict_dist;
 
 extern gedict_t* enemy_;
 extern gedict_t* virtual_enemy;
-extern gedict_t* look_object_;
 extern gedict_t* test_enemy;
 
 extern vec3_t oldvelocity_;
@@ -37,12 +36,6 @@ extern gedict_t* zone_head[NUMBER_ZONES];
 extern gedict_t* zone_tail[NUMBER_ZONES];
 extern int subzone_indexes[NUMBER_ZONES];
 
-extern qbool path_normal;
-extern gedict_t* from_marker;
-extern gedict_t* middle_marker;
-extern gedict_t* next_marker;
-extern gedict_t* to_marker;
-extern gedict_t* look_marker;
 //extern gedict_t* test_marker;
 extern gedict_t* prev_marker;
 extern vec3_t to_marker_pos;
@@ -110,7 +103,6 @@ extern vec3_t src;
 extern vec3_t direction;
 extern float risk;
 extern float risk_factor;
-extern float risk_strength;
 extern vec3_t enemy_angles;
 extern gedict_t* bot;
 extern float rnd;

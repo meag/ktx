@@ -3,6 +3,14 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
+// FIXME: globals
+extern gedict_t* markers[];
+extern int subzone_indexes[];
+extern gedict_t* zone_tail[];
+extern gedict_t* zone_head[];
+extern gedict_t* zone_stack_head;
+extern gedict_t* first_marker;
+
 #define SUBZONEFUNCTIONS(name) \
 	S1_ ## name, \
 	S2_ ## name, \

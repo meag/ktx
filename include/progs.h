@@ -549,6 +549,9 @@ typedef struct fb_entvars_s {
 	fb_entity_func_t    item_respawned;  // called whenever an item respawns
 	fb_entity_func_t    item_placed;     // called when item has been placed in the map
 
+	// Player event functions
+	fb_entity_func_t    ammo_used;      // Whenever ammo is updated
+
 	// Debugging
 	qbool               debug;           // If set, trace logic
 

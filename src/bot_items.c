@@ -10,8 +10,10 @@
 #define FB_GOAL_SSG    21
 #define FB_GOAL_NG     22
 
-// Goal functions
+// FIXME: Globals
+extern gedict_t* virtual_enemy;
 
+// Goal functions
 void item_megahealth_rot ();
 void check_marker (gedict_t* self, gedict_t* other);
 void HazardTeleport (gedict_t* self, gedict_t* other);

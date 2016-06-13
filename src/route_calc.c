@@ -12,19 +12,18 @@
 typedef qbool (*fb_path_calc_func_t)(gedict_t* m, gedict_t* m_P, float P_time, int m_D);
 
 static void Calc_G_time_12 (void);
-/*
-#define MAX_MARKER_COUNT 400
-typedef struct frogbots_s {
-	gedict_t* markers[MAX_MARKER_COUNT];
-	int marker_count;
-} frogbots_t;
 
-frogbots_t frogbots;
-*/
-
+// 
 static float runaway_score = 0;
 static float min_traveltime = 0;
 static float runaway_time = 0;
+
+// FIXME: Globals
+extern gedict_t* first_marker;
+extern float P_time;
+extern gedict_t* dropper;
+extern gedict_t* zone_stack_head;
+extern gedict_t* zone_stack_head;
 
 static void TravelTimeForPath (gedict_t* m, int i)
 {
@@ -484,6 +483,7 @@ void InitialiseMarkerRoutes(void) {
 	self = dropper;
 	for (m = first_marker; m && m != world; m = m->fb.marker_link) {
 		vec3_t point, m_pos;
+		int content;
 
 		VectorAdd(m->s.v.absmin, m->s.v.view_ofs, m_pos);
 		m->fb.touch_marker = m;
@@ -492,11 +492,12 @@ void InitialiseMarkerRoutes(void) {
 		point[2] += 4;
 		content = trap_pointcontents(PASSVEC3(point));
 		if (content >= CONTENT_LAVA && content <= CONTENT_WATER) {
+			vec3_t testplace;
+
 			CheckWaterColumn(m, m_pos, testplace);
 			if (testplace[2] - m_pos[2] > 0) {
 				setsize(m, m->s.v.mins[0], m->s.v.mins[1], m->s.v.mins[2], m->s.v.maxs[0] + testplace[0] - m_pos[0], m->s.v.maxs[1] + testplace[1] - m_pos[1], m->s.v.maxs[2] + testplace[2] - m_pos[2]);
 			}
-			--count_;
 		}
 	}
 
@@ -505,7 +506,7 @@ void InitialiseMarkerRoutes(void) {
 		int i = 0;
 
 		for (i = 0; i < NUMBER_PATHS; ++i) {
-			m_P = m->fb.paths[i].next_marker;
+			gedict_t* m_P = m->fb.paths[i].next_marker;
 			if (m_P && m_P->fb.fl_marker) {
 				TravelTimeForPath(m, i);
 			}
@@ -550,7 +551,7 @@ void InitialiseMarkerRoutes(void) {
 	{
 		int i = 0, j = 0;
 		for (i = 0; i < NUMBER_MARKERS; ++i) {
-			if (markers[i]) {
+			/*if (markers[i])*/ {
 				// Debug zone times
 				/*
 				Com_Printf ("M %d %s = %f %f %f %f %f %f %f %f %f %f %f %f %f %f\n", markers[i]->fb.index,

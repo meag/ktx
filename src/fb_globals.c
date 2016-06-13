@@ -105,7 +105,6 @@ vec3_t src = { 0 };
 vec3_t direction = { 0 };
 float risk = 0;
 float risk_factor = 0;
-float risk_strength = 0;
 vec3_t enemy_angles = { 0 };
 gedict_t* bot = 0;
 float rnd = 0;

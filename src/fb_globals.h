@@ -23,7 +23,27 @@ typedef struct fb_path_eval_s {
 } fb_path_eval_t;
 
 // FIXME: Should be able to remove this
-#include "fb_externs.h"
+//#include "fb_externs.h"
+
+// Globals used for general path-finding
+extern gedict_t* look_object_;
+extern qbool path_normal;
+extern gedict_t* look_marker;
+extern gedict_t* from_marker;
+extern gedict_t* middle_marker;
+extern gedict_t* to_marker;
+extern gedict_t* next_marker;
+extern gedict_t* prev_marker;
+extern float traveltime;
+extern float look_traveltime;
+extern float zone_time;
+
+// Globals for physics variables
+extern float sv_maxspeed;
+extern float sv_maxstrafespeed;
+extern float sv_maxwaterspeed;
+extern float half_sv_maxspeed;
+extern float inv_sv_maxspeed;
 
 #ifndef FL_ONGROUND_PARTIALGROUND
 #define FL_ONGROUND_PARTIALGROUND (FL_ONGROUND | FL_PARTIALGROUND)
@@ -486,6 +506,7 @@ void UpdateWeapons(void);
 void SelectWeapon(void);
 void AttackRespawns(void);
 void SetFireButton(gedict_t* self);
+void DelayUpdateWeapons(gedict_t* self);
 
 // marker_util.qc
 qbool Visible_infront(gedict_t* self, gedict_t* visible_object);

@@ -3,6 +3,12 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
+// Globals
+extern gedict_t* first_marker;
+extern gedict_t* dropper;
+extern gedict_t* zone_head[];
+extern int new_path_state;
+
 void SUB_regen ();
 
 void BecomeMarker(gedict_t* marker) {
@@ -13,6 +19,7 @@ void BecomeMarker(gedict_t* marker) {
 }
 
 // FIXME: Never called (should be though... some markers are created then removed)
+// FIXME: Needs fixed, dropper->fb.marker_link never set (see above)
 void RemoveMarker(gedict_t* marker) {
 	gedict_t* e;
 	marker->fb.fl_marker = false;
@@ -68,6 +75,8 @@ void marker_touch() {
 
 void adjust_view_ofs_z(gedict_t* ent) {
 	gedict_t* fallspot_self = ent;
+	vec3_t testplace;
+
 	ent = dropper;
 	VectorSet(
 		testplace, 

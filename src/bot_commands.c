@@ -16,6 +16,11 @@ static float next_hazard_time;
 // FIXME: Globals
 extern gedict_t* markers[];
 
+// FIXME: Globals (these only here for debugging)
+extern float lookahead_time_;
+extern float fallheight;
+extern float current_fallspot;
+
 qbool IsMarkerFrame (void)
 {
 	return marker_time;

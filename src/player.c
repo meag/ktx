@@ -405,6 +405,8 @@ void player_nail1()
 	SuperDamageSound();
 	W_FireSpikes( 4 );
 	self->attack_finished = g_globalvars.time + 0.2;
+	if (self->fb.ammo_used)
+		self->fb.ammo_used (self);
 }
 
 void player_nail2()
@@ -430,6 +432,8 @@ void player_nail2()
 	SuperDamageSound();
 	W_FireSpikes( -4 );
 	self->attack_finished = g_globalvars.time + 0.2;
+	if (self->fb.ammo_used)
+		self->fb.ammo_used (self);
 }
 
 //============================================================================

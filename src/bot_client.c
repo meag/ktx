@@ -6,6 +6,9 @@
 void PlayerReady ();
 void SetMarker (gedict_t* client, gedict_t* marker);
 
+// FIXME: Globals
+extern gedict_t* virtual_enemy;
+
 // Called whenever a player dies
 void BotPlayerDeathEvent(gedict_t* self) {
 	ResetGoalEntity(self);
@@ -132,7 +135,7 @@ static float goal_client(gedict_t* self) {
 	else if (g_globalvars.time < virtual_enemy->invincible_finished) {
 		return 0;     // or with pent
 	}
-	else if (enemy_ == look_object_) {
+	else if (self->s.v.enemy == NUM_FOR_EDICT(look_object_)) {
 		return ((self->fb.total_damage + 100) * self->fb.firepower - virtual_enemy->fb.total_damage * virtual_enemy->fb.firepower) * 0.01;
 	}
 	else if (EnemyDefenceless(self)) {
@@ -164,6 +167,7 @@ void BotClientConnectedEvent(gedict_t* self) {
 	self->fb.skill.skill_level = g_globalvars.parm3;
 	self->fb.skill.lookahead_time = 30;
 	self->fb.skill.prediction_error = 0;
+	self->fb.ammo_used = DelayUpdateWeapons;
 
 	if (self->isBot) {
 		PlayerReady ();
@@ -173,6 +177,9 @@ void BotClientConnectedEvent(gedict_t* self) {
 // client.qc
 void BotOutOfWater(gedict_t* self) {
 	if (self->s.v.waterlevel == 2) {
+		vec3_t start;
+		vec3_t end;
+
 		// Tread water
 		self->fb.tread_water_count = self->fb.tread_water_count + 1;
 		if (self->fb.tread_water_count > 75) {

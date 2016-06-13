@@ -99,7 +99,9 @@ void BotsSoundMade(gedict_t* entity) {
 }
 
 // Evaluates a potential enemy (globals: path_normal)
-static void BestEnemy_apply(float* best_score, gedict_t** enemy_, float* predict_dist) {
+static void BestEnemy_apply(gedict_t* test_enemy, float* best_score, gedict_t** enemy_, float* predict_dist) {
+	float enemy_score;
+
 	path_normal = true;
 
 	look_marker = NULL;
@@ -135,16 +137,17 @@ void BestEnemy(gedict_t* self) {
 	float best_score = 1000000;
 	gedict_t* enemy_ = NULL;
 	float predict_dist = 600;
+	gedict_t* test_enemy;
 
 	for (test_enemy = world; test_enemy = find_plr(test_enemy); ) {
 		if ( ! SameTeam(self, test_enemy) ) {
 			from_marker = test_enemy->fb.touch_marker;
 			if (from_marker) {
 				to_marker = self->fb.touch_marker;
-				BestEnemy_apply(&best_score, &enemy_, &predict_dist);
+				BestEnemy_apply(test_enemy, &best_score, &enemy_, &predict_dist);
 				to_marker = from_marker;
 				from_marker = self->fb.touch_marker;
-				BestEnemy_apply(&best_score, &enemy_, &predict_dist);
+				BestEnemy_apply(test_enemy, &best_score, &enemy_, &predict_dist);
 			}
 		}
 	}

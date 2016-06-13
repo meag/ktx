@@ -3,6 +3,8 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
+extern gedict_t* dropper;
+
 void S_time_error() {
 	traveltime = 1000000;
 }
@@ -307,6 +309,9 @@ ZONE_PATH_MARKER_FUNCTION(24)
 
 // 
 void SightMarker(gedict_t* from_marker) {
+	gedict_t* marker_;
+	extern vec3_t to_marker_pos;
+
 	assert (from_marker);
 
 	look_traveltime = 1000000;
@@ -336,6 +341,10 @@ void SightMarker(gedict_t* from_marker) {
 }
 
 void HigherSightMarker(gedict_t* from_marker) {
+	gedict_t* marker_;
+	vec3_t marker_pos;
+	vec3_t to_marker_pos;
+
 	look_traveltime = 1000000;
 	middle_marker = from_marker;
 	zone_time = 0;

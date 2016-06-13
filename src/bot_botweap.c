@@ -8,6 +8,10 @@
 
 // FIXME: globals, this is just setting
 extern gedict_t* look_object_;
+extern float risk_factor;
+extern vec3_t rel_pos;
+extern float rel_dist;
+extern float risk;
 
 void DM6SelectWeaponToOpenDoor (gedict_t* self);
 
@@ -208,7 +212,7 @@ static void SpamRocketShot (gedict_t* self)
 			// FIXME: This uses distance to enemy, not to testplace (?)
 			if (RocketSafe()) {
 				// FIXME: Aim lower?  This looks like copy & paste from BotsFireLogic()
-				//        Why self->origin + rel_pos when rel_pos = testplace - origin, why not just testplace?
+				//        Why self->origin + rel_pos when rel_pos = testplace - origin, why not just testplace? (or did RocketSafe() just overwrite?)
 				traceline(
 					self->s.v.origin[0],
 					self->s.v.origin[1],
@@ -237,6 +241,8 @@ static void RocketLauncherShot (gedict_t* self, float risk)
 	float hit_radius = 160;
 	vec3_t rocket_origin;     // where the rocket will be spawned from
 	vec3_t rocket_endpos;     // where it will explode
+	float risk_strength;
+	gedict_t* test_enemy;
 
 	// 
 	VectorCopy(self->s.v.origin, rocket_origin);
@@ -247,22 +253,24 @@ static void RocketLauncherShot (gedict_t* self, float risk)
 	risk_strength = g_globalvars.trace_fraction;
 
 	for (test_enemy = world; test_enemy = find_plr (test_enemy); ) {
+		float predict_dist = 1000000;
+		vec3_t testplace;
+
 		// Ignore corpses
 		if (!test_enemy->s.v.takedamage)
 			continue;
 
-		if (test_enemy == enemy_) {
-			predict_dist = 1000000;
-			if (look_object_ && look_object_->ct == ctPlayer) {
-				if (look_object_ == enemy_) {
+		if (test_enemy == &g_edicts[self->s.v.enemy]) {
+			if (self->fb.look_object && self->fb.look_object->ct == ctPlayer) {
+				if (self->fb.look_object == &g_edicts[self->s.v.enemy]) {
 					VectorCopy(self->fb.predict_origin, testplace);
 					predict_dist = VectorDistance(testplace, rocket_endpos);
 				}
 			}
-			else if (look_object_ && look_object_ != world) {
+			else if (self->fb.look_object && self->fb.look_object != world) {
 				if (self->fb.allowedMakeNoise && self->fb.predict_shoot) {
-					VectorAdd(look_object_->s.v.absmin, look_object_->s.v.view_ofs, testplace);
-					from_marker = enemy_->fb.touch_marker;
+					VectorAdd(self->fb.look_object->s.v.absmin, self->fb.look_object->s.v.view_ofs, testplace);
+					from_marker = g_edicts[self->s.v.enemy].fb.touch_marker;
 					path_normal = true;
 					look_object_->fb.zone_marker();
 					look_object_->fb.sub_arrival_time();
@@ -283,7 +291,7 @@ static void RocketLauncherShot (gedict_t* self, float risk)
 				if ( ! SameTeam(test_enemy, self)) {
 					// Enemy
 					risk_factor = risk_factor / risk_strength;
-					if (self->fb.look_object == enemy_) {
+					if (self->fb.look_object == &g_edicts[self->s.v.enemy]) {
 						self->fb.firing = true;
 					}
 					else if (predict_dist <= (80 / (1.2 - risk))) {
@@ -293,7 +301,7 @@ static void RocketLauncherShot (gedict_t* self, float risk)
 						SpamRocketShot (self);
 
 						if ((int)self->s.v.items & IT_GRENADE_LAUNCHER) {
-							if (enemy_ && enemy_ != world && !self->fb.rocketjumping) {
+							if (self->s.v.enemy && !self->fb.rocketjumping) {
 								if (self->fb.allowedMakeNoise && self->s.v.ammo_rockets > 3 && !visible_teammate(self)) {
 									if (self->fb.arrow == BACK) {
 										self->fb.botchose = 1;
@@ -320,7 +328,7 @@ static void RocketLauncherShot (gedict_t* self, float risk)
 
 void SetFireButton(gedict_t* self) {
 	// Only fire in pre-war if enemy attacked us
-	if (match_in_progress == 0 && (g_globalvars.time + random()) < enemy_->attack_finished) {
+	if (match_in_progress == 0 && (g_globalvars.time + random()) < g_edicts[self->s.v.enemy].attack_finished) {
 		self->fb.firing = false;
 		return;
 	}
@@ -332,7 +340,7 @@ void SetFireButton(gedict_t* self) {
 	}
 
 	if (self->fb.firing) {
-		if (look_object_ == enemy_) {
+		if (self->fb.look_object == &g_edicts[self->s.v.enemy]) {
 			if (random() < 0.666667) {
 				if (!self->fb.next_impulse) {
 					return;
@@ -364,10 +372,10 @@ void SetFireButton(gedict_t* self) {
 			return;
 		}
 
-		if (enemy_ && enemy_->fb.touch_marker) {
-			traceline(origin_[0], origin_[1], origin_[2] + 16, origin_[0] + rel_pos[0], origin_[1] + rel_pos[1], origin_[2] + rel_pos[2] + 16, false, self);
+		if (self->s.v.enemy && g_edicts[self->s.v.enemy].fb.touch_marker) {
+			traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 16, self->s.v.origin[0] + rel_pos[0], self->s.v.origin[1] + rel_pos[1], self->s.v.origin[2] + rel_pos[2] + 16, false, self);
 			if (g_globalvars.trace_fraction == 1) {
-				if (self->s.v.weapon != IT_ROCKET_LAUNCHER && look_object_ != enemy_) {
+				if (self->s.v.weapon != IT_ROCKET_LAUNCHER && self->fb.look_object != &g_edicts[self->s.v.enemy]) {
 					return;
 				}
 			}
@@ -377,18 +385,17 @@ void SetFireButton(gedict_t* self) {
 					if (!SameTeam(traced, self)) {
 						if (!((int)self->s.v.flags & FL_WATERJUMP)) {
 							self->s.v.enemy = NUM_FOR_EDICT( traced );
-							enemy_ = traced;
-							LookEnemy(self, enemy_);
+							LookEnemy(self, traced);
 						}
 					}
 					return;
 				}
 				else {
-					if (look_object_ == enemy_) {
+					if (self->fb.look_object == &g_edicts[self->s.v.enemy]) {
 						if (!self->s.v.waterlevel) {
 							if (self->fb.allowedMakeNoise) {
 								if ((int)self->s.v.flags & FL_ONGROUND) {
-									traceline(origin_[0], origin_[1], origin_[2] + 32, origin_[0] + rel_pos[0], origin_[1] + rel_pos[1], origin_[2] + rel_pos[2] + 32 , false, self);
+									traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 32, self->s.v.origin[0] + rel_pos[0], self->s.v.origin[1] + rel_pos[1], self->s.v.origin[2] + rel_pos[2] + 32 , false, self);
 									self->fb.jumping |= (g_globalvars.trace_fraction == 1);
 								}
 							}
@@ -426,11 +433,11 @@ static int DesiredWeapon(void) {
 
 	if ((int)self->s.v.items & IT_QUAD) {
 		if (teamplay != 1 && teamplay != 5) {
-			search_entity = identify_teammate_(self);
+			gedict_t* search_entity = identify_teammate_(self);
 			if (!search_entity->invincible_time) {
 				if (VisibleEntity(search_entity)) {
 					if (self->fb.enemy_visible) {
-						if (VectorDistance(search_entity->s.v.origin, enemy_->s.v.origin) < 150) {
+						if (VectorDistance(search_entity->s.v.origin, g_edicts[self->s.v.enemy].s.v.origin) < 150) {
 							if (self->s.v.ammo_shells) {
 								return IT_SHOTGUN;
 							}
@@ -473,9 +480,10 @@ static int DesiredWeapon(void) {
 			if (items_ & IT_LIGHTNING) {
 				if (self->s.v.ammo_cells) {
 					if (self->fb.enemy_dist <= 600) {
-						if (look_object_ == enemy_) {
-							vec3_t diff;
-							VectorSubtract(look_object_->s.v.origin, origin_, diff);
+						if (self->fb.look_object == &g_edicts[self->s.v.enemy]) {
+							vec3_t diff, enemy_angles;
+
+							VectorSubtract(self->fb.look_object->s.v.origin, self->s.v.origin, diff);
 							vectoangles(diff, enemy_angles);
 							if (enemy_angles[0] < 15) {
 								if (enemy_angles[0] > -15) {
@@ -583,11 +591,8 @@ void SelectWeapon(void) {
 	CheckNewWeapon( DesiredWeapon() );
 }
 
-void DelayUpdateWeapons() {
-	weapon_refresh_time_ = g_globalvars.time + 1;
-	if (self->fb.weapon_refresh_time > weapon_refresh_time_) {
-		self->fb.weapon_refresh_time = weapon_refresh_time_;
-	}
+void DelayUpdateWeapons(gedict_t* self) {
+	self->fb.weapon_refresh_time = min (g_globalvars.time + 1, self->fb.weapon_refresh_time);
 }
 
 void UpdateWeapons() {
