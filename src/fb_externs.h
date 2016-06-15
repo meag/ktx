@@ -1,4 +1,4 @@
-
+/*
 #ifndef FB_EXTERNS_H
 #define FB_EXTERNS_H
 
@@ -168,3 +168,4 @@ extern gedict_t* to_zone;
 extern gedict_t* search_entity;
 
 #endif
+*/

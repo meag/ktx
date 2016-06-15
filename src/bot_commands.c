@@ -300,8 +300,9 @@ void BotStartFrame(int framecount) {
 		hazard_time = TimeTrigger (&next_hazard_time, 0.025);
 
 		FrogbotPrePhysics1 ();
+
+		// FIXME: This was called before any BotThink() before
 		FrogbotPrePhysics2 ();
-		FrogbotPostPhysics ();
 
 		for (i = 0; i < MAX_BOTS; ++i) {
 			if (bots[i].entity) {

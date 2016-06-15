@@ -251,6 +251,9 @@ intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, 
 
 		BothPostThink ();
 
+		if ( bots_enabled() )
+			FrogbotPostPhysics ();
+
 		return 1;
 
 	case GAME_EDICT_TOUCH:

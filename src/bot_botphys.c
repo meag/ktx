@@ -21,7 +21,7 @@ int NumberOfClients (void)
 
 //Sets self.obstruction_normal to be horizontal normal direction into wall obstruction encountered
 // during quake physics (ie. between PlayerPreThink and PlayerPostThink)
-void obstruction() {
+static void obstruction(gedict_t* self) {
 	vec3_t delta_velocity = { 0 };
 
 	VectorSubtract(self->fb.oldvelocity, self->s.v.velocity, delta_velocity);
@@ -57,6 +57,7 @@ void obstruction() {
 			normalize(self->fb.velocity_normal, self->fb.obstruction_normal);
 			return;
 		}
+
 		VectorCopy(self->fb.oldvelocity, hor_velocity);
 		hor_velocity[2] = 0;
 		if (hor_velocity[0] || hor_velocity[1] || hor_velocity[2]) {
@@ -66,6 +67,7 @@ void obstruction() {
 			return;
 		}
 	}
+
 	VectorClear(self->fb.obstruction_normal);
 }
 
@@ -277,7 +279,7 @@ void FrogbotPrePhysics1(void) {
 			VectorCopy(self->s.v.velocity, self->fb.oldvelocity);
 			VelocityForArrow(self);
 			if (IsHazardFrame()) {
-				AvoidHazards();
+				AvoidHazards(self);
 			}
 		}
 	}
@@ -377,11 +379,13 @@ void FrogbotPrePhysics2() {
 }
 
 void FrogbotPostPhysics(void) {
-	for (self = world; self = find_plr (self); ) {
+	//gedict_t* old_self = self;
+
+	//for (self = world; self = find_plr (self); ) {
 		if (self->isBot) {
 			self->s.v.waterlevel = self->fb.oldwaterlevel;
 			self->s.v.watertype = self->fb.oldwatertype;
-			obstruction();
+			obstruction(self);
 			if (self->fb.obstruction_normal[0] || self->fb.obstruction_normal[1] || self->fb.obstruction_normal[2]) {
 				vec3_t temp, originDiff;
 				vec3_t new_velocity;
@@ -397,6 +401,7 @@ void FrogbotPostPhysics(void) {
 				VectorSubtract(self->s.v.origin, self->s.v.oldorigin, originDiff);
 				VectorSubtract(temp, originDiff, temp);
 				dist = DotProduct(temp, self->fb.obstruction_normal);
+
 				oldflags = self->s.v.flags;
 				self->s.v.flags = (int) self->s.v.flags | FL_ONGROUND_PARTIALGROUND;
 				if (walkmove(self, yaw, dist)) {
@@ -411,5 +416,7 @@ void FrogbotPostPhysics(void) {
 				}
 			}
 		}
-	}
+	//}
+
+//	self = old_self;
 }

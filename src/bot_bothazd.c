@@ -630,7 +630,7 @@ static void AvoidHazardsInAir (gedict_t* self, float hor_speed, vec3_t new_origi
 
 // FIXME: Globals.
 // FIXME: Magic numbers all over the place.
-void AvoidHazards(void) {
+void AvoidHazards(gedict_t* self) {
 	float hor_speed = 0;
 	vec3_t new_origin = { 0 };
 	vec3_t new_velocity = { 0 };

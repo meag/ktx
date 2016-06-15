@@ -496,7 +496,7 @@ void CopyBot(gedict_t* e, gedict_t* f);
 void remove_self(void);
 
 // bothazd.qc
-void AvoidHazards(void);
+void AvoidHazards(gedict_t* self);
 void NewVelocityForArrow (gedict_t* self, vec3_t dir_move);
 
 // route_lookup.qc
