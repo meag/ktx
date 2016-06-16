@@ -365,7 +365,7 @@ static qbool fb_armor_touch (gedict_t* item, gedict_t* player)
 			player->fb.path_state = 0;
 			player->fb.linked_marker_time = g_globalvars.time + 0.5f;
 			player->fb.goal_refresh_time = g_globalvars.time + 2 + random ();
-			G_bprint (2, "Waiting for HURT_SELF\n");
+			G_bprint (2, "Wait(HURT_SELF): %f vs %f armor\n", player->fb.total_armor, item->fb.total_armor);
 			return true; // wait
 		}
 	}
@@ -377,19 +377,21 @@ static void fb_spawn_armor(gedict_t* ent) {
 	if (streq(ent->s.v.classname, "item_armor1")) {
 		ent->fb.desire = goal_armor1;
 		ent->fb.pickup = pickup_armor1;
+		ent->fb.total_armor = (k_yawnmode ? 0.4 : 0.3) * 100.0f;
 	}
 	else if (streq(ent->s.v.classname, "item_armor2")) {
 		ent->fb.desire = goal_armor2;
 		ent->fb.pickup = pickup_armor2;
+		ent->fb.total_armor = (k_yawnmode ? 0.6 : 0.6) * 150.0f;
 	}
 	else if (streq(ent->s.v.classname, "item_armorInv")) {
 		ent->fb.desire = goal_armorInv;
 		ent->fb.pickup = pickup_armorInv;
+		ent->fb.total_armor = (k_yawnmode ? 0.8 : 0.8) * 200.0f;
 	}
 
 	ent->fb.item_taken = fb_armor_taken;
 	ent->fb.item_touch = fb_armor_touch;
-	ent->fb.total_armor = ent->s.v.armortype * ent->s.v.armorvalue;
 	ent->fb.item_respawned = AssignVirtualGoal;
 
 	StartItemFB(ent);

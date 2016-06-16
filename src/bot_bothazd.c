@@ -5,7 +5,6 @@
 
 // A lot of this is the bot 'cheating'?..
 #define ARROW_TIME_AFTER_TELEPORT 0.20  // was 0.5
-#define ARROW_TIME_INCREASE       0.15  // Increase after NewVelocityForArrow
 
 // FIXME: Local globals
 static float first_trace_fraction = 0;
@@ -143,20 +142,6 @@ static void RocketAlert(void) {
 	VectorMA (self->s.v.origin, 600, self->s.v.velocity, end_point);
 	traceline(PASSVEC3(self->s.v.origin), PASSVEC3(end_point), true, PROG_TO_EDICT(self->s.v.owner));
 	ExplodeAlert(g_globalvars.trace_endpos, 0.5);
-}
-
-void NewVelocityForArrow(gedict_t* self, vec3_t dir_move) {
-	float best_arrow = BestArrowForDirection(self, dir_move);
-
-	if (self->fb.arrow != best_arrow) {
-		VectorCopy(dir_move, self->fb.dir_move_);
-		self->fb.arrow = best_arrow;
-		self->fb.arrow_time = g_globalvars.time + ARROW_TIME_INCREASE;
-		// FIXME: Not convinced what is going on here
-		//VectorCopy(oldvelocity_, self->s.v.velocity);
-		//VectorCopy(oldvelocity_, self->fb.real_direction);
-		VelocityForArrow(self);
-	}
 }
 
 // 
@@ -667,8 +652,9 @@ void AvoidHazards(gedict_t* self) {
 	}
 
 	// FIXME: should this be current velocity or proposed velocity (self->fb.dir_move_, scaled by speed?)
-	VectorCopy(self->s.v.velocity, new_velocity);
-	if ((int)self->fb.path_state & JUMP_LEDGE) {
+	//VectorCopy(self->s.v.velocity, new_velocity);
+	VectorScale (self->fb.dir_move_, sv_maxspeed, new_velocity);
+	if (self->fb.path_state & JUMP_LEDGE) {
 		if (JumpLedgeLogic (self, new_velocity))
 			return;
 	}

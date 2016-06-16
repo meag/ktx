@@ -448,7 +448,7 @@ void bprint_ftos(int level, float value);
 void bprint_g(int level, float f);
 
 // botutil.qc
-float BestArrowForDirection(gedict_t* self, const vec3_t dir_move);
+int BestArrowForDirection(gedict_t* self, const vec3_t dir_move);
 
 // botwater.qc
 void BotWaterMove (gedict_t* self);
