@@ -345,8 +345,8 @@ void BotStartFrame(int framecount) {
 
 void SetLinkedMarker (gedict_t* player, gedict_t* marker)
 {
-	if (player->isBot && marker != player->fb.linked_marker)
-		G_bprint (2, "linked to %3d/%s, g %s\n", marker ? marker->fb.index : -1, marker ? marker->s.v.classname : "(null)", g_edicts[player->s.v.goalentity].s.v.classname);
+	//if (player->isBot && marker != player->fb.linked_marker)
+	//	G_bprint (2, "linked to %3d/%s, g %s\n", marker ? marker->fb.index : -1, marker ? marker->s.v.classname : "(null)", g_edicts[player->s.v.goalentity].s.v.classname);
 
 	player->fb.linked_marker = marker;
 }

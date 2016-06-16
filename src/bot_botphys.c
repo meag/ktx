@@ -6,6 +6,27 @@
 static float unstick_time = 0;
 static qbool no_bots_stuck = 0;
 
+static const char* ArrowName (int arrow)
+{
+	static char name[64];
+
+	name[0] = 0;
+	if (arrow & FORWARD)
+		strlcat (name, "Fwd ", sizeof (name));
+	if (arrow & BACK)
+		strlcat (name, "Back ", sizeof (name));
+	if (arrow & LEFT)
+		strlcat (name, "Left ", sizeof (name));
+	if (arrow & RIGHT)
+		strlcat (name, "Rght ", sizeof (name));
+	if (arrow & UP)
+		strlcat (name, "Up ", sizeof (name));
+	if (arrow & DOWN)
+		strlcat (name, "Down ", sizeof (name));
+
+	return name;
+}
+
 int NumberOfClients (void)
 {
 	int count = 0;
@@ -99,7 +120,7 @@ static void obstruction(gedict_t* self) {
 }
 
 void VelocityForArrow(gedict_t* self) {
-	vec3_t dir_forward = { 0, 0, 0 };
+	/*vec3_t dir_forward = { 0 };
 	int arrow_ = 0;
 	float accel_forward = 0;
 	float velocity_forward = 0;
@@ -178,7 +199,7 @@ void VelocityForArrow(gedict_t* self) {
 		trap_makevectors(self->s.v.v_angle);
 		if (arrow_ & FORWARD) {
 			if (arrow_ == FORWARD) {
-				VectorCopy(dir_forward, g_globalvars.v_forward);
+				VectorCopy(g_globalvars.v_forward, dir_forward);
 			}
 			else if (arrow_ == FORWARD_LEFT) {
 				vec3_t forward, side;
@@ -266,7 +287,13 @@ void VelocityForArrow(gedict_t* self) {
 	//VectorMA(self->fb.real_direction, accel_forward, dir_forward, self->fb.real_direction);
 	//VectorMA(self->fb.dir_move_, accel_forward, dir_forward, self->fb.dir_move_);
 	//VectorMA(self->fb.dir_move_, accel_forward, dir_forward, self->fb.dir_move_);
-	VectorMA(self->fb.dir_move_, accel_forward, dir_forward, self->fb.dir_move_);
+
+	VectorCopy (dir_forward, self->fb.dir_move_);
+	//VectorMA(self->fb.dir_move_, accel_forward, dir_forward, self->fb.dir_move_); // (was this)
+	//VectorNormalize (self->fb.dir_move_);
+
+	//G_bprint (2, "Arrow %s => [%f %f %f]\n", ArrowName(self->fb.arrow), PASSVEC3(self->fb.dir_move_));
+	*/
 }
 
 void FrogbotPrePhysics1(void) {

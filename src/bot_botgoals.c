@@ -231,7 +231,7 @@ static void EnemyGoalLogic (gedict_t* self)
 	}
 }
 
-void UpdateGoal(void) {
+void UpdateGoal(gedict_t* self) {
 	int i = 0;
 	int items_ = self->s.v.items;
 	gedict_t* enemy_ = &g_edicts[self->s.v.enemy];

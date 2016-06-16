@@ -505,7 +505,7 @@ static void AvoidHazardsOnGround (gedict_t* self, float hor_speed, vec3_t new_or
 	}
 
 	if (fall >= FALL_LAND) {
-		G_bprint (2, ">= FALL_LAND\n");
+		//G_bprint (2, ">= FALL_LAND\n");
 		VectorCopy(testplace, jump_origin);
 		new_fall = fall;
 		VectorCopy(new_origin, testplace);
@@ -517,7 +517,7 @@ static void AvoidHazardsOnGround (gedict_t* self, float hor_speed, vec3_t new_or
 			self->fb.path_state &= ~DELIBERATE_AIR;
 		}
 		if (new_fall > fall) {
-			G_bprint (2, "%s: %d (%s) -> %d (%s)\n", self->s.v.netname, self->fb.touch_marker->fb.index, self->fb.touch_marker->s.v.classname, self->fb.linked_marker->fb.index, self->fb.linked_marker->s.v.classname);
+			//G_bprint (2, "%s: %d (%s) -> %d (%s)\n", self->s.v.netname, self->fb.touch_marker->fb.index, self->fb.touch_marker->s.v.classname, self->fb.linked_marker->fb.index, self->fb.linked_marker->s.v.classname);
 			if (g_globalvars.time > self->fb.arrow_time2) {
 				// Can fall and still get across (?)
 				VectorCopy(new_velocity, jump_velocity);
@@ -535,16 +535,16 @@ static void AvoidHazardsOnGround (gedict_t* self, float hor_speed, vec3_t new_or
 				VectorCopy(new_velocity, jump_velocity);
 				jump_velocity[2] += JUMPSPEED;
 				if (CanJumpOver(self, jump_origin, jump_velocity, fallheight, fall)) {
-					G_bprint (2, "    CanJumpOver(jumpo[%f %f %f] v[%f %f %f] %f %d %f)\n", PASSVEC3 (new_origin), PASSVEC3(jump_velocity), fallheight, fall, hor_speed);
+					//G_bprint (2, "    CanJumpOver(jumpo[%f %f %f] v[%f %f %f] %f %d %f)\n", PASSVEC3 (new_origin), PASSVEC3(jump_velocity), fallheight, fall, hor_speed);
 					self->fb.jumping = true;
 					self->fb.path_state |= DELIBERATE_AIR_WAIT_GROUND | (self->fb.turning_speed ? AIR_ACCELERATION : 0);
 					return;
 				}
 
-				G_bprint (2, "    Failed CanJumpOver tests: [%f %f %f, %f %f %f, %f, %d, %f]\n", PASSVEC3(new_origin), PASSVEC3(jump_velocity), fallheight, fall, hor_speed);
+				//G_bprint (2, "    Failed CanJumpOver tests: [%f %f %f, %f %f %f, %f, %d, %f]\n", PASSVEC3(new_origin), PASSVEC3(jump_velocity), fallheight, fall, hor_speed);
 			}
 			else {
-				G_bprint (2, "    Not trying, arrow_time2 %f (%f, now %f)\n", self->fb.arrow_time2, self->fb.arrow_time, g_globalvars.time);
+				//G_bprint (2, "    Not trying, arrow_time2 %f (%f, now %f)\n", self->fb.arrow_time2, self->fb.arrow_time, g_globalvars.time);
 			}
 			AvoidEdge(self);
 		}

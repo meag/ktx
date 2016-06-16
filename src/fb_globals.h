@@ -530,10 +530,10 @@ void CheckCombatJump(void);
 void a_rocketjump (gedict_t* self);
 
 // botgoal.qc
-void UpdateGoal(void);
+void UpdateGoal(gedict_t* self);
 
 // botpath.qc
-void frogbot_marker_touch(void);
+void ProcessNewLinkedMarker(gedict_t* self);
 
 // marker_load.qc
 void CreateMarker(float x, float y, float z);

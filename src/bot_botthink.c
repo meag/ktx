@@ -69,8 +69,8 @@ static void BotSetMouseParameters (gedict_t* self)
 // Sets a client's last marker
 void SetMarker(gedict_t* client, gedict_t* marker) {
 	client->fb.touch_distance = 0;
-	if (client->isBot && client->fb.touch_marker != marker)
-		G_bprint (2, "touch to %3d/%s, g %s\n", marker ? marker->fb.index : -1, marker ? marker->s.v.classname : "(null)", g_edicts[client->s.v.goalentity].s.v.classname);
+	//if (client->isBot && client->fb.touch_marker != marker)
+		//G_bprint (2, "touch to %3d/%s, g %s\n", marker ? marker->fb.index : -1, marker ? marker->s.v.classname : "(null)", g_edicts[client->s.v.goalentity].s.v.classname);
 	client->fb.touch_marker = marker;
 	client->fb.Z_ = marker ? marker->fb.Z_ : 0;
 	client->fb.touch_marker_time = g_globalvars.time + 5;
@@ -243,10 +243,10 @@ static void BotMoveTowardsLinkedMarker(gedict_t* self, vec3_t dir_move) {
 
 // Called when the bot has a touch marker set
 static void BotTouchMarkerLogic() {
-	TargetEnemyLogic();
+	TargetEnemyLogic(self);
 
 	if (g_globalvars.time >= self->fb.goal_refresh_time) {
-		UpdateGoal();
+		UpdateGoal(self);
 	}
 
 	if (g_globalvars.time >= self->fb.linked_marker_time) {
@@ -254,7 +254,7 @@ static void BotTouchMarkerLogic() {
 	}
 
 	if (self->fb.old_linked_marker != self->fb.touch_marker) {
-		frogbot_marker_touch();
+		ProcessNewLinkedMarker(self);
 	}
 
 	if (g_globalvars.time < self->fb.arrow_time) {
@@ -273,7 +273,7 @@ static void BotTouchMarkerLogic() {
 		BotMoveTowardsLinkedMarker(self, dir_move);
 		BotOnGroundMovement(self, dir_move);
 
-		self->fb.arrow = BestArrowForDirection(self, dir_move);
+		//self->fb.arrow = BACK_RIGHT;// 0; //BestArrowForDirection(self, dir_move);
 		VectorCopy(dir_move, self->fb.dir_move_);
 	}
 

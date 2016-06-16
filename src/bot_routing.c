@@ -154,17 +154,14 @@ static void BotRouteEvaluation (qbool be_quiet, float lookahead_time, gedict_t* 
 }
 
 void PathScoringLogic(
-	float goal_respawn_time, qbool be_quiet, float lookahead_time, qbool path_normal, vec3_t player_origin, vec3_t player_velocity, gedict_t* touch_marker_,
+	float goal_respawn_time, qbool be_quiet, float lookahead_time, qbool path_normal, vec3_t player_origin, vec3_t player_direction, gedict_t* touch_marker_,
 	gedict_t* goalentity_marker, qbool rocket_alert, qbool rocket_jump_routes_allowed,
 	qbool trace_bprint, float *best_score, gedict_t** linked_marker_, int* new_path_state
 )
 {
-	vec3_t player_direction;
 	float current_goal_time = 0;
 	float current_goal_time_125 = 0;
 	float goal_late_time = 0;
-
-	normalize (player_velocity, player_direction);
 
 	G_bprint_debug (2, "PathScoringLogic(\n");
 	G_bprint_debug (2, "  goal_respawn_time = %f\n", goal_respawn_time);

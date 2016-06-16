@@ -134,7 +134,7 @@ static qbool OnLift (gedict_t* self)
 	return false;
 }
 
-void frogbot_marker_touch(void) {
+void ProcessNewLinkedMarker(gedict_t* self) {
 	gedict_t* goalentity_ = &g_edicts[self->s.v.goalentity];
 	gedict_t* goalentity_marker = (goalentity_ == world || (self->fb.state & RUNAWAY) ? NULL : goalentity_->fb.touch_marker);
 	qbool trace_bprint = self->fb.debug;
@@ -267,8 +267,8 @@ void frogbot_marker_touch(void) {
 	self->fb.be_quiet = (self->s.v.enemy && &g_edicts[self->s.v.enemy] != self->fb.look_object && !self->fb.allowedMakeNoise);
 	
 	new_linked_marker = self->fb.linked_marker;
-	self->fb.debug = (goalentity_marker->fb.index == 8 && self->fb.touch_marker->fb.index == 71);
-	PathScoringLogic (self->fb.goal_respawn_time, self->fb.be_quiet, self->fb.skill.lookahead_time, self->fb.path_normal_, self->s.v.origin, self->s.v.velocity, self->fb.touch_marker, goalentity_marker, rocket_alert, rocket_jump_routes_allowed, trace_bprint, &best_score, &new_linked_marker, &new_path_state);
+	self->fb.debug = (goalentity_marker != NULL && goalentity_marker->fb.index == 8 && self->fb.touch_marker->fb.index == 71);
+	PathScoringLogic (self->fb.goal_respawn_time, self->fb.be_quiet, self->fb.skill.lookahead_time, self->fb.path_normal_, self->s.v.origin, player_direction, self->fb.touch_marker, goalentity_marker, rocket_alert, rocket_jump_routes_allowed, trace_bprint, &best_score, &new_linked_marker, &new_path_state);
 	if (new_linked_marker != self->fb.linked_marker)
 		G_bprint (2, "Path: ");
 	SetLinkedMarker (self, new_linked_marker);
