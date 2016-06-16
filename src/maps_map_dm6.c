@@ -788,7 +788,7 @@ void DM6CampLogic() {
 							if (VectorDistance(search_entity->s.v.origin, self->s.v.origin) < 200) {
 								if (random() < 0.9) {
 									self->fb.camp_state |= CAMPBOT;
-									self->fb.linked_marker = self->fb.touch_marker;
+									SetLinkedMarker(self, self->fb.touch_marker);
 								}
 							}
 							else  {

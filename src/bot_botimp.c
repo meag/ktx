@@ -42,10 +42,11 @@ void InitParameters() {
 	setsize(dropper, PASSVEC3( VEC_HULL_MIN ), PASSVEC3( VEC_HULL_MAX ));
 	dropper->fb.desire = goal_NULL;
 	dropper->fb.virtual_goal = dropper;
+	dropper->s.v.movetype = MOVETYPE_STEP;
 	
 	self = dropper;
 	NewItems();
-	InitBodyQue();
+//	InitBodyQue();
 
 	//initialize(); // TODO: RA initialization?
 

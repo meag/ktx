@@ -189,7 +189,7 @@ void BotWaterJumpFix() {
 		if (self->fb.tread_water_count > 60) {
 			self->fb.tread_water_count = 0;
 			self->fb.old_linked_marker = NULL;
-			self->fb.linked_marker = LocateMarker(self->s.v.origin);
+			SetLinkedMarker(self, LocateMarker(self->s.v.origin));
 			self->fb.path_state = 0;
 			self->fb.linked_marker_time = g_globalvars.time + 5;
 		}

@@ -19,6 +19,33 @@ int NumberOfClients (void)
 	return count;
 }
 
+static void AirControl (gedict_t* self, vec3_t hor_velocity, float hor_speed)
+{
+	vec3_t temp;
+	float max_accel_forward = sv_accelerate * g_globalvars.frametime * sv_maxspeed;
+	vec3_t velocity_hor_angle = { 0, vectoyaw(hor_velocity) + (self->fb.turning_speed * g_globalvars.frametime), 0 };
+	vec3_t desired_accel;
+	vec3_t dir_forward;
+	float accel_forward = 0;
+	float velocity_forward = 0;
+
+	trap_makevectors(velocity_hor_angle);
+	VectorScale(g_globalvars.v_forward, hor_speed, temp);
+	VectorSubtract(temp, hor_velocity, desired_accel);
+	normalize(desired_accel, dir_forward);
+	accel_forward = min(vlen(desired_accel), max_accel_forward);
+	velocity_forward = DotProduct(self->s.v.velocity, dir_forward);
+	if ((velocity_forward + accel_forward) > 30) {
+		accel_forward = 30 - velocity_forward;
+		if (accel_forward < 0) {
+			accel_forward = 0;
+		}
+	}
+	// TODO: this is wrong, set the command instead
+	//VectorMA(self->s.v.velocity, accel_forward, dir_forward, self->s.v.velocity);
+	VectorMA(self->fb.dir_move_, accel_forward, dir_forward, self->fb.dir_move_);
+}
+
 //Sets self.obstruction_normal to be horizontal normal direction into wall obstruction encountered
 // during quake physics (ie. between PlayerPreThink and PlayerPostThink)
 static void obstruction(gedict_t* self) {
@@ -118,30 +145,8 @@ void VelocityForArrow(gedict_t* self) {
 					}
 				}
 
-				// FIXME: Air movement
 				if (!((int)self->s.v.flags & FL_ONGROUND)) {
-					vec3_t temp;
-					float max_accel_forward = sv_accelerate * g_globalvars.frametime * sv_maxspeed;
-					vec3_t velocity_hor_angle = { 0, vectoyaw(hor_velocity) + (self->fb.turning_speed * g_globalvars.frametime), 0 };
-					vec3_t desired_accel;
-
-					trap_makevectors(velocity_hor_angle);
-					VectorScale(g_globalvars.v_forward, hor_speed, temp);
-					VectorSubtract(temp, hor_velocity, desired_accel);
-					normalize(desired_accel, dir_forward);
-					accel_forward = min(vlen(desired_accel), max_accel_forward);
-					velocity_forward = DotProduct(self->s.v.velocity, dir_forward);
-					if ((velocity_forward + accel_forward) > 30) {
-						accel_forward = 30 - velocity_forward;
-						if (accel_forward < 0) {
-							accel_forward = 0;
-						}
-					}
-					// TODO: this is wrong, set the command instead
-					//VectorMA(self->s.v.velocity, accel_forward, dir_forward, self->s.v.velocity);
-					//VectorCopy (dir_forward, self->fb.real_direction);
-					//VectorMA(self->fb.real_direction, accel_forward, dir_forward, self->fb.real_direction);
-					VectorMA(self->fb.dir_move_, accel_forward, dir_forward, self->fb.dir_move_);
+					AirControl (self, hor_velocity, hor_speed);
 					return;
 				}
 			}
@@ -261,7 +266,7 @@ void VelocityForArrow(gedict_t* self) {
 	//VectorMA(self->fb.real_direction, accel_forward, dir_forward, self->fb.real_direction);
 	//VectorMA(self->fb.dir_move_, accel_forward, dir_forward, self->fb.dir_move_);
 	//VectorMA(self->fb.dir_move_, accel_forward, dir_forward, self->fb.dir_move_);
-	VectorMA(self->fb.dir_move_, 300, dir_forward, self->fb.dir_move_);
+	VectorMA(self->fb.dir_move_, accel_forward, dir_forward, self->fb.dir_move_);
 }
 
 void FrogbotPrePhysics1(void) {

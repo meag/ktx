@@ -915,7 +915,7 @@ cmd_t cmds[] = {
 	{ "demomark",	 DemoMark,                  0    , CF_BOTH, CD_DEMOMARK },
 
 // { FROGBOTS
-	{ "botcmd",      FrogbotsCommand,           0    , CF_PLAYER | CF_PARAMS, CD_BOTCOMMAND }
+	{ "botcmd",      FrogbotsCommand,           0    , CF_BOTH | CF_PARAMS, CD_BOTCOMMAND }
 // }
 };
 

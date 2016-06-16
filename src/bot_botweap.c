@@ -234,7 +234,6 @@ static void RocketLauncherShot (gedict_t* self, float risk, float risk_factor)
 {
 	float hit_radius = 160;
 	vec3_t rocket_origin;     // where the rocket will be spawned from
-	vec3_t rocket_endpos;     // where it will explode
 	float risk_strength;
 	gedict_t* test_enemy;
 
@@ -243,7 +242,7 @@ static void RocketLauncherShot (gedict_t* self, float risk, float risk_factor)
 	rocket_origin[2] += 16;
 	trap_makevectors(self->s.v.v_angle);      // FIXME: desired angle?  will be one frame behind
 	traceline(rocket_origin[0], rocket_origin[1], rocket_origin[2], rocket_origin[0] + (g_globalvars.v_forward[0] * 600), rocket_origin[1] + (g_globalvars.v_forward[1] * 600), rocket_origin[2] + (g_globalvars.v_forward[2] * 600), false, self);
-	VectorCopy(g_globalvars.trace_endpos, rocket_endpos);
+	VectorCopy(g_globalvars.trace_endpos, self->fb.rocket_endpos);
 	risk_strength = g_globalvars.trace_fraction;
 
 	for (test_enemy = world; test_enemy = find_plr (test_enemy); ) {
@@ -258,7 +257,7 @@ static void RocketLauncherShot (gedict_t* self, float risk, float risk_factor)
 			if (self->fb.look_object && self->fb.look_object->ct == ctPlayer) {
 				if (self->fb.look_object == &g_edicts[self->s.v.enemy]) {
 					VectorCopy(self->fb.predict_origin, testplace);
-					predict_dist = VectorDistance(testplace, rocket_endpos);
+					predict_dist = VectorDistance(testplace, self->fb.rocket_endpos);
 				}
 			}
 			else if (self->fb.look_object && self->fb.look_object != world) {
@@ -268,18 +267,18 @@ static void RocketLauncherShot (gedict_t* self, float risk, float risk_factor)
 					path_normal = true;
 					self->fb.look_object->fb.zone_marker();
 					self->fb.look_object->fb.sub_arrival_time();
-					predict_dist = (traveltime * sv_maxspeed) + VectorDistance(testplace, rocket_endpos);
+					predict_dist = (traveltime * sv_maxspeed) + VectorDistance(testplace, self->fb.rocket_endpos);
 				}
 			}
 		}
 		else {
 			VectorCopy(test_enemy->s.v.origin, testplace);
-			predict_dist = VectorDistance(testplace, rocket_endpos);
+			predict_dist = VectorDistance(testplace, self->fb.rocket_endpos);
 		}
 
 		if (predict_dist <= (hit_radius / (1 - risk))) {
 			// See if the explosion would hurt that player
-			traceline(rocket_endpos[0], rocket_endpos[1], rocket_endpos[2], testplace[0], testplace[1], testplace[2], true, self);
+			traceline(PASSVEC3(self->fb.rocket_endpos), PASSVEC3(testplace), true, self);
 			if (g_globalvars.trace_fraction == 1) {
 				// Nothing blocking the explosion...
 				if ( ! SameTeam(test_enemy, self)) {
@@ -295,9 +294,9 @@ static void RocketLauncherShot (gedict_t* self, float risk, float risk_factor)
 						SpamRocketShot (self);
 
 						if ((int)self->s.v.items & IT_GRENADE_LAUNCHER) {
-							if (self->s.v.enemy && !self->fb.rocketjumping) {
-								if (self->fb.allowedMakeNoise && self->s.v.ammo_rockets > 3 && !visible_teammate(self)) {
-									if (self->fb.arrow == BACK) {
+							if (self->fb.arrow == BACK) {
+								if (self->s.v.enemy && !self->fb.rocketjumping) {
+									if (self->fb.allowedMakeNoise && self->s.v.ammo_rockets > 3 && !visible_teammate(self)) {
 										self->fb.botchose = 1;
 										self->fb.next_impulse = 6;
 										self->fb.firing = true;

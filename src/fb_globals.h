@@ -1,5 +1,7 @@
 // Converted from .qc on 05/02/2016
 
+#define PATH_SCORE_NULL -1000000
+
 typedef void (*fb_spawn_func_t)(gedict_t* ent);
 
 typedef struct fb_spawn_s {
@@ -446,7 +448,7 @@ void bprint_ftos(int level, float value);
 void bprint_g(int level, float f);
 
 // botutil.qc
-float BestArrowForDirection(gedict_t* self, vec3_t dir_move);
+float BestArrowForDirection(gedict_t* self, const vec3_t dir_move);
 
 // botwater.qc
 void BotWaterMove (gedict_t* self);
@@ -605,3 +607,13 @@ qbool IsHazardFrame (void);
 // fb_globals.c
 gedict_t* FirstZoneMarker (int zone);
 void AddZoneMarker (gedict_t* marker);
+
+// bot_commands.qc
+void SetLinkedMarker (gedict_t* player, gedict_t* marker);
+
+// bot_routing.qc
+void PathScoringLogic (
+	float goal_respawn_time, qbool be_quiet, float lookahead_time, qbool path_normal, vec3_t player_origin, vec3_t player_velocity, gedict_t* touch_marker_,
+	gedict_t* goalentity_marker, qbool rocket_alert, qbool rocket_jump_routes_allowed,
+	qbool trace_bprint, float *best_score, gedict_t** linked_marker_, int* new_path_state
+);

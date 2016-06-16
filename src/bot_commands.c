@@ -132,21 +132,26 @@ void PathScoringLogic (
 	qbool trace_bprint, float *best_score, gedict_t** linked_marker_, int* new_path_state
 );
 
-qbool CanJumpOver (gedict_t* self, vec3_t jump_origin, vec3_t jump_velocity, vec3_t last_clear_velocity, vec3_t last_clear_point, float fallheight, int current_fallspot);
+qbool CanJumpOver (gedict_t* self, vec3_t jump_origin, vec3_t jump_velocity, float fallheight, int current_fallspot);
 
 static void FrogbotsDebug (void)
 {
 	if (trap_CmdArgc () == 2) {
-		gedict_t* bot = &g_edicts[bots[0].entity];
+		gedict_t* bot = &g_edicts[(self->ct == ctSpec && self->s.v.goalentity ? self->s.v.goalentity : bots[0].entity)];
+		char data[1024] = { 0 };
 
-		G_sprint (self, 2, "Bot: %s\n", bot->s.v.netname);
-		G_sprint (self, 2, "  %s: %s (%d)\n", redtext ("Touch"), bot->fb.touch_marker ? bot->fb.touch_marker->s.v.classname : "(none)", bot->fb.touch_marker ? bot->fb.touch_marker->fb.index : -1);
-		G_sprint (self, 2, "  %s: %s\n", redtext ("Enemy"), bot->s.v.enemy == 0 ? "(none)" : g_edicts[bot->s.v.enemy].s.v.netname);
-		G_sprint (self, 2, "  %s: %s\n", redtext ("Looking"), bot->fb.look_object ? bot->fb.look_object->s.v.classname : "(nothing)");
-		G_sprint (self, 2, "  %s: %s\n", redtext ("VirtGoal"), bot->fb.virtual_goal ? bot->fb.virtual_goal->s.v.classname : "(nothing)");
-		G_sprint (self, 2, "  %s: %s\n", redtext ("GoalEnt"), bot->s.v.goalentity == 0 ? "(none)" : g_edicts[bot->s.v.goalentity].s.v.classname);
+		strlcpy(data, va("You: touch_marker %d\n\n", self->fb.touch_marker ? self->fb.touch_marker->fb.index : -1), sizeof(data));
 
-		bot->fb.debug = true;
+		strlcat(data, va("Bot: %s\n", bot->s.v.netname), sizeof(data));
+		strlcat(data, va("  %s: %s (%d)\n", redtext ("Touch"), bot->fb.touch_marker ? bot->fb.touch_marker->s.v.classname : "(none)", bot->fb.touch_marker ? bot->fb.touch_marker->fb.index : -1), sizeof(data));
+		strlcat(data, va("  %s: %s\n", redtext ("Enemy"), bot->s.v.enemy == 0 ? "(none)" : g_edicts[bot->s.v.enemy].s.v.netname), sizeof(data));
+		strlcat(data, va("  %s: %s\n", redtext ("Looking"), bot->fb.look_object ? bot->fb.look_object->s.v.classname : "(nothing)"), sizeof(data));
+		strlcat(data, va("  %s: %s\n", redtext ("VirtGoal"), bot->fb.virtual_goal ? bot->fb.virtual_goal->s.v.classname : "(nothing)"), sizeof(data));
+		strlcat(data, va("  %s: %s\n", redtext ("GoalEnt"), bot->s.v.goalentity == 0 ? "(none)" : g_edicts[bot->s.v.goalentity].s.v.classname), sizeof(data));
+
+		G_centerprint (self, data);
+
+		//bot->fb.debug = true;
 	}
 	else {
 		char sub_command[64];
@@ -185,6 +190,23 @@ static void FrogbotsDebug (void)
 				}
 			}
 		}
+		else if (streq (sub_command, "fall-air") && trap_CmdArgc () == 6) {
+			// botcmd debug fall-air x y z
+			vec3_t spot = { 0, 0, 0 };
+			int result = 0;
+
+			trap_CmdArgv (3, sub_command, sizeof (sub_command));
+			spot[0] = atof (sub_command);
+
+			trap_CmdArgv (4, sub_command, sizeof (sub_command));
+			spot[1] = atof (sub_command);
+
+			trap_CmdArgv (5, sub_command, sizeof (sub_command));
+			spot[2] = atof (sub_command);
+
+			result = FallSpotAir (spot, self->s.v.origin[2] - 38);
+			G_sprint (self, 2, "Result = %d\n", result);
+		}
 		else if (streq (sub_command, "path") && trap_CmdArgc() == 5) {
 			int start, end;
 
@@ -198,6 +220,7 @@ static void FrogbotsDebug (void)
 				gedict_t *to = markers[end];
 
 				if (from && to) {
+					G_sprint (self, 2, "%s -> %s\n", from->s.v.classname, to->s.v.classname);
 					G_sprint (self, 2, "From zone %d, subzone %d to zone %d subzone %d\n", from->fb.Z_, from->fb.S_, to->fb.Z_, to->fb.S_);
 					from_marker = from;
 					to->fb.zone_marker();
@@ -219,16 +242,22 @@ static void FrogbotsDebug (void)
 			}
 		}
 		else if (streq (sub_command, "jump")) {
+			/*
 			vec3_t jumpo = { -502.6, 39.1, 280.0 };
 			vec3_t jumpv = { -324.2, 217.3, 270 };
-			vec3_t clearo = { -618.5, 124.3, 225.6 };
-			vec3_t clearv = { -292.8, 258.0, -328.0 };
+			float fallheight = 242;
+			float current_fallspot = 0;
+			*/
+			vec3_t jumpo = { -500.4, 99.0, 280.0 };
+			vec3_t jumpv = { -317.2, -101.2, 270 };
+			float fallheight = 180;
+			float current_fallspot = 0;
 
 			qbool result;
 			
 			self->fb.oldsolid = self->s.v.solid;
 
-			result = CanJumpOver (self, jumpo, jumpv, clearv, clearo, 242, 0);
+			result = CanJumpOver (self, jumpo, jumpv, fallheight, current_fallspot);
 			if (result)
 				G_sprint (self, 2, "CanJumpOver\n");
 			else
@@ -296,8 +325,10 @@ void BotStartFrame(int framecount) {
 	else if (framecount > 20) {
 		int i = 0;
 
-		marker_time = TimeTrigger (&next_marker_time, 0.1);
-		hazard_time = TimeTrigger (&next_hazard_time, 0.025);
+		//G_bprint (2, "-- Frame %d --\n", framecount);
+
+		marker_time = true; //TimeTrigger (&next_marker_time, 0.1);
+		hazard_time = true; //TimeTrigger (&next_hazard_time, 0.025);
 
 		FrogbotPrePhysics1 ();
 
@@ -311,3 +342,12 @@ void BotStartFrame(int framecount) {
 		}
 	}
 }
+
+void SetLinkedMarker (gedict_t* player, gedict_t* marker)
+{
+	if (player->isBot && marker != player->fb.linked_marker)
+		G_bprint (2, "linked to %3d/%s, g %s\n", marker ? marker->fb.index : -1, marker ? marker->s.v.classname : "(null)", g_edicts[player->s.v.goalentity].s.v.classname);
+
+	player->fb.linked_marker = marker;
+}
+

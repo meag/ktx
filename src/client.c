@@ -1707,8 +1707,12 @@ void PutClientInServer( void )
 	WriteByte(MSG_ONE, 18 /*STAT_MATCHSTARTTIME*/);
 	WriteLong(MSG_ONE, g_matchstarttime);
 
-	if (self->isBot) {
-		BotClientEntersEvent (self, spot);
+	if (bots_enabled())
+	{
+		UpdateTotalDamage(self);
+
+		if (self->isBot)
+			BotClientEntersEvent (self, spot);
 	}
 }
 

@@ -7,8 +7,6 @@ void POVDMM4LookDoor(gedict_t* self);
 void AMPHI2BotInLava(void);
 qbool DM6FireAtDoor (gedict_t* self);
 
-static gedict_t* dodge_missile = NULL;
-
 // FIXME: Move to bot.skill
 #define CHANCE_EVADE_DUEL 0.08
 #define CHANCE_EVADE_NONDUEL 0.1
@@ -71,6 +69,8 @@ static void BotSetMouseParameters (gedict_t* self)
 // Sets a client's last marker
 void SetMarker(gedict_t* client, gedict_t* marker) {
 	client->fb.touch_distance = 0;
+	if (client->isBot && client->fb.touch_marker != marker)
+		G_bprint (2, "touch to %3d/%s, g %s\n", marker ? marker->fb.index : -1, marker ? marker->s.v.classname : "(null)", g_edicts[client->s.v.goalentity].s.v.classname);
 	client->fb.touch_marker = marker;
 	client->fb.Z_ = marker ? marker->fb.Z_ : 0;
 	client->fb.touch_marker_time = g_globalvars.time + 5;
@@ -87,11 +87,11 @@ void SetNextThinkTime(gedict_t* ent) {
 static void AvoidLookObjectsMissile(gedict_t* self) {
 	gedict_t* rocket;
 
-	dodge_missile = NULL;
+	self->fb.dodge_missile = NULL;
 	if (self->fb.look_object && self->fb.look_object->ct == ctPlayer) {
 		for (rocket = world; rocket = ez_find (rocket, "rocket"); ) {
-			if (rocket->s.v.owner == EDICT_TO_PROG (self->fb.look_object)) {
-				dodge_missile = rocket;
+			if (rocket->s.v.owner == EDICT_TO_PROG(self->fb.look_object)) {
+				self->fb.dodge_missile = rocket;
 				break;
 			}
 		}
@@ -143,8 +143,8 @@ static void NewlyPickedEnemyLogic() {
 	}
 }
 
-void TargetEnemyLogic() {
-	dodge_missile = NULL;
+void TargetEnemyLogic(gedict_t* self) {
+	self->fb.dodge_missile = NULL;
 
 	if (!(self->fb.state & NOTARGET_ENEMY)) {
 		if (self->fb.look_object && self->fb.look_object->ct == ctPlayer) {
@@ -180,21 +180,20 @@ static void BotOnGroundMovement(gedict_t* self, vec3_t dir_move) {
 
 	if ((int)self->s.v.flags & FL_ONGROUND) {
 		if (!(self->fb.path_state & NO_DODGE)) {
-			vec3_t temp;
-
 			// Dodge a rocket our enemy is firing at us
-			if (dodge_missile) {
-				if (PROG_TO_EDICT(dodge_missile->s.v.owner)->ct == ctPlayer) {
+			if (self->fb.dodge_missile) {
+				if (PROG_TO_EDICT(self->fb.dodge_missile->s.v.owner)->ct == ctPlayer) {
 					vec3_t rel_pos;
 
-					VectorSubtract(self->s.v.origin, dodge_missile->s.v.origin, rel_pos);
-					if (DotProduct(rel_pos, dodge_missile->fb.missile_forward) > 0.7071067) {
+					VectorSubtract(self->s.v.origin, self->fb.dodge_missile->s.v.origin, rel_pos);
+					if (DotProduct(rel_pos, self->fb.dodge_missile->fb.missile_forward) > 0.7071067) {
+						vec3_t temp;
 						normalize(rel_pos, temp);
-						dodge_factor = DotProduct(temp, dodge_missile->fb.missile_right);
+						dodge_factor = DotProduct(temp, self->fb.dodge_missile->fb.missile_right);
 					}
 				}
-				else  {
-					dodge_missile = NULL;
+				else {
+					self->fb.dodge_missile = NULL;
 				}
 			}
 
@@ -206,6 +205,7 @@ static void BotOnGroundMovement(gedict_t* self, vec3_t dir_move) {
 					VectorSubtract (self->s.v.origin, self->fb.look_object->s.v.origin, rel_pos);
 					trap_makevectors(self->fb.look_object->s.v.v_angle);
 					if (DotProduct(rel_pos, g_globalvars.v_forward) > 0) {
+						vec3_t temp;
 						normalize(rel_pos, temp);
 						dodge_factor = DotProduct(temp, g_globalvars.v_right);
 					}
@@ -260,7 +260,8 @@ static void BotTouchMarkerLogic() {
 	if (g_globalvars.time < self->fb.arrow_time) {
 		if (g_globalvars.time < self->fb.arrow_time2) {
 			if (random() < 0.5) {
-				self->fb.old_linked_marker = self->fb.linked_marker = self->fb.touch_marker;
+				SetLinkedMarker (self, self->fb.touch_marker);
+				self->fb.old_linked_marker = self->fb.linked_marker;
 				self->fb.path_state = 0;
 				self->fb.linked_marker_time = g_globalvars.time + 0.3;
 			}

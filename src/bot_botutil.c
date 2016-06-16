@@ -3,7 +3,7 @@
 #include "g_local.h"
 #include "fb_globals.h"
 
-float BestArrowForDirection(gedict_t* self, vec3_t dir_move) {
+float BestArrowForDirection(gedict_t* self, const vec3_t dir_move) {
 	vec3_t temp;
 	float best_dotproduct = 0;
 	float best_arrow = 0;

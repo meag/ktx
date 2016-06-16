@@ -749,5 +749,5 @@ void map_ztndm3() {
 	SetMarkerPathFlags(48, 5, ROCKET_JUMP);
 	SetMarkerPathFlags(21, 4, ROCKET_JUMP);
 	SetMarkerPathFlags(9, 2, ROCKET_JUMP);
-	SetMarkerPathFlags(90, 3, JUMP_LEDGE);
+	//SetMarkerPathFlags(90, 3, JUMP_LEDGE);
 }

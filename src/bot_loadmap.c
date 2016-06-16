@@ -59,7 +59,13 @@ static void fb_spawn_changelevel(gedict_t* ent) {
 
 static void fb_spawn_spawnpoint(gedict_t* ent) {
 	AddToQue(ent);
+	ent->s.v.solid = SOLID_TRIGGER;
+	ent->s.v.touch = (func_t) marker_touch;
+	ent->s.v.flags = FL_ITEM;
 	BecomeMarker(ent);
+	setsize(ent, -65, -65, -24, 65, 65, 32);
+	SetVector (ent->s.v.view_ofs, 80, 80, 24);
+	ent->fb.pickup = pickup_true;
 	adjust_view_ofs_z(ent);
 }
 

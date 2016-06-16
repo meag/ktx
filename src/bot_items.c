@@ -269,6 +269,7 @@ static void StartItemFB(gedict_t* ent)
 
 	ent->fb.item_placed = PlaceItemFB;
 	ent->fb.goal_respawn_time = g_globalvars.time;
+	ent->s.v.solid = SOLID_TRIGGER;
 }
 
 //
@@ -290,6 +291,8 @@ static void fb_health_taken (gedict_t* item, gedict_t* player)
 
 static qbool fb_health_touch (gedict_t* item, gedict_t* player)
 {
+	if (player->ct != ctPlayer)
+		return true;
 	if (IsMarkerFrame())
 		check_marker (item, player);
 	if (WaitingToRespawn(item) || self->s.v.think == (func_t) item_megahealth_rot)
@@ -343,24 +346,28 @@ static void fb_armor_taken (gedict_t* item, gedict_t* player)
 
 static qbool fb_armor_touch (gedict_t* item, gedict_t* player)
 {
-	// allow the bot to hurt themselves to pickup armor
-	qbool have_more_armor = item->fb.total_armor >= player->fb.total_armor;
-	qbool want_armor = player->s.v.goalentity == NUM_FOR_EDICT (item);
-	qbool targetting_player = player->fb.look_object && player->fb.look_object->ct == ctPlayer;
-
 	if (IsMarkerFrame())
 		check_marker (item, player);
 
 	if (WaitingToRespawn(item))
 		return true;
 
-	if (player->isBot && player->s.v.takedamage && want_armor && have_more_armor && IsMarkerFrame() && !targetting_player && !player->fb.firing) {
-		player->fb.state |= HURT_SELF;
-		player->fb.linked_marker = item;
-		player->fb.path_state = 0;
-		player->fb.linked_marker_time = g_globalvars.time + 0.5f;
-		player->fb.goal_refresh_time = g_globalvars.time + 2 + random();
-		return true; // wait
+	// allow the bot to hurt themselves to pickup armor
+	if (player->isBot && player->s.v.takedamage) {
+		qbool have_more_armor = player->fb.total_armor >= item->fb.total_armor;
+		qbool want_armor = player->s.v.goalentity == NUM_FOR_EDICT (item);
+		qbool has_rl = ((int)player->s.v.items & IT_ROCKET_LAUNCHER) && player->s.v.ammo_rockets > 0;
+		qbool targetting_player = player->fb.look_object && player->fb.look_object->ct == ctPlayer;
+
+		if (want_armor && have_more_armor && has_rl && IsMarkerFrame () && !targetting_player && !player->fb.firing) {
+			player->fb.state |= HURT_SELF;
+			SetLinkedMarker(player, item);
+			player->fb.path_state = 0;
+			player->fb.linked_marker_time = g_globalvars.time + 0.5f;
+			player->fb.goal_refresh_time = g_globalvars.time + 2 + random ();
+			G_bprint (2, "Waiting for HURT_SELF\n");
+			return true; // wait
+		}
 	}
 
 	return NoItemTouch (item, player);
@@ -393,6 +400,8 @@ static void fb_spawn_armor(gedict_t* ent) {
 
 static qbool fb_weapon_touch (gedict_t* item, gedict_t* player)
 {
+	if (player->ct != ctPlayer)
+		return true;
 	if (IsMarkerFrame())
 		check_marker (item, player);
 	if (WaitingToRespawn(item))
@@ -519,6 +528,8 @@ static void fb_spawn_lg(gedict_t* ent) {
 
 static qbool fb_ammo_touch (gedict_t* item, gedict_t* player)
 {
+	if (player->ct != ctPlayer)
+		return true;
 	if (IsMarkerFrame())
 		check_marker (item, player);
 	if (WaitingToRespawn(item))
@@ -711,7 +722,7 @@ void BotsPostTeleport (gedict_t* self, gedict_t* other, gedict_t* teleport_desti
 	other->fb.frogbot_nextthink = g_globalvars.time;
 
 	if (other->fb.linked_marker == self) {
-		other->fb.linked_marker = teleport_destination;
+		SetLinkedMarker(other, teleport_destination);
 	}
 
 	HazardTeleport(self, other);
@@ -745,7 +756,7 @@ static void fb_backpack_taken (gedict_t* item, gedict_t* player)
 
 	UpdateGoalEntity(item);
 	player->fb.old_linked_marker = NULL;
-	player->fb.linked_marker = LocateMarker(player->s.v.origin);
+	SetLinkedMarker(player, LocateMarker(player->s.v.origin));
 	player->fb.linked_marker_time = g_globalvars.time + 5;
 }
 

@@ -390,6 +390,10 @@ void armor_touch()
 	if ( other->ct != ctPlayer )
 		return;
 
+	if (ItemTouched (self, other)) {
+		return;
+	}
+
 	if ( match_in_progress != 2 || !readytostart() )
         return;
 
@@ -420,10 +424,6 @@ void armor_touch()
 	}
 	else
 		return;
-
-	if (ItemTouched (self, other)) {
-		return;
-	}
 
 	// check if we have more armor than we trying to pick up.
 	// We add 1.0e-6 so floaing point comparision is happy,

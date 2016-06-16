@@ -626,11 +626,11 @@ void DM4CampLogic() {
 
 						if ((enemy_->s.v.origin[0] < 700) && (VectorDistance(above_lg, self->s.v.origin) < 200)) {
 							self->fb.camp_state |= CAMPBOT;
-							self->fb.linked_marker = self->fb.touch_marker;
+							SetLinkedMarker(self, self->fb.touch_marker);
 						}
 						else if ((enemy_->s.v.origin[0] >= 700) && (VectorDistance(on_quad_stairs, self->s.v.origin) < 200)) {
 							self->fb.camp_state |= CAMPBOT;
-							self->fb.linked_marker = self->fb.touch_marker;
+							SetLinkedMarker(self, self->fb.touch_marker);
 						}
 						else {
 							self->fb.camp_state &= ~CAMPBOT;
