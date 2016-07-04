@@ -3,6 +3,7 @@
 #include "fb_globals.h"
 
 void SetAttribs (gedict_t* self);
+int FallSpotAir (vec3_t testplace, float fallheight);
 
 #define MAX_BOTS          32
 #define MIN_FROGBOT_SKILL  0

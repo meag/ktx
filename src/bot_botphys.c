@@ -111,7 +111,6 @@ void FrogbotPrePhysics1(void) {
 	for (self = world; self = find_plr (self); ) {
 		if (self->isBot && self->s.v.takedamage) {
 			VectorCopy(self->s.v.velocity, self->fb.oldvelocity);
-			VelocityForArrow(self);
 			if (IsHazardFrame()) {
 				AvoidHazards(self);
 			}
@@ -138,7 +137,6 @@ void BotDetectTrapped(gedict_t* self) {
 		unstick_time = unstick_time + g_globalvars.frametime;
 		if (unstick_time <= NumberOfClients()) {
 			no_bots_stuck = false;
-			//self->s.v.velocity[2] = JUMPSPEED;
 			self->fb.jumping = true;
 		}
 		else  {

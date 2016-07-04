@@ -332,8 +332,9 @@ void AMPHI2BotInLava(void) {
 							if (!self->fb.rocketjumping) {
 								vec3_t dir_move;
 								VectorCopy (self->fb.dir_move_, dir_move);
-								self->fb.arrow = BestArrowForDirection(self, dir_move);
-								VelocityForArrow(self);
+								NewVelocityForArrow (self, dir_move);
+								//self->fb.arrow = BestArrowForDirection(self, dir_move);
+								//VelocityForArrow(self);
 								self->fb.jumping = true;
 							}
 						}

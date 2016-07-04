@@ -50,8 +50,6 @@ void InitParameters() {
 
 	//initialize(); // TODO: RA initialization?
 
-	sv_accelerate = cvar("sv_accelerate");
-
 	CalculatePhysicsVariables();
 }
 

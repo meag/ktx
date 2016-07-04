@@ -24,9 +24,6 @@ typedef struct fb_path_eval_s {
 	qbool be_quiet;
 } fb_path_eval_t;
 
-// FIXME: Should be able to remove this
-//#include "fb_externs.h"
-
 // Globals used for general path-finding
 extern qbool path_normal;
 extern gedict_t* look_marker;
@@ -330,7 +327,6 @@ char* FriendTeamName(void);
 char* SetTeamNetName(void);
 
 qbool Visible_360(gedict_t* self, gedict_t* visible_object);
-void VelocityForArrow(gedict_t* self);
 void Z_marker_error(void);
 void S_time_error(void);
 void S_path_marker_error(void);

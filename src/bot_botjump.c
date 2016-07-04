@@ -57,6 +57,8 @@ static float checkground(gedict_t* self) {
 static void lava_jump(gedict_t* self) {
 	gedict_t *e = NULL,
 	         *pt = self;
+	vec3_t straight_up = { 0, 0, 1 };
+	vec3_t straight_down = { 0, 0, -1 };
 	float best_distance = 1001,
 	      best_yaw = 0;
 
@@ -80,7 +82,8 @@ static void lava_jump(gedict_t* self) {
 		self->fb.pitchaccel = 0;
 		self->fb.pitchspeed = 0;
 		self->fb.arrow = BACK;
-		VelocityForArrow(self);
+		//VelocityForArrow(self);
+		NewVelocityForArrow (self, straight_up);
 	}
 	if (self->s.v.waterlevel == 2) {
 		if (self->fb.arrow == BACK) {
@@ -88,18 +91,18 @@ static void lava_jump(gedict_t* self) {
 			self->fb.pitchaccel = 0;
 			self->fb.pitchspeed = 0;
 			self->fb.arrow = BACK;
-			VelocityForArrow(self);
+			//VelocityForArrow(self);
+			NewVelocityForArrow (self, straight_up);
 			self->fb.rocketjumping = true;
 			self->fb.botchose = true;
 			self->fb.next_impulse = 7;
 			self->fb.firing = true;
 			self->fb.up_finished = g_globalvars.time + 0.1;
 		}
-		else  {
-			if (g_globalvars.time > self->fb.up_finished) {
-				self->fb.swim_arrow = DOWN;
-				VelocityForArrow(self);
-			}
+		else if (g_globalvars.time > self->fb.up_finished) {
+			self->fb.swim_arrow = DOWN;
+			//VelocityForArrow(self);
+			NewVelocityForArrow (self, straight_down);
 		}
 	}
 }
@@ -167,7 +170,6 @@ void a_rocketjump(gedict_t* self) {
 	}
 
 	//BestArrowForDirection(self, dir_move);
-	VelocityForArrow(self);
 	self->fb.real_pitch = 78.75;
 	self->fb.pitchspeed = 0;
 	self->fb.pitchaccel = 0;

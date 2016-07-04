@@ -93,7 +93,6 @@ void BotWaterMove(gedict_t* self) {
 	}
 
 	if (BotGoUpForAir (self, dir_move)) {
-		VelocityForArrow(self);
 		return;
 	}
 
@@ -120,8 +119,6 @@ void BotWaterMove(gedict_t* self) {
 			}
 		}
 	}
-
-	VelocityForArrow(self);
 }
 
 // botweap.qc
