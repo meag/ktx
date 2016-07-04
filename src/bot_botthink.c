@@ -273,7 +273,6 @@ static void BotTouchMarkerLogic() {
 		BotMoveTowardsLinkedMarker(self, dir_move);
 		BotOnGroundMovement(self, dir_move);
 
-		//self->fb.arrow = BACK_RIGHT;// 0; //BestArrowForDirection(self, dir_move);
 		VectorCopy(dir_move, self->fb.dir_move_);
 	}
 
