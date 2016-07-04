@@ -543,7 +543,6 @@ void SetMarkerViewOffset (int marker, float zOffset);
 
 // added for ktx
 qbool fb_lg_disabled(void);
-float random(void);
 //void StartItems(void);
 
 // maps

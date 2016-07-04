@@ -52,7 +52,7 @@ static void EvalLook(gedict_t* self, float* best_score, vec3_t dir_look, vec3_t 
 	VectorNormalize(temp);
 
 	look_score = DotProduct(dir_look, temp);
-	look_score = look_score + random();           // FIXME: Skill
+	look_score = look_score + g_random();           // FIXME: Skill
 	if (look_score > *best_score) {
 		*best_score = look_score;
 		self->fb.look_object = from_marker;
@@ -71,10 +71,10 @@ static void EvalCloseRunAway(float runaway_time, gedict_t* enemy_touch_marker, f
 	to_marker->fb.zone_marker();
 	to_marker->fb.sub_arrival_time();
 	if (look_traveltime) {
-		test_away_score = random() * runaway_time * ((traveltime2 * traveltime2) - (look_traveltime_squared + (traveltime * traveltime))) / (look_traveltime * traveltime);
+		test_away_score = g_random() * runaway_time * ((traveltime2 * traveltime2) - (look_traveltime_squared + (traveltime * traveltime))) / (look_traveltime * traveltime);
 	}
 	else {
-		test_away_score = random() * runaway_time * (traveltime2 - traveltime);
+		test_away_score = g_random() * runaway_time * (traveltime2 - traveltime);
 	}
 	if (test_away_score > *best_away_score) {
 		*best_away_marker = to_marker;
@@ -88,7 +88,7 @@ static qbool CheckForRocketEnemyAim (gedict_t* self)
 
 	if (enemy_ != world && HasItem(enemy_, IT_ROCKET_LAUNCHER) && !HasItem(self, IT_INVULNERABILITY)) {
 		// FIXME: random() call to determine behaviour, move threshold to bot's skill
-		if (enemy_->attack_finished <= g_globalvars.time + 0.2 && enemy_->s.v.ammo_rockets && random() < 0.5) {
+		if (enemy_->attack_finished <= g_globalvars.time + 0.2 && enemy_->s.v.ammo_rockets && g_random() < 0.5) {
 			vec3_t src;
 			VectorCopy(enemy_->s.v.origin, src);
 			src[2] += 16;
@@ -205,7 +205,7 @@ void ProcessNewLinkedMarker(gedict_t* self) {
 		}
 	}
 
-	if (random() < 0.5 && false) {
+	if (g_random() < 0.5 && false) {
 		gedict_t* enemy_ = &g_edicts[self->s.v.enemy];
 
 		if (HasItem(self, IT_ROCKET_LAUNCHER)) {
@@ -314,7 +314,7 @@ void ProcessNewLinkedMarker(gedict_t* self) {
 		self->fb.wasinwater = true;
 		self->fb.state |= NOTARGET_ENEMY;
 		self->fb.look_object = self->fb.linked_marker;
-		self->fb.jumping |= (random() < 0.003); // FIXME
+		self->fb.jumping |= (g_random() < 0.003); // FIXME
 		return;
 	}
 
@@ -332,7 +332,7 @@ void ProcessNewLinkedMarker(gedict_t* self) {
 		return;
 	}
 
-	if (random() < self->fb.skill.look_anywhere) {
+	if (g_random() < self->fb.skill.look_anywhere) {
 		from_marker = g_edicts[self->s.v.enemy].fb.touch_marker;
 		if (!from_marker) {
 			from_marker = goalentity_marker;

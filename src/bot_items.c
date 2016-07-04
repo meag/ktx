@@ -364,8 +364,8 @@ static qbool fb_armor_touch (gedict_t* item, gedict_t* player)
 			SetLinkedMarker(player, item);
 			player->fb.path_state = 0;
 			player->fb.linked_marker_time = g_globalvars.time + 0.5f;
-			player->fb.goal_refresh_time = g_globalvars.time + 2 + random ();
-			G_bprint (2, "Wait(HURT_SELF): %f vs %f armor\n", player->fb.total_armor, item->fb.total_armor);
+			player->fb.goal_refresh_time = g_globalvars.time + 2 + g_random ();
+			//G_bprint (2, "Wait(HURT_SELF): %f vs %f armor\n", player->fb.total_armor, item->fb.total_armor);
 			return true; // wait
 		}
 	}

@@ -78,7 +78,7 @@ void SetMarker(gedict_t* client, gedict_t* marker) {
 }
 
 void SetNextThinkTime(gedict_t* ent) {
-	ent->fb.frogbot_nextthink = ent->fb.frogbot_nextthink + 0.15 + (0.015 * random());
+	ent->fb.frogbot_nextthink = ent->fb.frogbot_nextthink + 0.15 + (0.015 * g_random());
 	if (ent->fb.frogbot_nextthink <= g_globalvars.time) {
 		ent->fb.frogbot_nextthink = g_globalvars.time + 0.16;
 	}
@@ -171,7 +171,7 @@ static void BotDodgeMovement(gedict_t* self, vec3_t dir_move, float dodge_factor
 			--dodge_factor;
 		}
 		trap_makevectors(self->s.v.v_angle);
-		VectorMA(dir_move, random() * self->fb.skill.dodge_amount * dodge_factor, g_globalvars.v_right, dir_move);
+		VectorMA(dir_move, g_random() * self->fb.skill.dodge_amount * dodge_factor, g_globalvars.v_right, dir_move);
 	}
 }
 
@@ -259,7 +259,7 @@ static void BotTouchMarkerLogic() {
 
 	if (g_globalvars.time < self->fb.arrow_time) {
 		if (g_globalvars.time < self->fb.arrow_time2) {
-			if (random() < 0.5) {
+			if (g_random() < 0.5) {
 				SetLinkedMarker (self, self->fb.touch_marker);
 				self->fb.old_linked_marker = self->fb.linked_marker;
 				self->fb.path_state = 0;
@@ -434,9 +434,9 @@ static void BotsFireLogic(void) {
 	if (g_globalvars.time < self->fb.fire_nextthink)
 		return;
 
-	self->fb.fire_nextthink = self->fb.fire_nextthink + (self->fb.skill.firing_reflex * (0.95 + (0.1 * random())));
+	self->fb.fire_nextthink = self->fb.fire_nextthink + (self->fb.skill.firing_reflex * (0.95 + (0.1 * g_random())));
 	if (self->fb.fire_nextthink <= g_globalvars.time) {
-		self->fb.fire_nextthink = g_globalvars.time + (self->fb.skill.firing_reflex * (0.95 + (0.1 * random())));
+		self->fb.fire_nextthink = g_globalvars.time + (self->fb.skill.firing_reflex * (0.95 + (0.1 * g_random())));
 	}
 
 	// a_attackfix()
@@ -548,7 +548,7 @@ void BotEvadeLogic(gedict_t* self) {
 
 	self->fb.bot_evade = false;
 	if (deathmatch <= 3 && !isRA()) {
-		if (isDuel() && random() < CHANCE_EVADE_DUEL) {
+		if (isDuel() && g_random() < CHANCE_EVADE_DUEL) {
 			if ((self->s.v.origin[2] + 18) > (enemy_->s.v.absmin[2] + enemy_->s.v.view_ofs[2])) {
 				if ((int)self->s.v.items & IT_ROCKET_LAUNCHER && self->s.v.ammo_rockets > 4) {
 					if (!self->s.v.waterlevel) {
@@ -557,7 +557,7 @@ void BotEvadeLogic(gedict_t* self) {
 				}
 			}
 		}
-		else if (! isDuel() && random() < CHANCE_EVADE_NONDUEL) {
+		else if (! isDuel() && g_random() < CHANCE_EVADE_NONDUEL) {
 			if ((self->s.v.origin[2] + 18) > (enemy_->s.v.absmin[2] + enemy_->s.v.view_ofs[2])) {
 				if (((int)self->s.v.items & IT_ROCKET_LAUNCHER) || ((int)self->s.v.items & IT_LIGHTNING)) {
 					if ((self->s.v.ammo_cells >= 20) || (self->s.v.ammo_rockets > 3)) {

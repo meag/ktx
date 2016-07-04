@@ -61,7 +61,7 @@ static void SwimAwayFromWall(gedict_t* self, vec3_t dir_move) {
 		vec3_t temp;
 
 		VectorNormalize(dir_move);
-		VectorScale(g_globalvars.v_right, random() * -32, temp);
+		VectorScale(g_globalvars.v_right, g_random() * -32, temp);
 		VectorAdd(temp, dir_move, temp);
 		normalize(temp, dir_move);
 	}
@@ -70,7 +70,7 @@ static void SwimAwayFromWall(gedict_t* self, vec3_t dir_move) {
 		vec3_t temp;
 
 		VectorNormalize(dir_move);
-		VectorScale(g_globalvars.v_right, random() * 32, temp);
+		VectorScale(g_globalvars.v_right, g_random() * 32, temp);
 		VectorAdd(temp, dir_move, temp);
 		normalize(temp, dir_move);
 	}
@@ -174,7 +174,7 @@ qbool BotShouldDischarge (void)
 		}
 	}
 	if (n >= 2) {
-		return (random () < 0.003);
+		return (g_random () < 0.003);
 	}
 	return false;
 }

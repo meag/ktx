@@ -110,11 +110,11 @@ static void BestEnemy_apply(gedict_t* test_enemy, float* best_score, gedict_t** 
 	if (look_marker != NULL) {
 		look_marker->fb.zone_marker();
 		look_marker->fb.sub_arrival_time();
-		enemy_score = traveltime + random();
+		enemy_score = traveltime + g_random();
 	}
 	else {
 		SightMarker(from_marker);
-		enemy_score = look_traveltime + random();
+		enemy_score = look_traveltime + g_random();
 	}
 
 	if (enemy_score < *best_score) {

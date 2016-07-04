@@ -156,7 +156,7 @@ gedict_t* HelpTeammate() {
 	if (g_globalvars.time < self->fb.help_teammate_time) {
 		return NULL;
 	}
-	self->fb.help_teammate_time = g_globalvars.time + 20 + 3 * random();
+	self->fb.help_teammate_time = g_globalvars.time + 20 + 3 * g_random();
 	selected1 = NULL;
 	selected2 = NULL;
 	best_dist1 = 99999999;

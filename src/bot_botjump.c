@@ -183,7 +183,7 @@ void a_rocketjump(gedict_t* self) {
 void CheckCombatJump() {
 	if (self->isBot && !self->s.v.waterlevel && self->fb.allowedMakeNoise) {
 		if (((int)self->s.v.flags & FL_ONGROUND) && self->s.v.weapon != IT_LIGHTNING) {
-			if (self->fb.look_object == &g_edicts[self->s.v.enemy] && random() < 0.2 && !self->fb.rocketjumping) {
+			if (self->fb.look_object == &g_edicts[self->s.v.enemy] && g_random() < 0.2 && !self->fb.rocketjumping) {
 				self->fb.jumping = true;
 			}
 		}

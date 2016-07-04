@@ -620,7 +620,7 @@ void DM4CampLogic() {
 		if ((int)self->s.v.items & (IT_ROCKET_LAUNCHER | IT_LIGHTNING) && !self->fb.bot_evade) {
 			if ((self->s.v.health > 50) && (self->s.v.armorvalue > 30)) {
 				if ((self->s.v.ammo_cells > 15) || (self->s.v.ammo_rockets > 3)) {
-					if (random() < 0.985) {
+					if (g_random() < 0.985) {
 						vec3_t above_lg = { 448, -176, 60 };
 						vec3_t on_quad_stairs = { 280, -330, 60 };
 
