@@ -357,7 +357,7 @@ static qbool JumpLedgeLogic (gedict_t* self, vec3_t new_velocity)
 						if (dir_move[0] == 0 && dir_move[1] == 0 && dir_move[2] == 0) {
 							VectorScale(self->fb.obstruction_normal, -1, dir_move);
 						}
-						else if (random() < 0.5) {
+						else if (g_random() < 0.5) {
 							VectorScale(dir_move, -1, dir_move);
 						}
 						NewVelocityForArrow(self, dir_move);
@@ -428,7 +428,7 @@ static qbool ObstructionLogic (gedict_t* self, vec3_t new_velocity)
 				}
 				else if ((self->fb.oldvelocity[0] == 0) && (self->fb.oldvelocity[1] == 0)) {
 					// maybe stuck in a corner
-					if (random() < 0.5) {
+					if (g_random() < 0.5) {
 						VectorScale(dir_move, -1, dir_move);
 					}
 					self->fb.path_state |= STUCK_PATH;

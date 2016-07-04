@@ -73,7 +73,7 @@ static float EvalPath(fb_path_eval_t* eval, qbool allowRocketJumps, qbool trace_
 		same_dir = DotProduct (eval->player_direction, direction_to_marker);
 	}
 
-	path_score = same_dir + random();
+	path_score = same_dir + g_random();
 	self->fb.avoiding = (g_globalvars.time < eval->test_marker->fb.arrow_time) || DetectIncomingRocket(self, eval->rocket_alert, marker_position);
 	G_bprint_debug (2, "> Temp path_score = %f\n", path_score);
 
@@ -186,10 +186,10 @@ void PathScoringLogic(
 
 		// FIXME: Estimating respawn times should be skill-based
 		if (current_goal_time < 2.5) {
-			goal_late_time = (goal_respawn_time - (random () * 5)) - g_globalvars.time;
+			goal_late_time = (goal_respawn_time - (g_random () * 5)) - g_globalvars.time;
 		}
 		else {
-			goal_late_time = (goal_respawn_time - (random () * 10)) - g_globalvars.time;
+			goal_late_time = (goal_respawn_time - (g_random () * 10)) - g_globalvars.time;
 		}
 	}
 

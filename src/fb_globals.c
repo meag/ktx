@@ -178,10 +178,6 @@ qbool fb_lg_disabled() {
 	return (qbool) ((int)cvar("k_disallow_weapons") & IT_LIGHTNING) != 0;
 }
 
-float random() {
-	return g_random();
-}
-
 // from defs2.qc
 float boomstick_only() {
 	return (((int)self->s.v.items & IT_SHOTGUN) && !((int)self->s.v.items & (IT_NAILGUN | IT_SUPER_NAILGUN | IT_SUPER_SHOTGUN | IT_ROCKET_LAUNCHER | IT_GRENADE_LAUNCHER | IT_LIGHTNING)));

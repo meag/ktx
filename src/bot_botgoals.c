@@ -41,7 +41,7 @@ void UpdateGoalEntity(gedict_t* item) {
 
 	for (plr = world; plr = find_plr(plr); ) {
 		if (plr->s.v.goalentity == item_entity) {
-			float goal_refresh_time_ = g_globalvars.time + random();
+			float goal_refresh_time_ = g_globalvars.time + g_random();
 			if (plr->fb.goal_refresh_time > goal_refresh_time_) {
 				plr->fb.goal_refresh_time = goal_refresh_time_;
 			}
@@ -109,7 +109,7 @@ static void EvalGoal(gedict_t* self, gedict_t* goal_entity) {
 			return;
 		}
 
-		goal_entity->fb.saved_respawn_time = goal_entity->fb.goal_respawn_time - g_globalvars.time + (goal_time * self->fb.skill.prediction_error * random());
+		goal_entity->fb.saved_respawn_time = goal_entity->fb.goal_respawn_time - g_globalvars.time + (goal_time * self->fb.skill.prediction_error * g_random());
 		goal_time = max (goal_time, goal_entity->fb.saved_respawn_time);
 		goal_entity->fb.saved_goal_time = goal_time;
 		if (self->fb.bot_evade) {
@@ -237,7 +237,7 @@ void UpdateGoal(gedict_t* self) {
 	gedict_t* enemy_ = &g_edicts[self->s.v.enemy];
 	gedict_t* goal_entity = 0;
 
-	self->fb.goal_refresh_time = g_globalvars.time + 2 + random();
+	self->fb.goal_refresh_time = g_globalvars.time + 2 + g_random();
 	
 	self->fb.best_goal_score = 0;
 	self->fb.best_goal = NULL;
@@ -289,7 +289,7 @@ void UpdateGoal(gedict_t* self) {
 
 	if (teamplay && !isRA()) {
 		gedict_t* search_entity = HelpTeammate();
-		if (search_entity && random() < FROGBOT_CHANCE_HELP_TEAMMATE) {
+		if (search_entity && g_random() < FROGBOT_CHANCE_HELP_TEAMMATE) {
 			self->fb.best_goal = search_entity;
 		}
 	}

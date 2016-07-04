@@ -53,7 +53,7 @@ void AttackRespawns(void) {
 				if ((int)self->s.v.items & IT_ROCKET_LAUNCHER) {
 					if (self->s.v.ammo_rockets > 3) {
 						if (!self->fb.rocketjumping) {
-							if (random() > 0.15) {
+							if (g_random() > 0.15) {
 								gedict_t* resp;
 								for (resp = world; resp = trap_findradius(resp, self->s.v.origin, 1000); ) {
 									if (streq(resp->s.v.classname, "info_player_deathmatch")) {
@@ -321,7 +321,7 @@ static void RocketLauncherShot (gedict_t* self, float risk, float risk_factor)
 
 void SetFireButton(gedict_t* self, vec3_t rel_pos, float rel_dist) {
 	// Only fire in pre-war if enemy attacked us
-	if (match_in_progress == 0 && (g_globalvars.time + random()) < g_edicts[self->s.v.enemy].attack_finished) {
+	if (match_in_progress == 0 && (g_globalvars.time + g_random()) < g_edicts[self->s.v.enemy].attack_finished) {
 		self->fb.firing = false;
 		return;
 	}
@@ -334,7 +334,7 @@ void SetFireButton(gedict_t* self, vec3_t rel_pos, float rel_dist) {
 
 	if (self->fb.firing) {
 		if (self->fb.look_object == &g_edicts[self->s.v.enemy]) {
-			if (random() < 0.666667) {
+			if (g_random() < 0.666667) {
 				if (!self->fb.next_impulse) {
 					return;
 				}
@@ -406,7 +406,7 @@ void SetFireButton(gedict_t* self, vec3_t rel_pos, float rel_dist) {
 			{
 				// FIXME: Skill-based
 				float risk_factor = 0.5;
-				float risk = random();
+				float risk = g_random();
 				risk *= risk;
 
 				AvoidQuadBore (self);
@@ -445,7 +445,7 @@ static int DesiredWeapon(void) {
 	}
 
 	// When to always use RL
-	if (self->fb.skill.rl_preference >= random() || fb_lg_disabled()) {
+	if (self->fb.skill.rl_preference >= g_random() || fb_lg_disabled()) {
 		if (items_ & IT_ROCKET_LAUNCHER) {
 			if (self->s.v.ammo_rockets) {
 				if (RocketSafe()) {
@@ -456,7 +456,7 @@ static int DesiredWeapon(void) {
 		}
 	}
 
-	if (self->fb.skill.lg_preference >= random() && !fb_lg_disabled()) {
+	if (self->fb.skill.lg_preference >= g_random() && !fb_lg_disabled()) {
 		if ((self->s.v.waterlevel <= 1) || ((int)self->s.v.items & IT_INVULNERABILITY)) {
 			if ((items_ & IT_LIGHTNING) && self->s.v.ammo_cells) {
 				if (self->fb.enemy_dist <= 600) {
