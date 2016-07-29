@@ -1985,6 +1985,22 @@ void TimerThink ()
 	self->s.v.nextthink = g_globalvars.time + 1;
 }
 
+void soft_ent_remove (gedict_t* ent)
+{
+	if (bots_enabled ()) {
+		ent->s.v.model = "";
+		ent->s.v.solid = SOLID_TRIGGER;
+		ent->s.v.nextthink = 0;
+		ent->s.v.think = SUB_Null;
+		ent->s.v.touch = (func_t) marker_touch;
+		ent->fb.desire = goal_NULL;
+		ent->fb.goal_respawn_time = 0;
+	}
+	else {
+		ent_remove (ent);
+	}
+}
+
 // remove/add some items from map regardind with dmm and game mode
 void SM_PrepareMap()
 {
@@ -2027,7 +2043,7 @@ void SM_PrepareMap()
 				|| streq( p->s.v.classname, "item_artifact_super_damage")
 			   )
 			{
-				ent_remove( p );
+				soft_ent_remove( p );
 				continue;
 			}
 		}
@@ -2039,7 +2055,7 @@ void SM_PrepareMap()
 			    || streq( p->s.v.classname, "item_armorInv")
 			   )
 			{
-				ent_remove( p );
+				soft_ent_remove( p );
 				continue;
 			}
 		}
@@ -2054,7 +2070,7 @@ void SM_PrepareMap()
 				|| streq( p->s.v.classname, "weapon_lightning" )
 			   )
 			{ // no weapons for any of this deathmatches (4 or 5)
-				ent_remove( p );
+				soft_ent_remove( p );
 				continue;
 			}
 
@@ -2067,7 +2083,7 @@ void SM_PrepareMap()
 					|| (streq( p->s.v.classname, "item_health" ) && (( int ) p->s.v.spawnflags & H_MEGA))
 			       )
 				{ // no weapon ammo and megahealth for dmm4
-					ent_remove( p );
+					soft_ent_remove( p );
 					continue;
 				}
 			}
@@ -2075,7 +2091,7 @@ void SM_PrepareMap()
 
 		if ( k_killquad && streq( p->s.v.classname, "item_artifact_super_damage") )
 		{	// no normal quad in killquad mode.
-			ent_remove( p );
+			soft_ent_remove( p );
 			continue;
 		}
 	}
