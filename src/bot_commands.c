@@ -154,7 +154,7 @@ static void FrogbotsDebug (void)
 
 		//bot->fb.debug = true;
 	}
-	else {
+	else if (! match_in_progress) {
 		char sub_command[64];
 
 		trap_CmdArgv (2, sub_command, sizeof (sub_command));
@@ -167,6 +167,18 @@ static void FrogbotsDebug (void)
 					G_sprint (self, 2, "%d / %d: %s\n", i, markers[i]->fb.index, markers[i]->s.v.classname);
 				}
 			}
+		}
+		else if (streq (sub_command, "entity")) {
+			gedict_t* e = NULL;
+			int ent = 0;
+
+			trap_CmdArgv (3, sub_command, sizeof (sub_command));
+			ent = atoi (sub_command);
+
+			if (ent > 0 && ent < MAX_EDICTS)
+				G_sprint (self, 2, "%d: %s [%f %f %f]\n", atoi (sub_command), g_edicts[ent].s.v.classname ? g_edicts[ent].s.v.classname : "?", PASSVEC3(g_edicts[ent].s.v.origin));
+			else
+				G_sprint (self, 2, "%d - out of range\n", atoi (sub_command));
 		}
 		else if (streq (sub_command, "marker")) {
 			gedict_t* marker = NULL;
