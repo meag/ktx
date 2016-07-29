@@ -1430,7 +1430,7 @@ void s2di_match_header(fileHandle_t handle, int format, char* ip, int port)
 {
 	char date[64] = { 0 };
 	char matchtag[64] = { 0 };
-	const char* mode = cvar ("k_instagib") ? "instagib" : GetMode ();
+	const char* mode = cvar ("k_instagib") ? "instagib" : (isRACE() ? "race" : GetMode ());
 
 	infokey(world, "matchtag", matchtag, sizeof(matchtag));
 
@@ -1485,6 +1485,18 @@ void s2di_player_ra_stats(fileHandle_t handle, int format, player_stats_t* stats
 void s2di_player_bot_info(fileHandle_t handle, int format, fb_entvars_t* bot)
 {
 	s2di(handle, "\t\t\t<bot skill=\"%d\" logic=\"%s\" logic-version=\"%d\" />\n", bot->skill.skill_level, "frogbot", BotVersionNumber());
+}
+
+void s2di_race_stats (fileHandle_t handle, int format)
+{
+	if (race.currentrace.avgcount <= 0.0f)
+		return;
+
+	s2di(handle, "\t<race route=\"%d\" avgspeed=\"%f\" distance=\"%f\" time=\"%f\" "
+	                     "racer=\"%s\" weaponmode=\"%d\" startmode=\"%d\" maxspeed=\"%f\" />\n", 
+		race.active_route, race.currentrace.avgspeed / race.currentrace.avgcount, race.currentrace.distance, race.currentrace.time, 
+		striphigh(race_get_racer()->s.v.netname), race.weapon, race.falsestart, race.currentrace.maxspeed
+	);
 }
 
 // Only format supported at present
@@ -1587,6 +1599,9 @@ qbool CreateStatsFile(char* filename, char* ip, int port, qbool xml)
 	s2di_players_footer(di_handle, format);
 // } PLAYERS
 
+	if (isRACE())
+		s2di_race_stats(di_handle, format);
+
 	s2di_match_footer(di_handle, format);
 
 	trap_FS_CloseFile( di_handle );
@@ -1605,9 +1620,6 @@ void StatsToFile()
 
 	port[0] = 0;
 	port++;
-
-	if ( isRACE() )
-		return; // doesn't save stats for race
 
 	if ( strnull( cvar_string( "serverdemo" ) ) || cvar("sv_demotxt") != 2 )
 		return; // does't record demo or does't want stats to be put in file
