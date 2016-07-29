@@ -647,9 +647,9 @@ void AvoidHazards(gedict_t* self) {
 	vec3_t testplace;
 	float fallheight = 0;
 
-	if (self->fb.touch_marker && (self->fb.touch_marker->fb.index == 89 || self->fb.touch_marker->fb.index == 51)) {
-		G_bprint (2, "touching #%d: goal entity %s, linked %d\n", self->fb.touch_marker->fb.index, g_edicts[self->s.v.goalentity].s.v.classname, (self->fb.linked_marker ? self->fb.linked_marker->fb.index : -1));
-	}
+	//if (self->fb.touch_marker && (self->fb.touch_marker->fb.index == 89 || self->fb.touch_marker->fb.index == 51)) {
+		//G_bprint (2, "touching #%d: goal entity %s, linked %d\n", self->fb.touch_marker->fb.index, g_edicts[self->s.v.goalentity].s.v.classname, (self->fb.linked_marker ? self->fb.linked_marker->fb.index : -1));
+	//}
 
 	// FIXME: should this be current velocity or proposed velocity (self->fb.dir_move_, scaled by speed?)
 	//VectorCopy(self->s.v.velocity, new_velocity);
