@@ -852,6 +852,7 @@ void FirstFrame	( )
 
 // { frogbots support
 	RegisterCvarEx ("k_fb_skill", "20");
+	RegisterCvarEx ("k_fb_options", "0");
 // }
 
 // below globals changed only here

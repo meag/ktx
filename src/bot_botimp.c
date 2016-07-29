@@ -124,22 +124,22 @@ char* EnemyTeamName() {
 
 char* FriendTeamName() {
 	char* names[] = {
-		"Mr Justice",
-		"Parrais",
-		"Jon",
-		"Gaz",
-		"Jakey",
-		"Tele",
-		"Thurg",
-		"Kool",
-		"Zaphod",
-		"Dreamer",
-		"Mandrixx",
-		"Skill5",
-		"Gunner",
-		"DanJ",
-		"Vid",
-		"Soul99"
+		"##Mr Justice",
+		"##Parrais",
+		"##Jon",
+		"##Gaz",
+		"##Jakey",
+		"##Tele",
+		"##Thurg",
+		"##Kool",
+		"##Zaphod",
+		"##Dreamer",
+		"##Mandrixx",
+		"##Skill5",
+		"##Gunner",
+		"##DanJ",
+		"##Vid",
+		"##Soul99"
 	};
 
 	return names[(int)bound(0, self->fb.botnumber - 1, sizeof(names) / sizeof(names[0]) - 1)];

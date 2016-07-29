@@ -240,3 +240,4 @@ qbool FrogbotsCheckMapSupport (void)
 	G_sprint (self, 2, "Map %s not supported for bots\n", g_globalvars.mapname);
 	return false;
 }
+

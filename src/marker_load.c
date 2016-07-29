@@ -33,7 +33,8 @@ static gedict_t* spawn_marker(float x, float y, float z) {
 	marker_->s.v.origin[2] = pr1_rint(z);
 	marker_->s.v.solid = SOLID_TRIGGER;
 	marker_->s.v.touch = (func_t) marker_touch;
-	setmodel( marker_, "progs/w_g_key.mdl" );
+	if ( FrogbotOptionEnabled(FB_OPTION_SHOW_MARKERS) )
+		setmodel( marker_, "progs/w_g_key.mdl" );
 	VectorSet(marker_->s.v.view_ofs, 80, 80, 24);
 	setsize(marker_, -65, -65, -24, 65, 65, 32);
 	return marker_;

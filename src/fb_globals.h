@@ -2,6 +2,8 @@
 
 #define PATH_SCORE_NULL -1000000
 
+#define FB_OPTION_SHOW_MARKERS 1
+
 typedef void (*fb_spawn_func_t)(gedict_t* ent);
 
 typedef struct fb_spawn_s {
@@ -611,3 +613,5 @@ void PathScoringLogic (
 );
 
 int BotVersionNumber (void);
+qbool FrogbotOptionEnabled (int option);
+

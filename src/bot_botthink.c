@@ -111,7 +111,7 @@ static void LookingAtEnemyLogic(gedict_t* self) {
 			}
 		}
 	}
-	else  {
+	else {
 		ClearLookObject(self);
 	}
 }
@@ -463,7 +463,7 @@ static void BotsFireLogic(void) {
 			//G_bprint (2, "Firing @ world @ rel(%f %f %f)\n", PASSVEC3 (rel_pos));
 		}
 
-		// Aim lower over longer distances?  (FIXME)
+		// Aim lower over longer distances?  (FIXME: we allow for gravity in predicting where to fire - should this test for the enemy being on the ground?)
 		if (self->s.v.weapon == IT_ROCKET_LAUNCHER && rel_dist > 96) {
 			traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 16, self->s.v.origin[0] + rel_pos[0], self->s.v.origin[1] + rel_pos[1], self->s.v.origin[2] + rel_pos[2] - 22, true, self);
 			if (g_globalvars.trace_fraction == 1) {
