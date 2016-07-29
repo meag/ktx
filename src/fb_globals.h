@@ -609,3 +609,5 @@ void PathScoringLogic (
 	gedict_t* goalentity_marker, qbool rocket_alert, qbool rocket_jump_routes_allowed,
 	qbool trace_bprint, float *best_score, gedict_t** linked_marker_, int* new_path_state
 );
+
+int BotVersionNumber (void);

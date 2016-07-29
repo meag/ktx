@@ -6,6 +6,7 @@
 void SetSkill();
 
 // TODO: Exchange standard attributes for different bot characters/profiles
+// FIXME: smartness is always 10?
 void SetAttribs(gedict_t* self) {
 	float smartness = 10;
 	int skill_ = self->fb.skill.skill_level;
@@ -24,6 +25,8 @@ void SetAttribs(gedict_t* self) {
 	self->fb.skill.look_anywhere = smartness * 0.1;
 	self->fb.skill.lookahead_time = 5 + (smartness * 2.5);
 	self->fb.skill.prediction_error = 1 - (smartness * 0.1);
+
+	self->fb.skill.lg_preference = self->fb.skill.fast_aim;
 }
 
 void CalculatePhysicsVariables() {

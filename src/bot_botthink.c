@@ -35,6 +35,7 @@ static void BotSetDesiredAngles (gedict_t* self, vec3_t rel_pos)
 
 static void BotSetMouseParameters (gedict_t* self)
 {
+	// FIXME: re-instate this but with more sensible errors (probability distribution or something)
 	return;
 
 	VectorSubtract(self->fb.desired_angle, self->s.v.v_angle, self->fb.angle_error);

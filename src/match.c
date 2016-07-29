@@ -18,6 +18,7 @@
  */
 
 #include "g_local.h"
+#include "fb_globals.h"
 
 void NextLevel ();
 void IdlebotForceStart ();
@@ -1481,6 +1482,11 @@ void s2di_player_ra_stats(fileHandle_t handle, int format, player_stats_t* stats
 	s2di(handle, "\t\t\t<rocket-arena wins=\"%d\" losses=\"%d\" />\n", stats->wins, stats->loses);
 }
 
+void s2di_player_bot_info(fileHandle_t handle, int format, fb_entvars_t* bot)
+{
+	s2di(handle, "\t\t\t<bot skill=\"%d\" logic=\"%s\" logic-version=\"%d\" />\n", bot->skill.skill_level, "frogbot", BotVersionNumber());
+}
+
 // Only format supported at present
 #define STATSFORMAT_XML 1
 
@@ -1570,6 +1576,8 @@ qbool CreateStatsFile(char* filename, char* ip, int port, qbool xml)
 				s2di_player_ctf_stats(di_handle, format, &p2->ps);
 			if ( isRA() )
 				s2di_player_ra_stats(di_handle, format, &p2->ps);
+			if ( p2->isBot )
+				s2di_player_bot_info (di_handle, format, &p2->fb);
 
 			s2di_player_footer(di_handle, format);
 			p2->ready = 1; // set mark

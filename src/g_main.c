@@ -24,6 +24,8 @@
  */
 
 #include "g_local.h"
+#include "fb_globals.h"
+
 /* global 4 fix
 entity          self;
 entity          other;

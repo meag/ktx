@@ -62,7 +62,6 @@ void CheckCombatEnemy(gedict_t* attacker, gedict_t* targ) {
 	}
 }
 
-// TODO: length of sound is also important?  Can hear direction someone is jumping...
 void BotsSoundMade(gedict_t* entity) {
 	if (entity && entity->ct == ctPlayer) {
 		gedict_t* plr;
