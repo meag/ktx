@@ -33,38 +33,11 @@ static void BotSetDesiredAngles (gedict_t* self, vec3_t rel_pos)
 	}
 }
 
+// Input: self->fb.desired_angle
+// Output: self->fb.desired_angle
 static void BotSetMouseParameters (gedict_t* self)
 {
-	// FIXME: re-instate this but with more sensible errors (probability distribution or something)
-	return;
-
 	VectorSubtract(self->fb.desired_angle, self->s.v.v_angle, self->fb.angle_error);
-	self->fb.angle_error[0] -= (1 - self->fb.skill.fast_aim) * (self->fb.pitchspeed * self->fb.skill.firing_reflex);
-	self->fb.angle_error[1] -= (1 - self->fb.skill.fast_aim) * (self->fb.yawspeed * self->fb.skill.firing_reflex);
-	if (self->fb.angle_error[1] >= 180) {
-		self->fb.angle_error[1] = self->fb.angle_error[1] - 360;
-	}
-	else if (self->fb.angle_error[1] < -180) {
-		self->fb.angle_error[1] = self->fb.angle_error[1] + 360;
-	}
-
-	self->fb.track_pitchspeed += self->fb.skill.fast_aim * self->fb.angle_error[0] / self->fb.skill.firing_reflex;
-	self->fb.track_yawspeed += self->fb.skill.fast_aim * self->fb.angle_error[1] / self->fb.skill.firing_reflex;
-	self->fb.pitchaccel = (1 - self->fb.skill.fast_aim) * self->fb.angle_error[0] / self->fb.skill.firing_reflex;
-	self->fb.yawaccel = (1 - self->fb.skill.fast_aim) * self->fb.angle_error[1] / self->fb.skill.firing_reflex;
-
-	if (self->fb.pitchaccel > 0) {
-		self->fb.pitchaccel = self->fb.pitchaccel + 5400;
-	}
-	else if (self->fb.pitchaccel < 0) {
-		self->fb.pitchaccel = self->fb.pitchaccel - 5400;
-	}
-	if (self->fb.yawaccel > 0) {
-		self->fb.yawaccel = self->fb.yawaccel + 5400;
-	}
-	else if (self->fb.yawaccel < 0) {
-		self->fb.yawaccel = self->fb.yawaccel - 5400;
-	}
 }
 
 // Sets a client's last marker
@@ -429,6 +402,20 @@ static void BotsFireAtPlayerLogic(gedict_t* self, vec3_t rel_pos, float* rel_dis
 	}
 }
 
+// Called after desired angles have been set to aim at the player
+static void BotsAimAtPlayerLogic (gedict_t* self, vec3_t rel_pos, float rel_dist)
+{
+	fb_botaim_t* pitch = &self->fb.skill.aim_params[PITCH];
+	fb_botaim_t* yaw   = &self->fb.skill.aim_params[YAW];
+
+	float pitch_diff = bound(pitch->minimum, fabs(self->fb.desired_angle[PITCH] - self->s.v.angles[PITCH]), pitch->maximum);
+	float yaw_diff = bound(yaw->minimum, fabs(self->fb.desired_angle[YAW] - self->s.v.angles[YAW]), yaw->maximum);
+
+	// Based on skill level, randomise the aim a bit
+	self->fb.desired_angle[PITCH] = bound (-89.9, self->fb.desired_angle[PITCH] + dist_random (-pitch_diff, pitch_diff, pitch->multiplier), 89.9);
+	self->fb.desired_angle[YAW] += dist_random (-yaw_diff, yaw_diff, yaw->multiplier);
+}
+
 static void BotsFireLogic(void) {
 	vec3_t rel_pos;
 
@@ -446,21 +433,13 @@ static void BotsFireLogic(void) {
 	}
 
 	if (self->fb.look_object) {
-		vec3_t pitch_tangent = { 0 };
-		vec3_t yaw_tangent = { 0 };
-		float mouse_vel = 0;
 		float rel_dist = 0;
-		vec3_t rel_dir = { 0 };
-		vec3_t rel_hor_dir = { 0 };
-		float hor_component = 0;
 
 		if (self->fb.look_object->ct == ctPlayer) {
 			BotsFireAtPlayerLogic(self, rel_pos, &rel_dist);
-			//G_bprint (2, "Firing @ %s @ rel(%f %f %f)\n", look_object_->s.v.netname, PASSVEC3 (rel_pos));
 		}
 		else {
 			BotsFireAtWorldLogic(self, rel_pos, &rel_dist);
-			//G_bprint (2, "Firing @ world @ rel(%f %f %f)\n", PASSVEC3 (rel_pos));
 		}
 
 		// Aim lower over longer distances?  (FIXME: we allow for gravity in predicting where to fire - should this test for the enemy being on the ground?)
@@ -471,42 +450,9 @@ static void BotsFireLogic(void) {
 			}
 		}
 
-		normalize(rel_pos, rel_dir);
-		VectorCopy(rel_pos, rel_hor_dir);
-		rel_hor_dir[2] = 0;
-		normalize(rel_hor_dir, rel_hor_dir);
-
-		hor_component = DotProduct(rel_dir, rel_hor_dir);
-		mouse_vel = 57.29578 / rel_dist;
-
-		// rel_hor_dir and '0 0 1' are an orthogonal axis
-		// hor_component is the rel_hor_dir (horizontal) component of rel_dir
-		// rel_dir_z is the '0 0 1' (vertical) component of rel_dir
-		VectorScale(rel_hor_dir, rel_dir[2], pitch_tangent);
-		pitch_tangent[2] = 0 - hor_component;
-
-		// pitch_tangent is the tangent normal vector to pitch angular velocity
-		VectorScale(pitch_tangent, mouse_vel, pitch_tangent);
-
-		// pitch_tangent has been scaled according to view object distance
-		yaw_tangent[0] = 0 - rel_hor_dir[1];
-		yaw_tangent[1] = rel_hor_dir[0];
-		yaw_tangent[2] = 0;
-
-		// yaw_tangent is the tangent normal vector to yaw angular velocity
-		VectorScale(yaw_tangent, mouse_vel, yaw_tangent);
-
-		// yaw_tangent has been scaled according to view object distance
-		{
-			vec3_t vdiff;
-			VectorSubtract(self->fb.look_object->s.v.velocity, self->s.v.velocity, vdiff);
-
-			self->fb.track_pitchspeed = DotProduct(vdiff, pitch_tangent);
-			self->fb.track_yawspeed = DotProduct(vdiff, yaw_tangent);
-		}
-
 		BotSetDesiredAngles (self, rel_pos);
-
+		if (self->fb.look_object->ct == ctPlayer)
+			BotsAimAtPlayerLogic (self, rel_pos, rel_dist);
 		BotSetMouseParameters (self);
 
 		if (!self->fb.rocketjumping) {

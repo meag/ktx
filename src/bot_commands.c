@@ -265,6 +265,29 @@ static void FrogbotsDebug (void)
 
 			self->s.v.solid = self->fb.oldsolid;
 		}
+		else if (streq (sub_command, "random")) {
+			int i = 0;
+			int hits[] = { 0, 0, 0, 0, 0, 0 };
+			for (i = 0; i < 1000; ++i) {
+				float result = dist_random (0, 6, 2);
+
+				if (result < 1)
+					++hits[0];
+				else if (result < 2)
+					++hits[1];
+				else if (result < 3)
+					++hits[2];
+				else if (result < 4)
+					++hits[3];
+				else if (result < 5)
+					++hits[4];
+				else
+					++hits[5];
+			}
+
+			for (i = 0; i < 6; ++i)
+				G_sprint (self, 2, " < %d: %d %f\n", i + 1, hits[i], hits[i] / 1000.0f);
+		}
 	}
 }
 

@@ -5,7 +5,6 @@
 
 // Removes the look object for the given player
 void ClearLookObject(gedict_t* player) {
-	player->fb.track_pitchspeed = player->fb.track_yawspeed = player->fb.pitchaccel = player->fb.yawaccel = 0;
 	player->fb.look_object = NULL;
 }
 

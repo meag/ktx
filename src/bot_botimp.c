@@ -6,10 +6,11 @@
 void SetSkill();
 
 // TODO: Exchange standard attributes for different bot characters/profiles
-// FIXME: smartness is always 10?
 void SetAttribs(gedict_t* self) {
 	float smartness = 10;
 	int skill_ = self->fb.skill.skill_level;
+	int original_skill = self->fb.skill.skill_level;
+
 	G_bprint (2, "skill &cf00%d&r\n", self->fb.skill.skill_level);
 	if (skill_ > 10) {
 		self->fb.skill.fast_aim = (skill_ - 10) * 0.1;
@@ -20,6 +21,8 @@ void SetAttribs(gedict_t* self) {
 	}
 	self->fb.skill.firing_reflex = 0.5 - (skill_ * 0.04);
 	self->fb.skill.accuracy = 45 - (skill_ * 2.25);
+
+	// FIXME: Smartness is always 10, so these will always be the same...
 	self->fb.skill.stop_turn_speed = 135 + (smartness * 40.5);
 	self->fb.skill.dodge_amount = smartness * 0.1;
 	self->fb.skill.look_anywhere = smartness * 0.1;
@@ -29,6 +32,13 @@ void SetAttribs(gedict_t* self) {
 	self->fb.skill.lg_preference = self->fb.skill.fast_aim;
 
 	self->fb.skill.visibility = 0.7071067f - (0.02f * skill_);   // fov 90 (0.707) => fov 120 (0.5)
+	self->fb.skill.aim_params[YAW].minimum    =  2 - original_skill * 0.1f;  // skill  0-10-20:  2-1-0
+	self->fb.skill.aim_params[YAW].maximum    = 10 - original_skill * 0.5f;  // skill  0-10-20: 10-5-0
+	self->fb.skill.aim_params[YAW].multiplier =  2.5 - original_skill * 0.1f;  // result 0-10-20: [0.5-2.5]
+
+	self->fb.skill.aim_params[PITCH].minimum    =  1 - original_skill * 0.05f;     // skill 0-20: 1-0
+	self->fb.skill.aim_params[PITCH].maximum    =  5 - original_skill * 0.25f;     // skill 0-20: 5-0
+	self->fb.skill.aim_params[PITCH].multiplier =  2 - original_skill * 0.1f;
 }
 
 void CalculatePhysicsVariables() {

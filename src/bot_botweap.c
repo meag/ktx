@@ -118,9 +118,6 @@ static qbool ShotForLuck(vec3_t object) {
 	return (g_globalvars.trace_fraction == 1);
 }
 
-// FIXME: 
-// Frogbots take into account the distance they've had to snap to look at the player, and won't fire if distance
-//   is too high, compared to skill.accuracy
 static void SetFireButtonBasedOnAngles (gedict_t* self, float risk, float risk_factor, float rel_dist)
 {
 	float min_angle_error;
@@ -138,6 +135,8 @@ static void SetFireButtonBasedOnAngles (gedict_t* self, float risk, float risk_f
 	}
 
 	min_angle_error = (1 + risk) * risk_factor * (self->fb.skill.accuracy + (1440 / rel_dist));
+
+	// Frogbots take into account the distance they've had to snap to look at the player, and won't fire if distance is too high, compared to skill.accuracy
 	self->fb.firing |= (self->fb.angle_error[0] <= min_angle_error && self->fb.angle_error[1] <= min_angle_error);
 }
 
@@ -230,6 +229,7 @@ static void SpamRocketShot (gedict_t* self)
 	}
 }
 
+// FIXME: Predicts aim*600, then predicts if the enemy's predicted position will be close to the explosion point...
 static void RocketLauncherShot (gedict_t* self, float risk, float risk_factor)
 {
 	float hit_radius = 160;
@@ -240,7 +240,7 @@ static void RocketLauncherShot (gedict_t* self, float risk, float risk_factor)
 	// 
 	VectorCopy(self->s.v.origin, rocket_origin);
 	rocket_origin[2] += 16;
-	trap_makevectors(self->s.v.v_angle);      // FIXME: desired angle?  will be one frame behind
+	trap_makevectors(self->fb.desired_angle);
 	traceline(rocket_origin[0], rocket_origin[1], rocket_origin[2], rocket_origin[0] + (g_globalvars.v_forward[0] * 600), rocket_origin[1] + (g_globalvars.v_forward[1] * 600), rocket_origin[2] + (g_globalvars.v_forward[2] * 600), false, self);
 	VectorCopy(g_globalvars.trace_endpos, self->fb.rocket_endpos);
 	risk_strength = g_globalvars.trace_fraction;
@@ -366,7 +366,11 @@ void SetFireButton(gedict_t* self, vec3_t rel_pos, float rel_dist) {
 		}
 
 		if (self->s.v.enemy && g_edicts[self->s.v.enemy].fb.touch_marker) {
-			traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 16, self->s.v.origin[0] + rel_pos[0], self->s.v.origin[1] + rel_pos[1], self->s.v.origin[2] + rel_pos[2] + 16, false, self);
+			// FIXME: If they can't see the centre of the hitbox, aim high/low
+			traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 16, 
+					  self->s.v.origin[0] + rel_pos[0], self->s.v.origin[1] + rel_pos[1], self->s.v.origin[2] + rel_pos[2] + 16, 
+					  false, self);
+
 			if (g_globalvars.trace_fraction == 1) {
 				if (self->s.v.weapon != IT_ROCKET_LAUNCHER && self->fb.look_object != &g_edicts[self->s.v.enemy]) {
 					return;

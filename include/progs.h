@@ -347,7 +347,13 @@ typedef struct fb_zone_s {
 	int task;
 } fb_zone_t;
 
-typedef struct botskill_s {
+typedef struct fb_botaim_s {
+	float minimum;          // minimum difference between current viewangle and desired
+	float maximum;          // maximum difference
+	float multiplier;       // difference scaled
+} fb_botaim_t;
+
+typedef struct fb_botskill_s {
 	int   skill_level;           // 0-20 as standard
 	float fast_aim;
 	float dodge_amount;
@@ -362,7 +368,9 @@ typedef struct botskill_s {
 	float rl_preference;          // 0...1  previously game-wide, look to use RL when possible
 
 	float visibility;             // cos(fov / 2) ... fov 90 = cos(45) = 0.7071067, fov 120 = cos(60) = 0.5
-} botskill_t;
+
+	fb_botaim_t aim_params[2];
+} fb_botskill_t;
 
 typedef struct fb_entvars_s {
 	fb_zone_t zones[NUMBER_ZONES];
@@ -446,16 +454,6 @@ typedef struct fb_entvars_s {
 	float best_score2;
 	float best_goal_time;
 
-	// FIXME: these set in client.qc, not currently set
-	float pitchspeed;
-	float yawspeed;
-	float pitchaccel;
-	float yawaccel;
-
-	// Once locked on to a target, how fast does the bot track them as they move? (bots only)
-	float track_pitchspeed;
-	float track_yawspeed;
-
 	qbool _highermarker;
 
 	struct gedict_s* near_teleport;
@@ -497,7 +495,7 @@ typedef struct fb_entvars_s {
 	float input_time;
 
 	// These settings dictate the 'skill' of the bot
-	botskill_t skill;
+	fb_botskill_t skill;
 
 	// These control the bot's next command
 	qbool firing;                         // does the bot want to attack this frame?

@@ -150,6 +150,7 @@ typedef enum
 float           g_random( void );
 float           crandom( void );
 int				i_rnd( int from, int to );
+float           dist_random (float minValue, float maxValue, float spreadFactor);
 gedict_t       *spawn( void );
 void            ent_remove( gedict_t * t );
 

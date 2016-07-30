@@ -44,70 +44,9 @@ void BotSetCommand(gedict_t* self) {
 	float msec = min ((g_globalvars.time - self->fb.last_cmd_sent) * 1000, 255);
 	float mouse_friction = 5400 * g_globalvars.frametime;
 
-	/*
-	float pitchspeed_ = self->fb.pitchspeed + self->fb.pitchaccel * g_globalvars.frametime;
-	float yawspeed_ = self->fb.yawspeed + self->fb.yawaccel * g_globalvars.frametime;
-	float total_pitchspeed = 0;
-	float total_yawspeed = 0;
-	float new_pitch = 0;
-	float new_yaw = 0;
-
-	if (pitchspeed_ > 0) {
-		pitchspeed_ = max(pitchspeed_ - mouse_friction, 0);
-	}
-	else  {
-		pitchspeed_ = min(pitchspeed_ + mouse_friction, 0);
-	}
-	total_pitchspeed = pitchspeed_ + self->fb.track_pitchspeed;
-	total_pitchspeed = bound(-450, total_pitchspeed, 450);
-	self->fb.pitchspeed = bound (-450, pitchspeed_, 450);
-	self->fb.real_pitch = bound(-71.71875, self->fb.real_pitch + total_pitchspeed * g_globalvars.frametime, 78.75);
-	*/
 	BotPerformRocketJump(self);
 
-	/*
-	if (yawspeed_ > 0) {
-		yawspeed_ = max(yawspeed_ - mouse_friction, 0);
-	}
-	else {
-		yawspeed_ = min(yawspeed_ + mouse_friction, 0);
-	}
-	total_yawspeed = yawspeed_ + self->fb.track_yawspeed;
-	if (fabs(total_yawspeed) > self->fb.stop_turn_speed) {
-		self->fb.arrow = 0;
-		self->fb.arrow_time = g_globalvars.time + g_globalvars.frametime;
-		total_yawspeed = bound (-540, total_yawspeed, 540);
-	}
-	self->fb.yawspeed = bound (-540, yawspeed_, 540);
-
-	self->fb.real_yaw += total_yawspeed * g_globalvars.frametime;
-	while (self->fb.real_yaw >= 180) {
-		self->fb.real_yaw -= 360;
-	}
-	while (real_yaw_ < -180) {
-		self->fb.real_yaw += 360;
-	}
-
-	new_pitch = (pr1_rint(self->fb.real_pitch / 1.40625)) * 1.40625;
-	new_yaw = (pr1_rint (real_yaw_ / 1.40625)) * 1.40625;
-	if (new_pitch < 0) {
-		if (new_pitch < -2.8125) {
-			new_pitch = new_pitch + 2.8125;
-		}
-		else {
-			new_pitch = 0;
-		}
-	}
-
-	G_bprint (2, "Desired[%f %f] vs [%f %f]\n", self->fb.desired_angle[0], self->fb.desired_angle[1], new_pitch * -1, new_yaw);
-
-	self->fb.desired_angle[0] = new_pitch * -1;
-	self->fb.desired_angle[1] = new_yaw;
-	self->fb.desired_angle[2] = 0;*/
-
 	VectorNormalize (self->fb.dir_move_);
-
-	// FIXME: To wiggle-run, could just modify desired_angle here, based on the corresponding velocity to get best speed
 	trap_makevectors (self->fb.desired_angle);
 
 	trap_SetBotCMD (
