@@ -152,7 +152,9 @@ static fb_spawn_t stdSpawnFunctions[] = {
 	{ "trigger_setskill", fb_spawn_simple },
 	{ "trigger_onlyregistered", fb_spawn_simple },
 	{ "trigger_hurt", fb_spawn_simple },
-	{ "trigger_push", fb_spawn_simple }
+	{ "trigger_push", fb_spawn_simple },
+	{ "train", fb_spawn_simple },
+	{ "plat", fb_spawn_simple }
 };
 
 static void CreateItemMarkers() {
