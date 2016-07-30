@@ -4,6 +4,7 @@
 
 void SetAttribs (gedict_t* self);
 int FallSpotAir (vec3_t testplace, float fallheight);
+void Bot_Print_Thinking (void);
 
 #define MAX_BOTS          32
 #define MIN_FROGBOT_SKILL  0
@@ -138,21 +139,7 @@ qbool CanJumpOver (gedict_t* self, vec3_t jump_origin, vec3_t jump_velocity, flo
 static void FrogbotsDebug (void)
 {
 	if (trap_CmdArgc () == 2) {
-		gedict_t* bot = &g_edicts[(self->ct == ctSpec && self->s.v.goalentity ? self->s.v.goalentity : bots[0].entity)];
-		char data[1024] = { 0 };
-
-		strlcpy(data, va("You: touch_marker %d\n\n", self->fb.touch_marker ? self->fb.touch_marker->fb.index : -1), sizeof(data));
-
-		strlcat(data, va("Bot: %s\n", bot->s.v.netname), sizeof(data));
-		strlcat(data, va("  %s: %s (%d)\n", redtext ("Touch"), bot->fb.touch_marker ? bot->fb.touch_marker->s.v.classname : "(none)", bot->fb.touch_marker ? bot->fb.touch_marker->fb.index : -1), sizeof(data));
-		strlcat(data, va("  %s: %s\n", redtext ("Enemy"), bot->s.v.enemy == 0 ? "(none)" : g_edicts[bot->s.v.enemy].s.v.netname), sizeof(data));
-		strlcat(data, va("  %s: %s\n", redtext ("Looking"), bot->fb.look_object ? bot->fb.look_object->s.v.classname : "(nothing)"), sizeof(data));
-		strlcat(data, va("  %s: %s\n", redtext ("VirtGoal"), bot->fb.virtual_goal ? bot->fb.virtual_goal->s.v.classname : "(nothing)"), sizeof(data));
-		strlcat(data, va("  %s: %s\n", redtext ("GoalEnt"), bot->s.v.goalentity == 0 ? "(none)" : g_edicts[bot->s.v.goalentity].s.v.classname), sizeof(data));
-
-		G_centerprint (self, data);
-
-		//bot->fb.debug = true;
+		Bot_Print_Thinking ();
 	}
 	else if (! match_in_progress) {
 		char sub_command[64];
@@ -362,5 +349,37 @@ void SetLinkedMarker (gedict_t* player, gedict_t* marker)
 	//	G_bprint (2, "linked to %3d/%s, g %s\n", marker ? marker->fb.index : -1, marker ? marker->s.v.classname : "(null)", g_edicts[player->s.v.goalentity].s.v.classname);
 
 	player->fb.linked_marker = marker;
+}
+
+void Bot_Print_Thinking (void)
+{
+	// Spectator is watching a bot - display bot's thinking
+	qbool isSpectator = self->ct == ctSpec && self->s.v.goalentity;
+	gedict_t* bot = isSpectator ? PROG_TO_EDICT( self->s.v.goalentity ) : &g_edicts[bots[0].entity];
+	char data[1024] = { 0 };
+
+	if (g_globalvars.time < self->fb.last_spec_cp)
+		return;
+
+	strlcat(data, va("Bot: %s\n", bot->s.v.netname), sizeof(data));
+	strlcat(data, va("  %s: %s (%d)\n", redtext ("Touch"), bot->fb.touch_marker ? bot->fb.touch_marker->s.v.classname : "(none)", bot->fb.touch_marker ? bot->fb.touch_marker->fb.index : -1), sizeof(data));
+	strlcat(data, va("  %s: %s\n", redtext ("Looking"), bot->fb.look_object ? bot->fb.look_object->s.v.classname : "(nothing)"), sizeof(data));
+	strlcat(data, va("  %s: %s\n", redtext ("VirtGoal"), bot->fb.virtual_goal ? bot->fb.virtual_goal->s.v.classname : "(nothing)"), sizeof(data));
+	strlcat(data, va("  %s: %s\n", redtext ("GoalEnt"), bot->s.v.goalentity == 0 ? "(none)" : g_edicts[bot->s.v.goalentity].s.v.classname), sizeof(data));
+	strlcat(data, va("  %s: armor %f, damage %f\n", redtext ("Strength"), bot->fb.total_armor, bot->fb.total_damage), sizeof(data));
+	strlcat(data, va("  %s: RA %d YA %d GA %d\n", redtext ("Desire"), (int)bot->fb.desire_armorInv, (int)bot->fb.desire_armor2, (int)bot->fb.desire_armor1), sizeof(data));
+	strlcat(data, va("  %s: LG %d RL %d\n", redtext ("Desire"), (int)bot->fb.desire_lightning, (int)bot->fb.desire_rocketlauncher), sizeof(data));
+
+	if (bot->s.v.enemy) {
+		gedict_t* enemy = &g_edicts[bot->s.v.enemy];
+
+		strlcat(data, va("\nEnemy: %s\n", redtext ("Enemy"), enemy->s.v.netname), sizeof(data));
+		strlcat(data, va("  %s: armor %f, damage %f\n", redtext ("Strength"), enemy->fb.total_armor, enemy->fb.total_damage), sizeof(data));
+		strlcat(data, va("  %s: RA %f YA %f GA %f\n", redtext ("Desire"), enemy->fb.desire_armorInv, enemy->fb.desire_armor2, bot->fb.desire_armor1), sizeof(data));
+		strlcat(data, va("  %s: LG %f RL %f\n", redtext ("Desire"), enemy->fb.desire_lightning, enemy->fb.desire_rocketlauncher), sizeof(data));
+	}
+
+	G_centerprint (self, data);
+	self->fb.last_spec_cp = g_globalvars.time + 1;
 }
 

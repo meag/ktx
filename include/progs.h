@@ -567,6 +567,8 @@ typedef struct fb_entvars_s {
 	struct gedict_s*    virtual_enemy;   //
 	vec3_t              rocket_endpos;   // where an incoming rocket will explode
 	struct gedict_s*    dodge_missile;   // rocket belonging to look_object
+
+	float               last_spec_cp;    // last spectator centerprint
 } fb_entvars_t;
 
 //typedef (void(*)(gedict_t *)) one_edict_func;

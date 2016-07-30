@@ -232,3 +232,4 @@ qbool FrogbotOptionEnabled (int option)
 {
 	return ((int)cvar ("k_fb_options")) & option;
 }
+

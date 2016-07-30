@@ -27,7 +27,7 @@ void UpdateTotalDamage(gedict_t* client)
 		if (client->fb.total_armor >= 90) {
 			client->fb.desire_armor1 = client->fb.desire_armor2 = 0;
 		}
-		else  {
+		else {
 			min_first = client->s.v.health / 0.4;
 			min_second = client->s.v.health + 150;
 			if (min_first <= min_second) {
