@@ -124,24 +124,19 @@ void AssignVirtualGoal_apply(gedict_t* marker_) {
 	if (goal_number) {
 		gedict_t* test_goal = marker_;
 
-		if (WaitingToRespawn(test_goal)) {
+		if (WaitingToRespawn(marker_)) {
 			int i = 0;
 			for (i = 0; i < NUMBER_PATHS; ++i) {
 				test_goal = marker_->fb.paths[i].next_marker;
-				if (test_goal && ((test_goal->fb.G_ != goal_number) || (test_goal->s.v.nextthink > g_globalvars.time)))
+				if (test_goal && (test_goal->fb.G_ == goal_number) && !WaitingToRespawn(test_goal))
 					break;
 			}
 
 			if (i >= NUMBER_PATHS) {
-				// Waiting to respawn...
-				if (WaitingToRespawn(marker_)) {
-					test_goal = marker_;
-				}
-				else {
-					test_goal = dropper;
-				}
+				test_goal = marker_;
 			}
 		}
+
 		marker_->fb.virtual_goal = test_goal;
 	}
 }
