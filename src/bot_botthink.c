@@ -527,3 +527,37 @@ void BotEvadeLogic(gedict_t* self) {
 		}
 	}
 }
+
+void bot_plat_hit_top (gedict_t* self)
+{
+	int i = 0;
+
+	for (i = 0; i < sizeof(self->fb.paths) / sizeof(self->fb.paths[0]); ++i) {
+		gedict_t* next = self->fb.paths[i].next_marker;
+		if (next) {
+			int j = 0;
+			for (j = 0; j < sizeof (self->fb.paths) / sizeof (self->fb.paths[0]); ++j) {
+				if (next->fb.paths[j].next_marker == self && (next->fb.paths[j].flags & VERTICAL_PLATFORM)) {
+					next->fb.paths[j].flags |= ROCKET_JUMP;
+				}
+			}
+		}
+	}
+}
+
+void bot_plat_hit_bottom (gedict_t* self)
+{
+	int i = 0;
+
+	for (i = 0; i < sizeof(self->fb.paths) / sizeof(self->fb.paths[0]); ++i) {
+		gedict_t* next = self->fb.paths[i].next_marker;
+		if (next) {
+			int j = 0;
+			for (j = 0; j < sizeof (self->fb.paths) / sizeof (self->fb.paths[0]); ++j) {
+				if (next->fb.paths[j].next_marker == self && (next->fb.paths[j].flags & VERTICAL_PLATFORM)) {
+					next->fb.paths[j].flags &= ~ROCKET_JUMP;
+				}
+			}
+		}
+	}
+}

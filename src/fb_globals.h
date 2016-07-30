@@ -616,3 +616,6 @@ int BotVersionNumber (void);
 qbool FrogbotOptionEnabled (int option);
 
 void SetDirectionMove (gedict_t* self, vec3_t dir_move, const char* explanation);
+
+void bot_plat_hit_top (gedict_t* self);
+void bot_plat_hit_bottom (gedict_t* self);
