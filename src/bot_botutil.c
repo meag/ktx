@@ -39,6 +39,5 @@ qbool Visible_360(gedict_t* self, gedict_t* visible_object) {
 }
 
 qbool Visible_infront(gedict_t* self, gedict_t* visible_object) {
-	// FIXME: Effective FOV should be in fb.skill
-	return (self->fb.enemy_visible = VisibilityTest (self, visible_object, 0.7071067f));
+	return (self->fb.enemy_visible = VisibilityTest (self, visible_object, self->fb.skill.visibility));
 }

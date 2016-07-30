@@ -327,8 +327,8 @@ typedef struct fb_goal_s {
 } fb_goal_t;
 
 typedef struct fb_subzone_s {
-	float time;
 	struct gedict_s* next_marker;
+	float time;
 } fb_subzone_t;
 
 typedef struct fb_zone_s {
@@ -360,6 +360,8 @@ typedef struct botskill_s {
 
 	float lg_preference;          // 0...1  previously game-wide, look to use LG when possible
 	float rl_preference;          // 0...1  previously game-wide, look to use RL when possible
+
+	float visibility;             // cos(fov / 2) ... fov 90 = cos(45) = 0.7071067, fov 120 = cos(60) = 0.5
 } botskill_t;
 
 typedef struct fb_entvars_s {

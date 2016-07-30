@@ -27,6 +27,8 @@ void SetAttribs(gedict_t* self) {
 	self->fb.skill.prediction_error = 1 - (smartness * 0.1);
 
 	self->fb.skill.lg_preference = self->fb.skill.fast_aim;
+
+	self->fb.skill.visibility = 0.7071067f - (0.02f * skill_);   // fov 90 (0.707) => fov 120 (0.5)
 }
 
 void CalculatePhysicsVariables() {
