@@ -26,7 +26,6 @@ gedict_t* test_marker = 0;
 gedict_t* prev_marker = 0;
 vec3_t to_marker_pos = { 0 };
 gedict_t* goal_entity = 0;
-float weapon_refresh_time_ = 0;
 float lookahead_time_ = 0;       // Safe to replace with self->fb.skill.lookahead_time
 vec3_t origin_ = { 0 };
 float impulse_ = 0;

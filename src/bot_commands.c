@@ -376,7 +376,7 @@ void Bot_Print_Thinking (void)
 	if (bot->s.v.enemy) {
 		gedict_t* enemy = &g_edicts[bot->s.v.enemy];
 
-		strlcat(data, va("\nEnemy: %s\n", redtext ("Enemy"), enemy->s.v.netname), sizeof(data));
+		strlcat(data, va("\n%s: %s\n", redtext ("Enemy"), enemy->s.v.netname), sizeof(data));
 		strlcat(data, va("  %s: armor %d, damage %d\n", redtext ("Strength"), (int)enemy->fb.total_armor, (int)enemy->fb.total_damage), sizeof(data));
 		strlcat(data, va("  %s: RA %d YA %d GA %d\n", redtext ("Desire"), (int)enemy->fb.desire_armorInv, (int)enemy->fb.desire_armor2, (int)bot->fb.desire_armor1), sizeof(data));
 		strlcat(data, va("  %s: LG %d RL %d\n", redtext ("Desire"), (int)enemy->fb.desire_lightning, (int)enemy->fb.desire_rocketlauncher), sizeof(data));

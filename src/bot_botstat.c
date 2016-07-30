@@ -21,7 +21,7 @@ void UpdateTotalDamage(gedict_t* client)
 		if (min_first <= min_second) {
 			client->fb.desire_armorInv = min_first - client->fb.total_damage;
 		}
-		else  {
+		else {
 			client->fb.desire_armorInv = min_second - client->fb.total_damage;
 		}
 		if (client->fb.total_armor >= 90) {
@@ -33,7 +33,7 @@ void UpdateTotalDamage(gedict_t* client)
 			if (min_first <= min_second) {
 				client->fb.desire_armor2 = min_first - client->fb.total_damage;
 			}
-			else  {
+			else {
 				client->fb.desire_armor2 = min_second - client->fb.total_damage;
 			}
 			if (client->fb.desire_armor2 < 0) {
@@ -42,13 +42,13 @@ void UpdateTotalDamage(gedict_t* client)
 			if (client->fb.total_armor >= 30) {
 				client->fb.desire_armor1 = 0;
 			}
-			else  {
+			else {
 				min_first = client->s.v.health / 0.7;
 				min_second = client->s.v.health + 100;
 				if (min_first <= min_second) {
 					client->fb.desire_armor1 = 2 * (min_first - client->fb.total_damage);
 				}
-				else  {
+				else {
 					client->fb.desire_armor1 = 2 * (min_second - client->fb.total_damage);
 				}
 				if (client->fb.desire_armor1 < 0) {
@@ -75,15 +75,15 @@ void UpdateTotalDamage(gedict_t* client)
 			if (min_first <= min_second) {
 				client->fb.desire_health0 = 2 * (min_first - client->fb.total_damage);
 			}
-			else  {
+			else {
 				client->fb.desire_health0 = 2 * (min_second - client->fb.total_damage);
 			}
 		}
-		else  {
+		else {
 			client->fb.desire_health0 = 0;
 		}
 	}
-	else  {
+	else {
 		client->fb.desire_health0 = client->fb.desire_health2 = 0;
 	}
 
@@ -127,21 +127,19 @@ void UpdateWeapons(gedict_t* self)
 			if (self->s.v.ammo_shells >= 50) {
 				firepower_ = firepower_ + 20;
 			}
-			else  {
+			else {
 				firepower_ = firepower_ + self->s.v.ammo_shells * 0.4;
 			}
 		}
-		else  {
+		else {
 			if (self->s.v.ammo_shells >= 25) {
 				firepower_ = firepower_ + 10;
 			}
-			else  {
+			else {
 				firepower_ = firepower_ + self->s.v.ammo_shells * 0.4;
 			}
 		}
-		if (firepower_ > 100) {
-			firepower_ = 100;
-		}
+		firepower_ = min (firepower_, 100);
 
 		self->fb.desire_rockets = max(5, 20 - self->s.v.ammo_rockets);
 		self->fb.desire_cells = max(2.5, (50 - self->s.v.ammo_cells) * 0.2);

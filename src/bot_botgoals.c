@@ -109,6 +109,8 @@ static void EvalGoal(gedict_t* self, gedict_t* goal_entity) {
 			return;
 		}
 
+		if (self->fb.touch_marker->fb.index == 44 && goal_entity->fb.index == 44)
+			G_bprint (2, "*** GRT = %f - %f + (%f + random)\n", goal_entity->fb.goal_respawn_time, g_globalvars.time, goal_time);
 		goal_entity->fb.saved_respawn_time = goal_entity->fb.goal_respawn_time - g_globalvars.time + (goal_time * self->fb.skill.prediction_error * g_random());
 		goal_time = max (goal_time, goal_entity->fb.saved_respawn_time);
 		goal_entity->fb.saved_goal_time = goal_time;
@@ -238,10 +240,12 @@ void UpdateGoal(gedict_t* self) {
 	gedict_t* goal_entity = 0;
 
 	self->fb.goal_refresh_time = g_globalvars.time + 2 + g_random();
-	
 	self->fb.best_goal_score = 0;
 	self->fb.best_goal = NULL;
 	self->fb.goal_enemy_repel = self->fb.goal_enemy_desire = 0;
+
+	if (self->fb.touch_marker && self->fb.touch_marker->fb.index == 44)
+		self->fb.debug = true;
 
 	BotEvadeLogic(self);
 

@@ -64,71 +64,79 @@ static float goal_armorInv(gedict_t* self) {
 	}
 }
 
-static float goal_supershotgun1(gedict_t* self) {
+static float goal_supershotgun1 (gedict_t* self)
+{
 	return (self->fb.desire_supershotgun + (self->fb.virtual_enemy->fb.desire_supershotgun * 0.5));
 }
 
-static float goal_supershotgun2(gedict_t* self) {
-	if ((int)self->s.v.items & IT_SUPER_SHOTGUN) {
+static float goal_supershotgun2(gedict_t* self)
+{
+	if (deathmatch != 1 && ((int)self->s.v.items & IT_SUPER_SHOTGUN))
 		return 0;
-	}
-	return goal_supershotgun1(self);
+
+	return goal_supershotgun1 (self);
 }
 
-static float goal_nailgun1(gedict_t* self) {
+static float goal_nailgun1 (gedict_t* self)
+{
 	return (self->fb.desire_nailgun + (self->fb.virtual_enemy->fb.desire_nailgun * 0.5));
 }
 
 static float goal_nailgun2(gedict_t* self) {
-	if ((int)self->s.v.items & IT_NAILGUN) {
+	if (deathmatch != 1 && ((int)self->s.v.items & IT_NAILGUN))
 		return 0;
-	}
+
 	return goal_nailgun1(self);
 }
 
-static float goal_supernailgun1(gedict_t* self) {
+static float goal_supernailgun1 (gedict_t* self)
+{
 	return (self->fb.desire_supernailgun + (self->fb.virtual_enemy->fb.desire_supernailgun * 0.5));
 }
 
-static float goal_supernailgun2(gedict_t* self) {
-	if ((int)self->s.v.items & IT_SUPER_NAILGUN) {
+static float goal_supernailgun2 (gedict_t* self)
+{
+	if (deathmatch != 1 && ((int)self->s.v.items & IT_SUPER_NAILGUN))
 		return 0;
-	}
+
 	return goal_supernailgun1(self);
 }
 
-static float goal_grenadelauncher1(gedict_t* self) {
-	return (self->fb.desire_grenadelauncher + self->fb.virtual_enemy->fb.desire_grenadelauncher);
+static float goal_grenadelauncher1 (gedict_t* self)
+{
+	return (self->fb.desire_grenadelauncher + self->fb.virtual_enemy->fb.desire_grenadelauncher * 0.5);
 }
 
-static float goal_grenadelauncher2(gedict_t* self) {
-	if ((int)self->s.v.items & IT_GRENADE_LAUNCHER) {
+static float goal_grenadelauncher2 (gedict_t* self) {
+	if (deathmatch != 1 && ((int)self->s.v.items & IT_GRENADE_LAUNCHER))
 		return 0;
-	}
-	return goal_grenadelauncher1(self);
+
+	return goal_grenadelauncher1 (self);
 }
 
-static float goal_rocketlauncher1(gedict_t* self) {
+static float goal_rocketlauncher1 (gedict_t* self)
+{
 	return (self->fb.desire_rocketlauncher + self->fb.virtual_enemy->fb.desire_rocketlauncher);
 }
 
-static float goal_rocketlauncher2(gedict_t* self) {
-	if ((int)self->s.v.items & IT_ROCKET_LAUNCHER) {
+static float goal_rocketlauncher2 (gedict_t* self) {
+	if (deathmatch != 1 && ((int)self->s.v.items & IT_ROCKET_LAUNCHER))
 		return 0;
-	}
-	return goal_rocketlauncher1(self);
+
+	return goal_rocketlauncher1 (self);
 }
 
-static float goal_lightning1(gedict_t* self) {
+static float goal_lightning1 (gedict_t* self)
+{
 	return (self->fb.desire_lightning + (self->fb.virtual_enemy->fb.desire_lightning * 0.5));
 }
 
-// dmm3: if we have it then ignore
-static float goal_lightning2(gedict_t* self) {
-	if ((int)self->s.v.items & IT_LIGHTNING) {
+static float goal_lightning2 (gedict_t* self)
+{
+	if (deathmatch != 1 && ((int)self->s.v.items & IT_LIGHTNING))
 		return 0;
-	}
-	return goal_lightning1(self);
+
+	return goal_lightning1 (self);
 }
 
 static float goal_shells(gedict_t* self) {
@@ -208,23 +216,23 @@ qbool pickup_true(void) {
 }
 
 qbool pickup_nailgun2(void) {
-	return (qbool) !((int)self->s.v.items & IT_NAILGUN);
+	return deathmatch == 1 || (qbool) !((int)self->s.v.items & IT_NAILGUN);
 }
 
 qbool pickup_supernailgun2(void) {
-	return (qbool) !((int)self->s.v.items & IT_SUPER_NAILGUN);
+	return deathmatch == 1 || (qbool) !((int)self->s.v.items & IT_SUPER_NAILGUN);
 }
 
 qbool pickup_grenadelauncher2(void) {
-	return (qbool) !((int)self->s.v.items & IT_GRENADE_LAUNCHER);
+	return deathmatch == 1 || (qbool) !((int)self->s.v.items & IT_GRENADE_LAUNCHER);
 }
 
 qbool pickup_rocketlauncher2(void) {
-	return (qbool) !((int)self->s.v.items & IT_ROCKET_LAUNCHER);
+	return deathmatch == 1 || (qbool) !((int)self->s.v.items & IT_ROCKET_LAUNCHER);
 }
 
 qbool pickup_lightning2(void) {
-	return (qbool) !((int)self->s.v.items & IT_LIGHTNING);
+	return deathmatch == 1 || (qbool) !((int)self->s.v.items & IT_LIGHTNING);
 }
 
 qbool pickup_shells(void) {
@@ -278,6 +286,7 @@ static void fb_health_taken (gedict_t* item, gedict_t* player)
 {
 	if ((int)item->s.v.spawnflags & H_MEGA) {
 		// TODO: TeamReport (TookMega)
+		item->fb.goal_respawn_time = g_globalvars.time + 5 + max (player->s.v.health - 100, 0);
 	}
 	else {
 		item->fb.goal_respawn_time = item->s.v.nextthink;
@@ -441,14 +450,8 @@ static void StartWeapon (gedict_t* ent)
 static void fb_spawn_ssg(gedict_t* ent) {
 	SetGoalForMarker(FB_GOAL_SSG, ent);
 
-	if (deathmatch == 1) {
-		ent->fb.desire = goal_supershotgun1;
-		ent->fb.pickup = pickup_true;
-	}
-	else {
-		ent->fb.desire = goal_supershotgun2;
-		ent->fb.pickup = pickup_supershotgun2;
-	}
+	ent->fb.desire = goal_supershotgun2;
+	ent->fb.pickup = pickup_supershotgun2;
 
 	StartWeapon (ent);
 }
@@ -456,14 +459,8 @@ static void fb_spawn_ssg(gedict_t* ent) {
 static void fb_spawn_ng(gedict_t* ent) {
 	SetGoalForMarker(FB_GOAL_NG, ent);
 
-	if (deathmatch == 1) {
-		ent->fb.desire = goal_nailgun1;
-		ent->fb.pickup = pickup_true;
-	}
-	else {
-		ent->fb.desire = goal_nailgun2;
-		ent->fb.pickup = pickup_nailgun2;
-	}
+	ent->fb.desire = goal_nailgun2;
+	ent->fb.pickup = pickup_nailgun2;
 
 	StartWeapon (ent);
 }
@@ -471,59 +468,32 @@ static void fb_spawn_ng(gedict_t* ent) {
 static void fb_spawn_sng(gedict_t* ent) {
 	SetGoalForMarker(FB_GOAL_SNG, ent);
 
-	if (deathmatch == 1) {
-		ent->fb.desire = goal_supernailgun1;
-		ent->fb.pickup = pickup_true;
-	}
-	else {
-		ent->fb.desire = goal_supernailgun2;
-		ent->fb.pickup = pickup_supernailgun2;
-	}
+	ent->fb.desire = goal_supernailgun2;
+	ent->fb.pickup = pickup_supernailgun2;
 
 	StartWeapon (ent);
 }
 
 static void fb_spawn_gl(gedict_t* ent) {
 	// no goal set for GL
-
-	if (deathmatch == 1) {
-		ent->fb.desire = goal_grenadelauncher1;
-		ent->fb.pickup = pickup_true;
-	}
-	else {
-		ent->fb.desire = goal_grenadelauncher2;
-		ent->fb.pickup = pickup_grenadelauncher2;
-	}
+	ent->fb.desire = goal_grenadelauncher2;
+	ent->fb.pickup = pickup_grenadelauncher2;
 
 	StartWeapon (ent);
 }
 
 static void fb_spawn_rl(gedict_t* ent) {
 	// no goal set for RL
-
-	if (deathmatch == 1) {
-		ent->fb.desire = goal_rocketlauncher1;
-		ent->fb.pickup = pickup_true;
-	}
-	else {
-		ent->fb.desire = goal_rocketlauncher2;
-		ent->fb.pickup = pickup_rocketlauncher2;
-	}
+	ent->fb.desire = goal_rocketlauncher2;
+	ent->fb.pickup = pickup_rocketlauncher2;
 
 	StartWeapon (ent);
 }
 
 static void fb_spawn_lg(gedict_t* ent) {
 	// no goal set for LG
-
- 	if (deathmatch == 1) {
-		ent->fb.desire = goal_lightning1;
-		ent->fb.pickup = pickup_true;
-	}
-	else {
-		ent->fb.desire = goal_lightning2;
-		ent->fb.pickup = pickup_lightning2;
-	}
+	ent->fb.desire = goal_lightning2;
+	ent->fb.pickup = pickup_lightning2;
 
 	StartWeapon (ent);
 }
