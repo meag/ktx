@@ -76,7 +76,7 @@ static void AvoidEdge(gedict_t* self) {
 		vec3_t dir_move;
 		self->fb.oldvelocity[0] = self->fb.oldvelocity[1] = 0;  // lavacheat always enabled
 		VectorScale(dir_forward, -1, dir_move);
-		NewVelocityForArrow(self, dir_move);
+		NewVelocityForArrow(self, dir_move, "AvoidEdge");
 		self->fb.arrow_time2 = self->fb.arrow_time;
 	}
 }
@@ -89,7 +89,7 @@ void HazardTeleport(gedict_t* self, gedict_t* other) {
 	for (plr = world; plr = find_plr(plr); ) {
 		if (plr != other && plr->fb.linked_marker == self) {
 			plr->fb.old_linked_marker = NULL;
-			SetLinkedMarker(plr, LocateMarker(plr->s.v.origin));
+			SetLinkedMarker(plr, LocateMarker(plr->s.v.origin), "HazardTeleport");
 			plr->fb.path_state = 0;
 			plr->fb.linked_marker_time = g_globalvars.time + 5;
 		}
@@ -360,7 +360,7 @@ static qbool JumpLedgeLogic (gedict_t* self, vec3_t new_velocity)
 						else if (g_random() < 0.5) {
 							VectorScale(dir_move, -1, dir_move);
 						}
-						NewVelocityForArrow(self, dir_move);
+						NewVelocityForArrow(self, dir_move, "JumpLedge");
 						self->fb.ledge_backup_time = 0;
 					}
 				}
@@ -382,7 +382,7 @@ static qbool JumpLedgeLogic (gedict_t* self, vec3_t new_velocity)
 
 						VectorScale(rel_pos, -1, dir_move);
 						dir_move[2] = 0;
-						NewVelocityForArrow(self, dir_move);
+						NewVelocityForArrow(self, dir_move, "JumpLedge2");
 						self->fb.ledge_backup_time = 0;
 					}
 				}
@@ -444,7 +444,7 @@ static qbool ObstructionLogic (gedict_t* self, vec3_t new_velocity)
 					VectorMA(self->fb.dir_move_, -0.5 * DotProduct(self->fb.obstruction_normal, self->fb.dir_move_), self->fb.obstruction_normal, dir_move);
 				}
 				dir_move[2] = 0;
-				NewVelocityForArrow(self, dir_move);
+				NewVelocityForArrow(self, dir_move, "Obstruct");
 			}
 		}
 	}
@@ -595,7 +595,7 @@ static void AvoidHazardsOnGround (gedict_t* self, float hor_speed, vec3_t new_or
 				vec3_t dir_move;
 				VectorMA(dir_forward, -2 * normal_comp, edge_normal, dir_move);
 				dir_move[2] = 0;
-				NewVelocityForArrow(self, dir_move);
+				NewVelocityForArrow(self, dir_move, "AvoidHzds");
 				if (normal_comp > 0.5) {
 					self->fb.arrow_time2 = self->fb.arrow_time;
 				}

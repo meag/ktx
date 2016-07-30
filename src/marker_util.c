@@ -46,7 +46,7 @@ void check_marker(gedict_t* self, gedict_t* other) {
 		other->fb.touch_distance = distance;
 
 		//if (other->isBot && other->fb.touch_marker != self)
-		//	G_bprint (2, "touch to %3d/%s, g %s\n", self->fb.index, self->s.v.classname, g_edicts[other->s.v.goalentity].s.v.classname);
+		//	G_bprint (2, "touched %3d/%s, g %d\n", self->fb.index, self->s.v.classname, g_edicts[other->s.v.goalentity].fb.index);
 		other->fb.touch_marker = self;
 		other->fb.Z_ = self->fb.Z_;
 

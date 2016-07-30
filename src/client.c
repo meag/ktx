@@ -1940,7 +1940,7 @@ void WaterMove()
 
 	if ( self->s.v.waterlevel != 3 )
 	{
-		if (self->isBot)
+		if (self->isBot && self->s.v.waterlevel)
 			BotWaterJumpFix();
 
 		if ( self->air_finished < g_globalvars.time )

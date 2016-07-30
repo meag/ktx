@@ -28,6 +28,7 @@ static void AirControl (gedict_t* self, vec3_t hor_velocity, float hor_speed)
 	vec3_t dir_forward;
 	float accel_forward = 0;
 	float velocity_forward = 0;
+	vec3_t new_velocity;
 
 	trap_makevectors(velocity_hor_angle);
 	VectorScale(g_globalvars.v_forward, hor_speed, temp);
@@ -41,37 +42,67 @@ static void AirControl (gedict_t* self, vec3_t hor_velocity, float hor_speed)
 			accel_forward = 0;
 		}
 	}
-	// TODO: this is wrong, set the command instead
-	//VectorMA(self->s.v.velocity, accel_forward, dir_forward, self->s.v.velocity);
-	VectorMA(self->fb.dir_move_, accel_forward, dir_forward, self->fb.dir_move_);
+
+	VectorMA (self->fb.dir_move_, accel_forward, dir_forward, new_velocity);
+	SetDirectionMove (self, new_velocity, "AirControl");
 }
 
 //Sets self.obstruction_normal to be horizontal normal direction into wall obstruction encountered
 // during quake physics (ie. between PlayerPreThink and PlayerPostThink)
-static void obstruction(gedict_t* self) {
+static qbool obstruction(gedict_t* self) {
 	vec3_t delta_velocity = { 0 };
+	qbool onGround = ((int)self->s.v.flags & FL_ONGROUND);
+	vec3_t proposed = { 0 };
+	vec3_t direction = { 0 };
+	float scale = 0.0f;
+	float heading = 0.0f;
 
-	VectorSubtract(self->fb.oldvelocity, self->s.v.velocity, delta_velocity);
-	if (abs(delta_velocity[0]) < 0.1 && abs(delta_velocity[1]) < 0.1) {
+	return false;
+
+	// This used to compare velocities after physics has been run for all the bots...
+	// We can't send the command twice, so instead we use dropper to try and find out if we're up against a wall
+	VectorCopy( self->s.v.origin, dropper->s.v.origin );
+	dropper->s.v.flags = FL_ONGROUND_PARTIALGROUND;
+	heading = vectoyaw( self->fb.dir_move_ );
+	if (walkmove (dropper, heading, 16)) {
+		VectorClear (self->fb.obstruction_normal);
+		return false;
+	}
+
+	/*
+	normalize (self->fb.dir_move_, direction);
+	VectorMA (self->s.v.origin, sv_maxspeed * g_globalvars.frametime * 1.1, direction, proposed);
+	traceline (PASSVEC3 (self->s.v.origin), PASSVEC3 (proposed), 0, self);
+	if (g_globalvars.trace_fraction == 1.0) {
 		VectorClear(self->fb.obstruction_normal);
-		return;
+		return false;
+	}*/
+
+	// In mid-air and not swimming?  Nothing we can do about it, wait to hit the ground...
+	if (! onGround && ((!self->s.v.waterlevel) || ((int)self->s.v.flags & FL_WATERJUMP))) {
+		VectorClear(self->fb.obstruction_normal);
+		return false;
 	}
 
-	if (!((int)self->s.v.flags & FL_ONGROUND)) {
-		if ((!self->s.v.waterlevel) || ((int)self->s.v.flags & FL_WATERJUMP)) {
-			VectorClear(self->fb.obstruction_normal);
-			return;
-		}
-	}
+	// Store the horizontal normals
+	VectorCopy (g_globalvars.trace_plane_normal, self->fb.obstruction_normal);
+	self->fb.obstruction_normal[2] = 0;
+	normalize (self->fb.dir_move_, self->fb.velocity_normal);
+	self->fb.velocity_normal[2] = 0;
+	VectorAdd (self->fb.velocity_normal, self->fb.obstruction_normal, self->fb.velocity_normal);
+	return true;
 
+	/*
+	VectorSubtract (g_globalvars.trace_endpos, self->s.v.origin, direction);
+	VectorSubtract(proposed, direction, delta_velocity);
 	if (abs(delta_velocity[2]) < 0.1) {
 		vec3_t hor_velocity;
 
-		VectorCopy(self->s.v.velocity, hor_velocity);
+		VectorCopy(direction, hor_velocity);
 		hor_velocity[2] = 0;
 		if (hor_velocity[0] || hor_velocity[1] || hor_velocity[2]) {
+			// FIXME: Why would non-bot logic be here?
 			if (self->ct == ctPlayer && !self->isBot) {
-				// FIXME: this is doing nothing now?
 				vec3_t hor_direction;
 
 				normalize(hor_velocity, hor_direction);
@@ -82,7 +113,7 @@ static void obstruction(gedict_t* self) {
 			VectorSubtract(self->fb.oldvelocity, hor_velocity, self->fb.velocity_normal);
 			self->fb.velocity_normal[2] = 0;
 			normalize(self->fb.velocity_normal, self->fb.obstruction_normal);
-			return;
+			return true;
 		}
 
 		VectorCopy(self->fb.oldvelocity, hor_velocity);
@@ -91,11 +122,12 @@ static void obstruction(gedict_t* self) {
 			VectorMA(self->fb.oldvelocity, -DotProduct(self->fb.obstruction_normal, self->fb.oldvelocity), self->fb.obstruction_normal, self->fb.velocity_normal);
 			self->fb.velocity_normal[2] = 0;
 			normalize(self->fb.velocity_normal, self->fb.obstruction_normal);
-			return;
+			return true;
 		}
 	}
 
 	VectorClear(self->fb.obstruction_normal);
+	return false;*/
 }
 
 void FrogbotPrePhysics1(void) {
@@ -217,8 +249,9 @@ void FrogbotPostPhysics(void) {
 		if (self->isBot) {
 			self->s.v.waterlevel = self->fb.oldwaterlevel;
 			self->s.v.watertype = self->fb.oldwatertype;
-			obstruction(self);
-			if (self->fb.obstruction_normal[0] || self->fb.obstruction_normal[1] || self->fb.obstruction_normal[2]) {
+
+			// 
+			if (obstruction(self)) {
 				vec3_t temp, originDiff;
 				vec3_t new_velocity;
 				float yaw = 0;
@@ -237,13 +270,11 @@ void FrogbotPostPhysics(void) {
 				oldflags = self->s.v.flags;
 				self->s.v.flags = (int) self->s.v.flags | FL_ONGROUND_PARTIALGROUND;
 				if (walkmove(self, yaw, dist)) {
-					//VectorCopy(new_velocity, self->s.v.velocity);
-					//self->s.v.velocity[2] = 0;
-					VectorCopy(new_velocity, self->fb.dir_move_);
-					self->fb.dir_move_[2] = 0;
+					new_velocity[2] = 0;
+					SetDirectionMove (self, new_velocity, "PostPhysics");
 					VectorClear(self->fb.obstruction_normal);
 				}
-				else  {
+				else {
 					self->s.v.flags = oldflags;
 				}
 			}

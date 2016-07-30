@@ -39,7 +39,7 @@ static qbool BotGoUpForAir(gedict_t* self, vec3_t dir_move) {
 		VectorNormalize(temp);
 		VectorAdd(dir_move, temp, dir_move);
 		dir_move[2] = 0;
-		NewVelocityForArrow(self, dir_move);
+		NewVelocityForArrow(self, dir_move, "UpForAir");
 
 		// Drowning...
 		if (g_globalvars.time > self->air_finished) {
@@ -74,7 +74,7 @@ static void SwimAwayFromWall(gedict_t* self, vec3_t dir_move) {
 		VectorAdd(temp, dir_move, temp);
 		normalize(temp, dir_move);
 	}
-	NewVelocityForArrow(self, dir_move);
+	NewVelocityForArrow(self, dir_move, "SwimAway");
 }
 
 void BotWaterMove(gedict_t* self) {
@@ -186,7 +186,7 @@ void BotWaterJumpFix() {
 		if (self->fb.tread_water_count > 60) {
 			self->fb.tread_water_count = 0;
 			self->fb.old_linked_marker = NULL;
-			SetLinkedMarker(self, LocateMarker(self->s.v.origin));
+			SetLinkedMarker(self, LocateMarker(self->s.v.origin), "BotWaterJumpFix");
 			self->fb.path_state = 0;
 			self->fb.linked_marker_time = g_globalvars.time + 5;
 		}

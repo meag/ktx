@@ -1991,7 +1991,7 @@ void soft_ent_remove (gedict_t* ent)
 		ent->s.v.model = "";
 		ent->s.v.solid = SOLID_TRIGGER;
 		ent->s.v.nextthink = 0;
-		ent->s.v.think = SUB_Null;
+		ent->s.v.think = (func_t) SUB_Null;
 		ent->s.v.touch = (func_t) marker_touch;
 		ent->fb.desire = goal_NULL;
 		ent->fb.goal_respawn_time = 0;

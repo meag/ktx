@@ -494,7 +494,7 @@ void remove_self(void);
 
 // bothazd.qc
 void AvoidHazards(gedict_t* self);
-void NewVelocityForArrow (gedict_t* self, vec3_t dir_move);
+void NewVelocityForArrow (gedict_t* self, vec3_t dir_move, const char* explanation);
 
 // route_lookup.qc
 void SightMarker(gedict_t* from_marker);
@@ -603,7 +603,7 @@ gedict_t* FirstZoneMarker (int zone);
 void AddZoneMarker (gedict_t* marker);
 
 // bot_commands.qc
-void SetLinkedMarker (gedict_t* player, gedict_t* marker);
+void SetLinkedMarker (gedict_t* player, gedict_t* marker, char* explanation);
 
 // bot_routing.qc
 void PathScoringLogic (
@@ -615,3 +615,4 @@ void PathScoringLogic (
 int BotVersionNumber (void);
 qbool FrogbotOptionEnabled (int option);
 
+void SetDirectionMove (gedict_t* self, vec3_t dir_move, const char* explanation);

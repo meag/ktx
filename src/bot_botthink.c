@@ -261,7 +261,7 @@ static void BotTouchMarkerLogic() {
 	if (g_globalvars.time < self->fb.arrow_time) {
 		if (g_globalvars.time < self->fb.arrow_time2) {
 			if (g_random() < 0.5) {
-				SetLinkedMarker (self, self->fb.touch_marker);
+				SetLinkedMarker (self, self->fb.touch_marker, "BotTouchMarkerLogic");
 				self->fb.old_linked_marker = self->fb.linked_marker;
 				self->fb.path_state = 0;
 				self->fb.linked_marker_time = g_globalvars.time + 0.3;
@@ -274,7 +274,7 @@ static void BotTouchMarkerLogic() {
 		BotMoveTowardsLinkedMarker(self, dir_move);
 		BotOnGroundMovement(self, dir_move);
 
-		VectorCopy(dir_move, self->fb.dir_move_);
+		SetDirectionMove (self, dir_move, "OnGround");
 	}
 
 	SelectWeapon();

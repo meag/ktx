@@ -32,7 +32,7 @@ static void BotWaitLogic(gedict_t* self, int* new_path_state) {
 		VectorAdd(look_object->s.v.absmin, look_object->s.v.view_ofs, lookPos);
 		traceline(linkedPos[0], linkedPos[1], linkedPos[2] + 32, lookPos[0], lookPos[1], lookPos[2] + 32, true, self);
 		if (g_globalvars.trace_fraction != 1) {
-			SetLinkedMarker(self, touch_marker);
+			SetLinkedMarker(self, touch_marker, "BotWaitLogic");
 			*new_path_state = 0;
 		}
 	}
@@ -118,7 +118,7 @@ static qbool OnLift (gedict_t* self)
 				if (self->s.v.absmax[0] <= self->fb.touch_marker->s.v.absmax[0]) {
 					if (self->s.v.absmin[1] >= self->fb.touch_marker->s.v.absmin[1]) {
 						if (self->s.v.absmax[1] <= self->fb.touch_marker->s.v.absmax[1]) {
-							SetLinkedMarker(self, self->fb.touch_marker);
+							SetLinkedMarker(self, self->fb.touch_marker, "OnLift");
 							self->fb.path_state = 0;
 							self->fb.linked_marker_time = g_globalvars.time + 5;
 							self->fb.old_linked_marker = NULL;
@@ -158,7 +158,7 @@ void ProcessNewLinkedMarker(gedict_t* self) {
 			// FIXME: Create IsDynamicItem(ent)... should be dropped quads etc as well
 			if (streq(goalentity_->s.v.classname, "backpack")) {
 				if (IsVisible(goalentity_)) {
-					SetLinkedMarker(self, goalentity_);
+					SetLinkedMarker(self, goalentity_, "ProcNewLinked(backpack)");
 					self->fb.linked_marker_time = g_globalvars.time + 5;
 					self->fb.old_linked_marker = self->fb.touch_marker;
 					return;
@@ -270,7 +270,7 @@ void ProcessNewLinkedMarker(gedict_t* self) {
 	PathScoringLogic (self->fb.goal_respawn_time, self->fb.be_quiet, self->fb.skill.lookahead_time, self->fb.path_normal_, self->s.v.origin, player_direction, self->fb.touch_marker, goalentity_marker, rocket_alert, rocket_jump_routes_allowed, trace_bprint, &best_score, &new_linked_marker, &new_path_state);
 	//if (new_linked_marker != self->fb.linked_marker)
 		//G_bprint (2, "Path: ");
-	SetLinkedMarker (self, new_linked_marker);
+	SetLinkedMarker (self, new_linked_marker, "ProcNewLinked(std)");
 
 	STOP_DEBUGGING
 

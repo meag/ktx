@@ -25,8 +25,16 @@ static const char* ArrowName (int arrow)
 	return name;
 }
 
-void NewVelocityForArrow(gedict_t* self, vec3_t dir_move) {
+void SetDirectionMove (gedict_t* self, vec3_t dir_move, const char* explanation)
+{
+	if (self->fb.linked_marker && self->fb.linked_marker->fb.index == 8 &&
+		self->fb.touch_marker && self->fb.touch_marker->fb.index == 78)
+		G_bprint (2, "Setting direction: %s [%f %f %f]\n", explanation, PASSVEC3(dir_move));
 	normalize (dir_move, self->fb.dir_move_);
+}
+
+void NewVelocityForArrow(gedict_t* self, vec3_t dir_move, const char* explanation) {
+	SetDirectionMove (self, dir_move, explanation);
 	self->fb.arrow_time = g_globalvars.time + ARROW_TIME_INCREASE;
 }
 

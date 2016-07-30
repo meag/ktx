@@ -83,7 +83,7 @@ static void lava_jump(gedict_t* self) {
 		self->fb.pitchspeed = 0;
 		self->fb.arrow = BACK;
 		//VelocityForArrow(self);
-		NewVelocityForArrow (self, straight_up);
+		NewVelocityForArrow (self, straight_up, "LavaJump1");
 	}
 	if (self->s.v.waterlevel == 2) {
 		if (self->fb.arrow == BACK) {
@@ -92,7 +92,7 @@ static void lava_jump(gedict_t* self) {
 			self->fb.pitchspeed = 0;
 			self->fb.arrow = BACK;
 			//VelocityForArrow(self);
-			NewVelocityForArrow (self, straight_up);
+			NewVelocityForArrow (self, straight_up, "LavaJump2");
 			self->fb.rocketjumping = true;
 			self->fb.botchose = true;
 			self->fb.next_impulse = 7;
@@ -102,7 +102,7 @@ static void lava_jump(gedict_t* self) {
 		else if (g_globalvars.time > self->fb.up_finished) {
 			self->fb.swim_arrow = DOWN;
 			//VelocityForArrow(self);
-			NewVelocityForArrow (self, straight_down);
+			NewVelocityForArrow (self, straight_down, "LavaJump3");
 		}
 	}
 }

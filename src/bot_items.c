@@ -361,7 +361,7 @@ static qbool fb_armor_touch (gedict_t* item, gedict_t* player)
 
 		if (want_armor && have_more_armor && has_rl && IsMarkerFrame () && !targetting_player && !player->fb.firing) {
 			player->fb.state |= HURT_SELF;
-			SetLinkedMarker(player, item);
+			SetLinkedMarker(player, item, "fb_armor_touch");
 			player->fb.path_state = 0;
 			player->fb.linked_marker_time = g_globalvars.time + 0.5f;
 			player->fb.goal_refresh_time = g_globalvars.time + 2 + g_random ();
@@ -724,7 +724,7 @@ void BotsPostTeleport (gedict_t* self, gedict_t* other, gedict_t* teleport_desti
 	other->fb.frogbot_nextthink = g_globalvars.time;
 
 	if (other->fb.linked_marker == self) {
-		SetLinkedMarker(other, teleport_destination);
+		SetLinkedMarker(other, teleport_destination, "BotsPostTeleport");
 	}
 
 	HazardTeleport(self, other);
@@ -758,7 +758,7 @@ static void fb_backpack_taken (gedict_t* item, gedict_t* player)
 
 	UpdateGoalEntity(item);
 	player->fb.old_linked_marker = NULL;
-	SetLinkedMarker(player, LocateMarker(player->s.v.origin));
+	SetLinkedMarker(player, LocateMarker(player->s.v.origin), "bp taken");
 	player->fb.linked_marker_time = g_globalvars.time + 5;
 }
 

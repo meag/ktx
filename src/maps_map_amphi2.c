@@ -331,8 +331,9 @@ void AMPHI2BotInLava(void) {
 						if (!enemy_shaft_attack()) {
 							if (!self->fb.rocketjumping) {
 								vec3_t dir_move;
+								// FIXME: The combination of these two... means nothing?
 								VectorCopy (self->fb.dir_move_, dir_move);
-								NewVelocityForArrow (self, dir_move);
+								NewVelocityForArrow (self, dir_move, "amphi2");
 								//VelocityForArrow(self);
 								self->fb.jumping = true;
 							}

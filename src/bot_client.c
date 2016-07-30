@@ -107,7 +107,7 @@ void BotSetCommand(gedict_t* self) {
 
 	VectorNormalize (self->fb.dir_move_);
 
-	// FIXME: To wiggle-run, could just modify desired_angle here, based on the corresponding 
+	// FIXME: To wiggle-run, could just modify desired_angle here, based on the corresponding velocity to get best speed
 	trap_makevectors (self->fb.desired_angle);
 
 	trap_SetBotCMD (
@@ -183,7 +183,7 @@ void BotOutOfWater(gedict_t* self) {
 		self->fb.tread_water_count = self->fb.tread_water_count + 1;
 		if (self->fb.tread_water_count > 75) {
 			self->fb.old_linked_marker = NULL;
-			SetLinkedMarker(self, LocateMarker(self->s.v.origin));
+			SetLinkedMarker(self, LocateMarker(self->s.v.origin), "BotOutOfWater");
 			self->fb.path_state = 0;
 			self->fb.linked_marker_time = g_globalvars.time + 5;
 		}
@@ -202,10 +202,15 @@ void BotOutOfWater(gedict_t* self) {
 			VectorScale (g_globalvars.trace_plane_normal, -50, self->s.v.movedir);
 			traceline(start[0], start[1], start[2], end[0], end[1], end[2], true, self);
 			if (g_globalvars.trace_fraction == 1) {
+				vec3_t temp_vector;
+
 				self->s.v.flags = ((int)self->s.v.flags | FL_WATERJUMP) & ~FL_JUMPRELEASED;
 				// FIXME
 				//self->s.v.velocity[2] = 225;
-				self->fb.dir_move_[2] = -225;
+				//self->fb.dir_move_[2] = -225;
+				VectorCopy (self->fb.dir_move_, temp_vector);
+				temp_vector[2] = -225;
+				SetDirectionMove (self, temp_vector, "BotOutOfWater");
 				self->s.v.teleport_time = g_globalvars.time + 2;
 			}
 		}

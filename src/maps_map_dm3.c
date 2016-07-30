@@ -1907,7 +1907,7 @@ void DM3CampLogic() {
 									if (vlen(diff) < 200) {
 										if (g_random() < 0.9) {
 											self->fb.camp_state |= CAMPBOT;
-											SetLinkedMarker(self, self->fb.touch_marker);
+											SetLinkedMarker(self, self->fb.touch_marker, "dm3-camp");
 										}
 									}
 									else  {
