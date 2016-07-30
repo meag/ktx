@@ -291,7 +291,7 @@ static void PeriodicAllClientLogic() {
 	SetNextThinkTime(self);
 
 	if (g_globalvars.time >= self->fb.weapon_refresh_time) {
-		UpdateWeapons();
+		UpdateWeapons(self);
 	}
 
 	// If we haven't touched a marker in a while, find closest marker

@@ -501,7 +501,7 @@ void SightMarker(gedict_t* from_marker);
 void HigherSightMarker(gedict_t* from_marker);
 
 // botweap.qc
-void UpdateWeapons(void);
+void UpdateWeapons(gedict_t* self);
 void SelectWeapon(void);
 void AttackRespawns(void);
 void SetFireButton(gedict_t* self, vec3_t rel_pos, float rel_dist);
