@@ -9,15 +9,8 @@ gedict_t* test_enemy = 0;
 
 gedict_t* current_waiting_bot = 0;
 gedict_t* dropper = 0;
-float fallheight = 0;
 gedict_t* m_P = 0;
 int m_D = 0;
-float goal_index = 0;
-gedict_t* current_load_position = 0;
-gedict_t* load_position = 0;
-float goal_number = 0;
-gedict_t* test_goal = 0;
-float same_zone = 0;
 
 gedict_t* markers[NUMBER_MARKERS] = { 0 };
 gedict_t* zone_head[NUMBER_ZONES] = { 0 };

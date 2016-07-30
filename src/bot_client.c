@@ -106,6 +106,8 @@ void BotSetCommand(gedict_t* self) {
 	self->fb.desired_angle[2] = 0;*/
 
 	VectorNormalize (self->fb.dir_move_);
+
+	// FIXME: To wiggle-run, could just modify desired_angle here, based on the corresponding 
 	trap_makevectors (self->fb.desired_angle);
 
 	trap_SetBotCMD (

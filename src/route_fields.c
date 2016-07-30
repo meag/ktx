@@ -11,7 +11,6 @@ extern gedict_t* dm6_door;
 
 // FIXME: globals
 extern gedict_t* markers[];
-extern gedict_t* first_marker;
 
 #define SUBZONEFUNCTIONS(name) \
 	S1_ ## name, \

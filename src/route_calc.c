@@ -67,10 +67,6 @@ static void TravelTimeForPath (gedict_t* m, int i)
 			m->fb.paths[i].time = (VectorDistance(m_P_pos, m_pos) / sv_maxwaterspeed);
 		}
 		else {
-			if (m->fb.index == 26 && m_P->fb.index == 120) {
-				Com_Printf ("1 => 2 = [%f %f %f] => [%f %f %f] = %f / %f = %f seconds\n", PASSVEC3(m_pos), PASSVEC3(m_P_pos), VectorDistance (m_P_pos, m_pos), sv_maxspeed, VectorDistance (m_P_pos, m_pos) / sv_maxspeed);
-			}
-
 			m->fb.paths[i].time = (VectorDistance(m_P_pos, m_pos) / sv_maxspeed);
 		}
 	}
