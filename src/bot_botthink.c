@@ -400,6 +400,14 @@ static void BotsFireAtPlayerLogic(gedict_t* self, vec3_t rel_pos, float* rel_dis
 			}
 		}
 	}
+	else {
+		// New to KTX version: even if it's a hitscan weapon, we still need to predict one frame into the future
+		PredictEnemyLocationInFuture (&g_edicts[self->s.v.enemy], g_globalvars.frametime);
+
+		if (self->fb.look_object == &g_edicts[self->s.v.enemy]) {
+			VectorSubtract(self->fb.predict_origin, self->s.v.origin, rel_pos);
+		}
+	}
 }
 
 // Called after desired angles have been set to aim at the player
