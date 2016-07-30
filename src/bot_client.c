@@ -37,7 +37,7 @@ void BotClientEntersEvent(gedict_t* self, gedict_t* spawn_pos) {
 // Called by client/PlayerDeathThink
 void BotDeathThink(void) {
 	self->fb.firing = false;
-	self->fb.jumping = (qbool) (g_random() >= 0.5); // 50% chance of respawning every frame
+	self->fb.jumping = (qbool) (g_random() >= 0.5); // FIXME: 50% chance of respawning every frame
 }
 
 void BotSetCommand(gedict_t* self) {
@@ -63,7 +63,7 @@ void BotSetCommand(gedict_t* self) {
 	self->fb.pitchspeed = bound (-450, pitchspeed_, 450);
 	self->fb.real_pitch = bound(-71.71875, self->fb.real_pitch + total_pitchspeed * g_globalvars.frametime, 78.75);
 	*/
-	a_rocketjump(self);
+	BotPerformRocketJump(self);
 
 	/*
 	if (yawspeed_ > 0) {

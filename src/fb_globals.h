@@ -522,7 +522,7 @@ void CheckCombatEnemy(gedict_t* attacker, gedict_t* targ);
 // botjump.qc
 void CheckCombatJump(void);
 //void BotInLava(void);
-void a_rocketjump (gedict_t* self);
+void BotPerformRocketJump (gedict_t* self);
 
 // botgoal.qc
 void UpdateGoal(gedict_t* self);

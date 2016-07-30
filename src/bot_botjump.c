@@ -38,7 +38,7 @@ static qbool right_direction(gedict_t* self) {
 }
 
 // Returns true if space above bot
-static float checkboven(gedict_t* self) {
+static float BotCheckSpaceAbove(gedict_t* self) {
 	traceline(self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2], self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] + 140, true, self);
 	return (g_globalvars.trace_fraction == 1);
 }
@@ -126,9 +126,9 @@ qbool able_rj(gedict_t* self) {
 	return (qbool) (health_after > 50 && has_rj && (!self->fb.be_quiet) && g_random() < CHANCE_ROCKET_JUMP);
 }
 
-// Performs rocket jump [TODO: rename]
+// Performs rocket jump
 // FIXME: Very basic rocket jumps, needs a lot more work
-void a_rocketjump(gedict_t* self) {
+void BotPerformRocketJump(gedict_t* self) {
 	qbool has_rl = (qbool) (self->s.v.ammo_rockets && ((int)self->s.v.items & IT_ROCKET_LAUNCHER));
 
 	self->fb.rocketjumping = false;
@@ -138,7 +138,7 @@ void a_rocketjump(gedict_t* self) {
 	if (self->s.v.waterlevel > 1) {
 		vec3_t point = { self->s.v.origin[0], self->s.v.origin[1], self->s.v.origin[2] - 24 };
 		if (trap_pointcontents(point[0], point[1], point[2]) == CONTENT_LAVA) {
-			if (checkboven(self)) {
+			if (BotCheckSpaceAbove(self)) {
 				lava_jump(self);
 				return;
 			}
@@ -165,7 +165,7 @@ void a_rocketjump(gedict_t* self) {
 	if (VectorDistance(self->s.v.origin, self->fb.touch_marker->s.v.origin) > 100) {
 		return;
 	}
-	if (!checkboven(self) || !checkground(self) || !right_direction(self)) {
+	if (!BotCheckSpaceAbove(self) || !checkground(self) || !right_direction(self)) {
 		return;
 	}
 
