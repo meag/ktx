@@ -24,6 +24,7 @@
  */
 
 #include "g_local.h"
+#include "fb_globals.h"
 
 void	ClientObituary( gedict_t * e1, gedict_t * e2 );
 void	bloodfest_killed_hook( gedict_t * killed, gedict_t * attacker );
@@ -721,7 +722,7 @@ void T_Damage( gedict_t * targ, gedict_t * inflictor, gedict_t * attacker, float
 			nailkick = 1.0;
 
 		for ( i = 0; i < 3; i++ ) 
-			targ->s.v.velocity[i] += dir[i] * non_hdp_damage * c1 * nailkick;
+			targ->s.v.velocity[i] += dir[i] * non_hdp_damage * c1 * nailkick * ( midair && playerheight >= 45 ? ( 1 + ( playerheight - 45 ) / 64 ) : 1 );
 
 		if ( midair && playerheight < 45 )
 			targ->s.v.velocity[2] += dir[2] * non_hdp_damage * c2 * nailkick; // only for z component
@@ -730,7 +731,11 @@ void T_Damage( gedict_t * targ, gedict_t * inflictor, gedict_t * attacker, float
 		{
 			targ->s.v.flags = (int)targ->s.v.flags & ~FL_ONGROUND;		
 		}
+
+		targ->fb.path_state |= AIR_ACCELERATION;
 	}
+
+	BotDamageInflictedEvent (attacker, targ);
 
 	if ( match_in_progress == 2 && (int)cvar("k_dmgfrags") )
 	{
@@ -883,6 +888,9 @@ void T_Damage( gedict_t * targ, gedict_t * inflictor, gedict_t * attacker, float
 		attacker->ps.mid_stomps++;
 		targ->s.v.frags -= 3;
 	}
+
+	if (bots_enabled())
+		FrogbotSetHealthArmour(targ);
 
  	// if targed killed, do appropriate action and return
 	if ( ISDEAD( targ ) )

@@ -30,6 +30,10 @@ void AdminImpBot();
 void CaptainPickPlayer();
 void ChasecamToggleButton( void );
 
+// Bots support
+void BotsRocketSpawned (gedict_t* newmis);
+void BotsGrenadeSpawned (gedict_t* newmis);
+
 // called by SP_worldspawn
 void W_Precache()
 {
@@ -746,8 +750,11 @@ void W_FireShotgun()
 	WriteByte( MSG_ONE, SVC_SMALLKICK );
 
     if ( match_in_progress == 2 )
-		if ( deathmatch != 4 && !k_bloodfest )
-			self->s.v.currentammo = --( self->s.v.ammo_shells );
+		if (deathmatch != 4 && !k_bloodfest) {
+			self->s.v.currentammo = --(self->s.v.ammo_shells);
+			if (self->fb.ammo_used)
+				self->fb.ammo_used (self);
+		}
 
 	//dir = aim (self, 100000);
 	aim( dir );
@@ -784,8 +791,12 @@ void W_FireSuperShotgun()
 	WriteByte( MSG_ONE, SVC_BIGKICK );
 
     if ( match_in_progress == 2 )
-		if ( deathmatch != 4 && !k_bloodfest )
+		if (deathmatch != 4 && !k_bloodfest)
+		{
 			self->s.v.currentammo = self->s.v.ammo_shells = self->s.v.ammo_shells - 2;
+			if (self->fb.ammo_used)
+				self->fb.ammo_used (self);
+		}
 
 	//dir = aim (self, 100000);
 	aim( dir );
@@ -922,8 +933,12 @@ void W_FireRocket()
 	self->ps.wpn[wpRL].attacks++;
 
     if ( match_in_progress == 2 )
-		if ( deathmatch != 4 && !k_bloodfest )
+		if (deathmatch != 4 && !k_bloodfest)
+		{
 			self->s.v.currentammo = self->s.v.ammo_rockets = self->s.v.ammo_rockets - 1;
+			if (self->fb.ammo_used)
+				self->fb.ammo_used (self);
+		}
 
 	sound( self, CHAN_WEAPON, "weapons/sgun1.wav", 1, ATTN_NORM );
 
@@ -968,6 +983,8 @@ void W_FireRocket()
 
 	// midair 
 	VectorCopy( self->s.v.origin, newmis->s.v.oldorigin );
+
+	BotsRocketSpawned (newmis);
 }
 
 /*
@@ -1044,6 +1061,8 @@ void W_FireLightning()
 		{
 			self->s.v.ammo_cells = 0;
 			W_SetCurrentAmmo();
+			if (self->fb.ammo_used)
+				self->fb.ammo_used (self);
 			return;
 		}
 
@@ -1062,6 +1081,8 @@ void W_FireLightning()
 				cells = self->s.v.ammo_cells;
 				self->s.v.ammo_cells = 0;
 				W_SetCurrentAmmo();
+				if (self->fb.ammo_used)
+					self->fb.ammo_used (self);
 
                 if ( !cvar( "k_dis" ) )
                     return;
@@ -1074,6 +1095,8 @@ void W_FireLightning()
 			cells = self->s.v.ammo_cells;
 			self->s.v.ammo_cells = 0;
 			W_SetCurrentAmmo();
+			if (self->fb.ammo_used)
+				self->fb.ammo_used (self);
 
             if ( !cvar( "k_dis" ) )
                 return;
@@ -1096,8 +1119,12 @@ void W_FireLightning()
 	WriteByte( MSG_ONE, SVC_SMALLKICK );
 
     if ( match_in_progress == 2 )
-		if ( deathmatch != 4 && !k_bloodfest )
+		if (deathmatch != 4 && !k_bloodfest)
+		{
 			self->s.v.currentammo = self->s.v.ammo_cells = self->s.v.ammo_cells - 1;
+			if (self->fb.ammo_used)
+				self->fb.ammo_used (self);
+		}
 
 	VectorCopy( self->s.v.origin, org );	//org = self->s.v.origin + '0 0 16';
 	org[2] += 16;
@@ -1197,8 +1224,12 @@ void W_FireGrenade()
 	self->ps.wpn[wpGL].attacks++;
 
     if ( match_in_progress == 2 )
-		if ( deathmatch != 4 && !k_bloodfest )
+		if (deathmatch != 4 && !k_bloodfest)
+		{
 			self->s.v.currentammo = self->s.v.ammo_rockets = self->s.v.ammo_rockets - 1;
+			if (self->fb.ammo_used)
+				self->fb.ammo_used (self);
+		}
 
 	sound( self, CHAN_WEAPON, "weapons/grenade.wav", 1, ATTN_NORM );
 
@@ -1259,6 +1290,8 @@ void W_FireGrenade()
 	setmodel( newmis, "progs/grenade.mdl" );
 	setsize( newmis, 0, 0, 0, 0, 0, 0 );
 	setorigin( newmis, PASSVEC3( self->s.v.origin ) );
+
+	BotsGrenadeSpawned (newmis);
 }
 
 //=============================================================================
@@ -1412,8 +1445,12 @@ void W_FireSuperSpikes()
 	self->attack_finished = g_globalvars.time + 0.2;
 
     if ( match_in_progress == 2 )
-		if ( deathmatch != 4 && !k_bloodfest )
+		if (deathmatch != 4 && !k_bloodfest)
+		{
 			self->s.v.currentammo = self->s.v.ammo_nails = self->s.v.ammo_nails - 2;
+			if (self->fb.ammo_used)
+				self->fb.ammo_used (self);
+		}
 	aim( dir );		//dir = aim (self, 1000);
 
 	VectorCopy( self->s.v.origin, tmp );
@@ -1461,8 +1498,12 @@ void W_FireSpikes( float ox )
 	self->attack_finished = g_globalvars.time + 0.2;
 
     if ( match_in_progress == 2 )
-		if ( deathmatch != 4 && !k_bloodfest )
+		if (deathmatch != 4 && !k_bloodfest)
+		{
 			self->s.v.currentammo = self->s.v.ammo_nails = self->s.v.ammo_nails - 1;
+			if (self->fb.ammo_used)
+				self->fb.ammo_used (self);
+		}
 
 	aim( dir );		// dir = aim (self, 1000);
 	VectorScale( g_globalvars.v_right, ox, tmp );

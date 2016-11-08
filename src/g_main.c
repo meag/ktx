@@ -52,6 +52,7 @@ field_t         expfields[] = {
 	{"items2",      FOFS( items2 ),      F_FLOAT},
 	{"hideentity",  FOFS( hideentity ),  F_INT},
 	{"trackent",	FOFS( trackent ),	 F_INT},
+	{"visclients",  FOFS( visclients ),  F_INT},
 	{NULL}
 };
 //static char     mapname[64];

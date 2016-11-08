@@ -176,7 +176,7 @@ int get_votes_req( int fofs, qbool diff )
 
 	percent = bound(0.51, bound(51, percent, 100)/100, 1); // calc and bound percentage between 50% to 100%
 
-	vt_req  = ceil( percent * CountPlayers() );
+	vt_req  = ceil( percent * (CountPlayers() - CountBots()) );
 
 	if ( fofs == OV_ELECT )
 		vt_req = max(2, vt_req); // if election, at least 2 votes needed
@@ -197,10 +197,13 @@ int get_votes_req( int fofs, qbool diff )
 	else if ( fofs == OV_ANTILAG )
 		vt_req = max(2, vt_req); // at least 2 votes in this case
 
-	if ( diff )
-		return max(0, vt_req - votes);
+	if (CountBots () > 0 && CountPlayers () - CountBots () == 1)
+		vt_req = 1;
 
-	return max(0, vt_req);
+	if ( diff )
+		return max(0, vt_req - votes );
+
+	return max(0, vt_req - CountBots());
 }
 
 int is_admins_vote( int fofs )

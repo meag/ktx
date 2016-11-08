@@ -18,6 +18,7 @@
  */
 
 #include "g_local.h"
+#include "fb_globals.h"
 
 void NextLevel ();
 void IdlebotForceStart ();
@@ -63,6 +64,18 @@ float CountPlayers()
 
 	for ( p = world; (p = find_plr( p )); )
 		num++;
+
+	return num;
+}
+
+float CountBots (void)
+{
+	gedict_t	*p;
+	float		num = 0;
+
+	for (p = world; (p = find_plr (p)); )
+		if (p->isBot)
+			num++;
 
 	return num;
 }
@@ -1223,9 +1236,7 @@ qbool itPowerup( itemName_t it )
 	return (it == itQUAD || it == itPENT || it == itRING);
 }
 
-fileHandle_t di_handle;
-
-void s2di( const char *fmt, ... )
+void s2di( fileHandle_t file_handle, const char *fmt, ... )
 {
 	va_list argptr;
 	char    text[1024];
@@ -1236,42 +1247,32 @@ void s2di( const char *fmt, ... )
 
 	text[sizeof(text)-1] = 0;
 
-	trap_FS_WriteFile( text, strlen(text), di_handle );
+	trap_FS_WriteFile( text, strlen(text), file_handle );
 }
 
-void StatsToFile()
+void s2di_weap_header(fileHandle_t handle, int format)
 {
-	gedict_t	*p, *p2;
-	int from1, from2;
-	char *team = "";
+	s2di(handle, "\t\t\t<weapons>\n");
+}
 
-	char date[64] = {0}, name[256] = {0}, tmp[1024] = {0}, buf[1024] = {0}, *ip = "", *port = "";
-	int i = 0, j;
+void s2di_weap_footer(fileHandle_t handle, int format)
+{
+	s2di(handle, "\t\t\t</weapons>\n");
+}
 
-	if ( strnull( ip = cvar_string( "sv_local_addr" ) ) || strnull( port = strchr(ip, ':') ) || !(i = atoi(port + 1)) )
-		return;
+void s2di_weap_stats(fileHandle_t handle, int format, int weapon, wpType_t* stats)
+{
+	s2di(handle, "\t\t\t\t<weapon name=\"%s\" hits=\"%d\" attacks=\"%d\""
+			" kills=\"%d\" deaths=\"%d\" tkills=\"%d\" ekills=\"%d\""
+			" drops=\"%d\" tooks=\"%d\" ttooks=\"%d\"/>\n",
+			WpName(weapon), stats->hits, stats->attacks, stats->kills, stats->deaths, stats->tkills, stats->ekills,
+			stats->drops, stats->tooks, stats->ttooks);
+}
 
-	port[0] = 0;
-	port++;
-
-	if ( isRACE() )
-		return; // doesn't save stats for race
-
-	if ( strnull( cvar_string( "serverdemo" ) ) || cvar("sv_demotxt") != 2 )
-		return; // does't record demo or does't want stats to be put in file
-
-	snprintf(name, sizeof(name), "demoinfo_%s_%d.txt", ip, i);
-	if ( trap_FS_OpenFile( name, &di_handle, FS_WRITE_BIN ) < 0 )
-		return; // OpenFile is last check, so we does't need CloseFile each "return" above
-
-	if ( !QVMstrftime(date, sizeof(date), "%Y-%m-%d %H:%M:%S %Z", 0) )
-		date[0] = 0; // bad date
-
-	s2di("%s", "<?xml version=\"1.0\"?>\n");
-	s2di("<match version=\"2\" date=\"%s\" map=\"%s\" hostname=\"%s\" ip=\"%s\" port=\"%d\" mode=\"%s\">\n",
-		date, g_globalvars.mapname, striphigh(cvar_string("hostname")), ip, i, GetMode());
-
-// { TEAMS
+void s2di_teams_header(fileHandle_t handle, int format)
+{
+	char tmp[1024] = {0}, buf[1024] = {0};
+	int i = 0;
 
 	for ( tmp[0] = i = 0; i < min(tmStats_cnt, MAX_TM_STATS); i++ ) {
 		snprintf(buf, sizeof(buf), " team%d=\"%s\"", i + 1, tmStats[i].name);
@@ -1279,37 +1280,270 @@ void StatsToFile()
 	}
 
 	if ( i )
-		s2di("\t<teams%s>\n", striphigh(tmp));
+		s2di(handle, "\t<teams%s>\n", striphigh(tmp));
+}
+
+void s2di_teams_footer(fileHandle_t handle, int format)
+{
+	s2di(handle, "\t</teams>\n");
+}
+
+void s2di_team_header(fileHandle_t handle, int format, int num, teamStats_t* stats)
+{
+	s2di(handle, "\t\t<team name=\"%s\" frags=\"%d\" deaths=\"%d\" tkills=\"%d\" dmg_tkn=\"%d\" dmg_gvn=\"%d\" dmg_tm=\"%d\">\n",
+		striphigh(stats->name), stats->frags + stats->gfrags, stats->deaths, stats->tkills,
+		(int)stats->dmg_t, (int)stats->dmg_g, (int)stats->dmg_team);
+}
+
+void s2di_team_footer(fileHandle_t handle, int format)
+{
+	s2di(handle, "\t\t</team>\n");
+}
+
+void s2di_items_header(fileHandle_t handle, int format)
+{
+	s2di(handle, "\t\t\t<items>\n");
+}
+
+void s2di_item_stats(fileHandle_t handle, int format, int j, itType_t* stats) {
+	char buf[1024] = { 0 };
+
+	if ( itPowerup( j ) )
+		snprintf(buf, sizeof(buf), " time=\"%d\"", (int)stats->time);
+	else
+		buf[0] = 0;
+	s2di(handle, "\t\t\t\t<item name=\"%s\" tooks=\"%d\"%s/>\n", ItName(j), stats->tooks, buf);
+}
+
+void s2di_items_footer(fileHandle_t handle, int format)
+{
+	s2di(handle, "\t\t\t</items>\n");
+}
+
+void s2di_players_header(fileHandle_t handle, int format)
+{
+	s2di(handle, "\t<players>\n");
+}
+
+void s2di_players_footer(fileHandle_t handle, int format)
+{
+	s2di(handle, "\t</players>\n");
+}
+
+void s2di_player_header(fileHandle_t handle, int format, gedict_t* player, char* team)
+{
+	s2di(handle, "\t\t<player name=\"%s\" team=\"%s\" frags=\"%d\" deaths=\"%d\" tkills=\"%d\""
+				" dmg_tkn=\"%d\" dmg_gvn=\"%d\" dmg_tm=\"%d\" spawnfrags=\"%d\" xfer_packs=\"%d\""
+				" spree=\"%d\" qspree=\"%d\" control_time=\"%f\">\n",
+			striphigh(getname(player)), striphigh(team), (int)player->s.v.frags, (int)player->deaths, (int)player->friendly,
+			(int)player->ps.dmg_t, (int)player->ps.dmg_g, (int)player->ps.dmg_team, player->ps.spawn_frags, player->ps.transferred_packs,
+			player->ps.spree_max, player->ps.spree_max_q);
+}
+
+void s2di_player_footer(fileHandle_t handle, int format)
+{
+	s2di(handle, "\t\t</player>\n");
+}
+
+/*
+char* xmlstring(char* original)
+{
+	static char string[MAX_STRINGS][1024];
+	static int  index = 0;
+	int length = strlen(original);
+	int newlength = 0;
+	int i = 0;
+	
+	index %= MAX_STRINGS;
+
+	memset(string[index], 0, sizeof(string[0]));
+
+	for (i = 0; i < length; ++i)
+	{
+		unsigned char ch = (unsigned char) original[i];
+
+		if (ch == '<')
+		{
+			if (newlength < sizeof(string[0]) - 4)
+			{
+				string[index][newlength++] = '&';
+				string[index][newlength++] = 'l';
+				string[index][newlength++] = 't';
+				string[index][newlength++] = ';';
+			}
+		}
+		else if (ch == '>')
+		{
+			if (newlength < sizeof(string[0]) - 4)
+			{
+				string[index][newlength++] = '&';
+				string[index][newlength++] = 'g';
+				string[index][newlength++] = 't';
+				string[index][newlength++] = ';';
+			}
+		}
+		else if (ch == '"')
+		{
+			if (newlength < sizeof(string[0]) - 5)
+			{
+				string[index][newlength++] = '&';
+				string[index][newlength++] = '#';
+				string[index][newlength++] = '3';
+				string[index][newlength++] = '4';
+				string[index][newlength++] = ';';
+			}
+		}
+		else if (ch == '&')
+		{
+			if (newlength < sizeof(string[0]) - 5)
+			{
+				string[index][newlength++] = '&';
+				string[index][newlength++] = 'a';
+				string[index][newlength++] = 'm';
+				string[index][newlength++] = 'p';
+				string[index][newlength++] = ';';
+			}
+		}
+		else if (ch == '\'')
+		{
+			if (newlength < sizeof(string[0]) - 5)
+			{
+				string[index][newlength++] = '&';
+				string[index][newlength++] = '#';
+				string[index][newlength++] = '3';
+				string[index][newlength++] = '9';
+				string[index][newlength++] = ';';
+			}
+		}
+		else 
+		{
+		}
+	}
+	for ( ; *i; i++ )
+		if ( *i < 32 || (*i > 126 && *i < 160) || *i > 254)
+			*i = 95;
+
+	return string[index++];
+}*/
+
+void s2di_match_header(fileHandle_t handle, int format, char* ip, int port)
+{
+	char date[64] = { 0 };
+	char matchtag[64] = { 0 };
+	const char* mode = cvar ("k_instagib") ? "instagib" : (isRACE() ? "race" : GetMode ());
+
+	infokey(world, "matchtag", matchtag, sizeof(matchtag));
+
+	if ( !QVMstrftime(date, sizeof(date), "%Y-%m-%d %H:%M:%S %Z", 0) )
+		date[0] = 0; // bad date
+
+	s2di(handle, "%s", "<?xml version=\"1.0\"?>\n");
+	s2di(handle, "<match version=\"3\" date=\"%s\" map=\"%s\" hostname=\"%s\" ip=\"%s\" port=\"%d\" mode=\"%s\" tl=\"%d\" fl=\"%d\" dmm=\"%d\" tp=\"%d\">\n",
+		date, g_globalvars.mapname, striphigh(cvar_string("hostname")), ip, port, mode, timelimit, fraglimit, deathmatch, teamplay);
+	if (! strnull(cvar_string("serverdemo")))
+		s2di(handle, "\t<demo>%s</demo>\n", cvar_string("serverdemo"));
+}
+
+void s2di_match_footer(fileHandle_t handle, int format)
+{
+	s2di(handle, "</match>\n");
+}
+
+void s2di_player_ctf_stats(fileHandle_t handle, int format, player_stats_t* stats)
+{
+	s2di(handle, "\t\t\t<ctf points=\"%d\" caps=\"%d\" flag-defends=\"%d\" cap-defends=\"%d\" "
+	            "cap-frags=\"%d\" pickups=\"%d\" returns=\"%d\" "
+	            "rune-res-time=\"%f\" rune-str-time=\"%f\" rune-hst-time=\"%f\" rune-rgn-time=\"%f\" />\n", 
+		stats->ctf_points, stats->caps, stats->f_defends, stats->c_defends, 
+		stats->c_frags, stats->pickups, stats->returns, 
+		stats->res_time, stats->str_time, stats->hst_time, stats->rgn_time);
+}
+
+void s2di_player_instagib_stats(fileHandle_t handle, int format, player_stats_t* stats)
+{
+	s2di(handle, "\t\t\t<instagib height=\"%d\" maxheight=\"%d\" cggibs=\"%d\""
+			" axegibs=\"%d\" stompgibs=\"%d\" multigibs=\"%d\" airgibs=\"%d\" "
+			" maxmultigibs=\"%d\" rings=\"%d\" />\n", 
+		stats->i_height, stats->i_maxheight, stats->i_cggibs, 
+		stats->i_axegibs, stats->i_stompgibs, stats->i_multigibs, stats->i_airgibs, 
+		stats->i_maxmultigibs, stats->i_rings);
+}
+
+void s2di_player_midair_stats(fileHandle_t handle, int format, player_stats_t* stats)
+{
+	s2di(handle, "\t\t\t<midair stomps=\"%d\" bronze=\"%d\" silver=\"%d\" gold=\"%d\" platinum=\"%d\" " 
+			" total=\"%d\" bonus=\"%d\" totalheight=\"%f\" maxheight=\"%f\" avgheight=\"%f\" />\n", 
+			stats->mid_stomps, stats->mid_bronze, stats->mid_silver, stats->mid_gold, stats->mid_platinum,
+			stats->mid_total, stats->mid_bonus, stats->mid_totalheight, stats->mid_maxheight, stats->mid_avgheight);
+}
+
+void s2di_player_ra_stats(fileHandle_t handle, int format, player_stats_t* stats)
+{
+	s2di(handle, "\t\t\t<rocket-arena wins=\"%d\" losses=\"%d\" />\n", stats->wins, stats->loses);
+}
+
+void s2di_player_bot_info(fileHandle_t handle, int format, fb_entvars_t* bot)
+{
+	s2di(handle, "\t\t\t<bot skill=\"%d\" logic=\"%s\" logic-version=\"%d\" />\n", bot->skill.skill_level, "frogbot", BotVersionNumber());
+}
+
+void s2di_race_stats (fileHandle_t handle, int format)
+{
+	if (race.currentrace.avgcount <= 0.0f)
+		return;
+
+	s2di(handle, "\t<race route=\"%d\" avgspeed=\"%f\" distance=\"%f\" time=\"%f\" "
+	                     "racer=\"%s\" weaponmode=\"%d\" startmode=\"%d\" maxspeed=\"%f\" />\n", 
+		race.active_route, race.currentrace.avgspeed / race.currentrace.avgcount, race.currentrace.distance, race.currentrace.time, 
+		striphigh(race_get_racer()->s.v.netname), race.weapon, race.falsestart, race.currentrace.maxspeed
+	);
+}
+
+// Only format supported at present
+#define STATSFORMAT_XML 1
+
+qbool CreateStatsFile(char* filename, char* ip, int port, qbool xml)
+{
+	gedict_t	*p, *p2;
+	fileHandle_t di_handle;
+	int from1, from2;
+	char *team = "";
+	int format = STATSFORMAT_XML;
+
+	char date[64] = {0};
+	char tmp[1024] = {0}, buf[1024] = {0};
+	int i = 0, j = 0;
+
+	if ( trap_FS_OpenFile( filename, &di_handle, FS_WRITE_BIN ) < 0 )
+		return false;
+
+	s2di_match_header(di_handle, format, ip, port);
+
+// { TEAMS
+
+	// Not a bug... only outputs header if teams available
+	s2di_teams_header(di_handle, format);
 
 	for ( i = 0; i < min(tmStats_cnt, MAX_TM_STATS); i++ ) {
-		s2di("\t\t<team name=\"%s\" frags=\"%d\" deaths=\"%d\" tkills=\"%d\" dmg_tkn=\"%d\" dmg_gvn=\"%d\" dmg_tm=\"%d\">\n",
-			striphigh(tmStats[i].name), tmStats[i].frags + tmStats[i].gfrags, tmStats[i].deaths, tmStats[i].tkills,
-			(int)tmStats[i].dmg_t, (int)tmStats[i].dmg_g, (int)tmStats[i].dmg_team);
+		s2di_team_header(di_handle, format, i+1, &tmStats[i]);
 
-		s2di("\t\t\t<weapons>\n");
-		for ( j = 1; j < wpMAX; j++ )
-			s2di("\t\t\t\t<weapon name=\"%s\" hits=\"%d\" attacks=\"%d\""
-					" kills=\"%d\" deaths=\"%d\" tkills=\"%d\" ekills=\"%d\""
-					" drops=\"%d\" tooks=\"%d\" ttooks=\"%d\"/>\n",
-					WpName(j), tmStats[i].wpn[j].hits, tmStats[i].wpn[j].attacks,
-					tmStats[i].wpn[j].kills, tmStats[i].wpn[j].deaths, tmStats[i].wpn[j].tkills, tmStats[i].wpn[j].ekills,
-					tmStats[i].wpn[j].drops, tmStats[i].wpn[j].tooks, tmStats[i].wpn[j].ttooks);
-		s2di("\t\t\t</weapons>\n");
-
-		s2di("\t\t\t<items>\n");
-		for ( j = 1; j < itMAX; j++) {
-			if ( itPowerup( j ) )
-				snprintf(buf, sizeof(buf), " time=\"%d\"", (int)tmStats[i].itm[j].time);
-			else
-				buf[0] = 0;
-			s2di("\t\t\t\t<item name=\"%s\" tooks=\"%d\"%s/>\n", ItName(j), tmStats[i].itm[j].tooks, buf);
+		s2di_weap_header(di_handle, format);
+		for ( j = 1; j < wpMAX; j++ ) {
+			s2di_weap_stats(di_handle, format, j, &tmStats[i].wpn[j]);
 		}
-		s2di("\t\t\t</items>\n");
-		s2di("\t\t</team>\n");
+		s2di_weap_footer(di_handle, format);
+
+		s2di_items_header(di_handle, format);
+		for ( j = 1; j < itMAX; j++) {
+			s2di_item_stats(di_handle, format, j, &tmStats[i].itm[j]);
+		}
+		s2di_items_footer(di_handle, format);
+
+		s2di_team_footer(di_handle, format);
 	}
 
 	if ( i )
-		s2di("\t</teams>\n");
+		s2di_teams_footer(di_handle, format);
 
 // } TEAMS
 
@@ -1318,7 +1552,7 @@ void StatsToFile()
 	for ( from1 = 0, p = world; (p = find_plrghst ( p, &from1 )); )
 		p->ready = 0; // clear mark
 
-	s2di("\t<players>\n");
+	s2di_players_header(di_handle, format);
 
 //	get one player and search all his mates, mark served players via ->ready field
 //  ghosts is served too
@@ -1332,46 +1566,73 @@ void StatsToFile()
 			if ( p2->ready || strneq( team, getteam( p2 ) ))
 				continue; // served or on different team
 
-			s2di("\t\t<player name=\"%s\" team=\"%s\" frags=\"%d\" deaths=\"%d\" tkills=\"%d\""
-						" dmg_tkn=\"%d\" dmg_gvn=\"%d\" dmg_tm=\"%d\">\n",
-					striphigh(getname(p2)), striphigh(team), (int)p2->s.v.frags, (int)p2->deaths, (int)p2->friendly,
-					(int)p2->ps.dmg_t, (int)p2->ps.dmg_g, (int)p2->ps.dmg_team);
+			s2di_player_header(di_handle, format, p2, team);
 
-			s2di("\t\t\t<weapons>\n");
-			for ( j = 1; j < wpMAX; j++ )
-			s2di("\t\t\t\t<weapon name=\"%s\" hits=\"%d\" attacks=\"%d\""
-					" kills=\"%d\" deaths=\"%d\" tkills=\"%d\" ekills=\"%d\""
-					" drops=\"%d\" tooks=\"%d\" ttooks=\"%d\"/>\n",
-					WpName(j), p2->ps.wpn[j].hits, p2->ps.wpn[j].attacks,
-					p2->ps.wpn[j].kills, p2->ps.wpn[j].deaths, p2->ps.wpn[j].tkills, p2->ps.wpn[j].ekills,
-					p2->ps.wpn[j].drops, p2->ps.wpn[j].tooks, p2->ps.wpn[j].ttooks);
-			s2di("\t\t\t</weapons>\n");
-
-			s2di("\t\t\t<items>\n");
-			for ( j = 1; j < itMAX; j++) {
-				if ( itPowerup( j ) )
-					snprintf(buf, sizeof(buf), " time=\"%d\"", (int)p2->ps.itm[j].time);
-				else
-					buf[0] = 0;
-				s2di("\t\t\t\t<item name=\"%s\" tooks=\"%d\"%s/>\n", ItName(j), p2->ps.itm[j].tooks, buf);
+			s2di_weap_header(di_handle, format);
+			for ( j = 1; j < wpMAX; j++ ) {
+				s2di_weap_stats(di_handle, format, j, &p2->ps.wpn[j]);
 			}
-			s2di("\t\t\t</items>\n");
+			s2di_weap_footer(di_handle, format);
 
-			s2di("\t\t</player>\n");
+			s2di_items_header(di_handle, format);
+			for ( j = 1; j < itMAX; j++) {
+				s2di_item_stats(di_handle, format, j, &p2->ps.itm[j]);
+			}
+			s2di_items_footer(di_handle, format);
+
+			if ( cvar("k_midair") )
+				s2di_player_midair_stats(di_handle, format, &p2->ps);
+			if ( cvar("k_instagib") )
+				s2di_player_instagib_stats(di_handle, format, &p2->ps);
+			if ( isCTF() )
+				s2di_player_ctf_stats(di_handle, format, &p2->ps);
+			if ( isRA() )
+				s2di_player_ra_stats(di_handle, format, &p2->ps);
+			if ( p2->isBot )
+				s2di_player_bot_info (di_handle, format, &p2->fb);
+
+			s2di_player_footer(di_handle, format);
 			p2->ready = 1; // set mark
 		}
 	}
 
-	s2di("\t</players>\n");
+	s2di_players_footer(di_handle, format);
 // } PLAYERS
 
-	s2di("</match>\n");
+	if (isRACE())
+		s2di_race_stats(di_handle, format);
+
+	s2di_match_footer(di_handle, format);
 
 	trap_FS_CloseFile( di_handle );
+	return true;
+}
 
-	localcmd("\n" // why new line?
-			 "sv_demoinfoadd ** %s\n", name);
-	trap_executecmd();
+void StatsToFile(void)
+{
+	qbool done = false;
+
+	char date[64] = {0}, name[256] = {0}, *ip = "", *port = "";
+	int i = 0;
+
+	if ( strnull( ip = cvar_string( "sv_local_addr" ) ) || strnull( port = strchr(ip, ':') ) || !(i = atoi(port + 1)) )
+		return;
+
+	port[0] = 0;
+	port++;
+
+	if ( strnull( cvar_string( "serverdemo" ) ) || cvar("sv_demotxt") != 2 )
+		return; // does't record demo or does't want stats to be put in file
+
+	// This file over-written every time
+	snprintf(name, sizeof(name), "demoinfo_%s_%d.txt", ip, i);
+
+	if (CreateStatsFile(name, ip, i, true));
+	{
+		localcmd("\n" // why new line?
+				 "sv_demoinfoadd ** %s\n", name);
+		trap_executecmd();
+	}
 }
 
 void EM_on_MatchEndBreak( int isBreak )
@@ -1545,8 +1806,17 @@ void EndMatch ( float skip_log )
 	if (isHoonyMode()) {
 		if ( HM_current_point_type() != HM_PT_FINAL ) {
 			match_over = 0;
-			for ( p = world; (p = find_plr( p )); )
-				stuffcmd(p, "ready\n");
+
+			// All bots ready first
+			for (p = world; (p = find_plr (p)); ) {
+				if (p->isBot) {
+					p->ready = true;
+				}
+			}
+
+			for (p = world; (p = find_plr (p)); ) {
+				stuffcmd (p, "ready\n");
+			}
 		}
 		else {
 			for ( p = world; (p = find_plr( p )); )
@@ -1715,6 +1985,22 @@ void TimerThink ()
 	self->s.v.nextthink = g_globalvars.time + 1;
 }
 
+void soft_ent_remove (gedict_t* ent)
+{
+	if (bots_enabled ()) {
+		ent->s.v.model = "";
+		ent->s.v.solid = SOLID_TRIGGER;
+		ent->s.v.nextthink = 0;
+		ent->s.v.think = (func_t) SUB_Null;
+		ent->s.v.touch = (func_t) marker_touch;
+		ent->fb.desire = goal_NULL;
+		ent->fb.goal_respawn_time = 0;
+	}
+	else {
+		ent_remove (ent);
+	}
+}
+
 // remove/add some items from map regardind with dmm and game mode
 void SM_PrepareMap()
 {
@@ -1757,7 +2043,7 @@ void SM_PrepareMap()
 				|| streq( p->s.v.classname, "item_artifact_super_damage")
 			   )
 			{
-				ent_remove( p );
+				soft_ent_remove( p );
 				continue;
 			}
 		}
@@ -1769,7 +2055,7 @@ void SM_PrepareMap()
 			    || streq( p->s.v.classname, "item_armorInv")
 			   )
 			{
-				ent_remove( p );
+				soft_ent_remove( p );
 				continue;
 			}
 		}
@@ -1784,7 +2070,7 @@ void SM_PrepareMap()
 				|| streq( p->s.v.classname, "weapon_lightning" )
 			   )
 			{ // no weapons for any of this deathmatches (4 or 5)
-				ent_remove( p );
+				soft_ent_remove( p );
 				continue;
 			}
 
@@ -1797,7 +2083,7 @@ void SM_PrepareMap()
 					|| (streq( p->s.v.classname, "item_health" ) && (( int ) p->s.v.spawnflags & H_MEGA))
 			       )
 				{ // no weapon ammo and megahealth for dmm4
-					ent_remove( p );
+					soft_ent_remove( p );
 					continue;
 				}
 			}
@@ -1805,7 +2091,7 @@ void SM_PrepareMap()
 
 		if ( k_killquad && streq( p->s.v.classname, "item_artifact_super_damage") )
 		{	// no normal quad in killquad mode.
-			ent_remove( p );
+			soft_ent_remove( p );
 			continue;
 		}
 	}
@@ -2032,6 +2318,8 @@ void StartMatch ()
 	ClearDemoMarkers();
 
 	StartLogs();
+
+	BotsMatchStart ();
 
 	if ( !self->cnt )
 		ent_remove( self ); // timelimit == 0, so match will end no due to timelimit but due to fraglimit or something
