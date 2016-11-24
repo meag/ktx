@@ -2170,7 +2170,7 @@ void ClientDisconnect()
 	if( cvar( "k_idletime" ) > 0 )
 		IdlebotCheck();
 
-	if ( !CountPlayers() ) {
+	if ( ! (CountPlayers() - CountBots()) ) {
 		void Spawn_DefMapChecker( float timeout );
 		int old_matchless = k_matchLess;
 		void race_stoprecord( qbool cancel );
