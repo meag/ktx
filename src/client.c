@@ -1373,9 +1373,7 @@ void ClientConnect()
 
 	MakeMOTD();
 
-	if (bots_enabled()) {
-		BotClientConnectedEvent (self);
-	}
+	BotClientConnectedEvent (self);
 }
 
 ////////////////
@@ -1540,8 +1538,7 @@ void PutClientInServer( void )
 
 		teleport_player( self, self->s.v.origin, self->s.v.angles, tele_flags );
 
-		if (bots_enabled())
-			BotClientEntersEvent (self, spot);
+		BotClientEntersEvent (self, spot);
 
 		return;
 	}
@@ -1713,8 +1710,7 @@ void PutClientInServer( void )
 	WriteByte(MSG_ONE, 18 /*STAT_MATCHSTARTTIME*/);
 	WriteLong(MSG_ONE, g_matchstarttime);
 
-	if (bots_enabled())
-		BotClientEntersEvent (self, spot);
+	BotClientEntersEvent (self, spot);
 }
 
 /*
@@ -2770,9 +2766,7 @@ void PlayerPreThink()
 				if ( self->s.v.health > 150 )
 					self->s.v.health = 150;
 				self->regen_time += 0.5;
-				if (bots_enabled ()) {
-					FrogbotSetHealthArmour (self);
-				}
+				FrogbotSetHealthArmour (self);
 				RegenerationSound( self );
 	    	}
 
@@ -2782,9 +2776,7 @@ void PlayerPreThink()
 				if ( self->s.v.armorvalue > 150 )
 					self->s.v.armorvalue = 150;
 				self->regen_time += 0.5;
-				if (bots_enabled ()) {
-					FrogbotSetHealthArmour (self);
-				}
+				FrogbotSetHealthArmour (self);
 				RegenerationSound( self );
 	    	}
 		}
