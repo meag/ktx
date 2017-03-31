@@ -955,23 +955,23 @@ void W_FireRocket()
 	newmis->isMissile = true;
 	newmis->s.v.solid = SOLID_BBOX;
 
-// set newmis speed     
+	// set newmis speed
 	trap_makevectors( self->s.v.v_angle );
 	aim( newmis->s.v.velocity );	// = aim(self, 1000);
-	if ( cvar("k_midair") && self->super_damage_finished > g_globalvars.time ) 
-	{
+	if ( cvar("k_midair") && self->super_damage_finished > g_globalvars.time ) {
 		VectorScale ( newmis->s.v.velocity, 2000, newmis->s.v.velocity );
 		newmis->s.v.effects = EF_BLUE;
 	}
-	else
-		VectorScale( newmis->s.v.velocity, 1000, newmis->s.v.velocity );
+	else {
+		VectorScale(newmis->s.v.velocity, 1000, newmis->s.v.velocity);
+	}
 
 	vectoangles( newmis->s.v.velocity, newmis->s.v.angles );
-	
+
 	newmis->s.v.touch = ( func_t ) T_MissileTouch;
 	newmis->voided = 0;
 
-// set newmis duration
+	// set newmis duration
 	newmis->s.v.nextthink = g_globalvars.time + 10;
 	newmis->s.v.think = ( func_t ) SUB_Remove;
 	newmis->s.v.classname = "rocket";
@@ -979,7 +979,7 @@ void W_FireRocket()
 	setmodel( newmis, "progs/missile.mdl" );
 	setsize( newmis, 0, 0, 0, 0, 0, 0 );
 
-// setorigin (newmis, self->s.v.origin + v_forward*8 + '0 0 16');
+	// setorigin (newmis, self->s.v.origin + v_forward*8 + '0 0 16');
 	setorigin( newmis, self->s.v.origin[0] + g_globalvars.v_forward[0] * 8,
 			self->s.v.origin[1] + g_globalvars.v_forward[1] * 8,
 			self->s.v.origin[2] + g_globalvars.v_forward[2] * 8 + 16 );
