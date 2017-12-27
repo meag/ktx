@@ -664,6 +664,10 @@ void T_Damage( gedict_t * targ, gedict_t * inflictor, gedict_t * attacker, float
 		targ->s.v.dmg_take += take;
 		targ->s.v.dmg_save += save;
 		targ->s.v.dmg_inflictor = EDICT_TO_PROG( inflictor );
+
+		if (match_in_progress == 2 && dmg_dealt && attacker->ct == ctPlayer) {
+			stuffcmd_flags(attacker, STUFFCMD_DEMOONLY, "//dmg %d %d %d %d\n", NUM_FOR_EDICT(targ) - 1, NUM_FOR_EDICT(attacker) - 1, (int)dmg_dealt, targ->deathtype);
+		}
 	}
 
 	if ( save )
