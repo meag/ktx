@@ -27,6 +27,7 @@
 
 #define MAX_ROUTE_NODES		20 // max race checkpoints per race (including start and finish checkpoints)
 #define MAX_ROUTES			20 // max race route per map
+#define MAX_RACE_SPEEDTRAPS 10 // max speedtraps per route
 
 #define LGCMODE_MAX_DISTANCE 700
 #define LGCMODE_DISTANCE_BUCKETS 20
@@ -1094,6 +1095,12 @@ typedef struct gedict_s {
 	qbool       hideplayers;            // if set, all players hidden (read by mvdsv)
 	qbool       hideplayers_default;    // racer can choose to have this on or off
 	int         race_closest_guide_pos; // when guide route loaded, this is closest position
+	int         race_next_speedtrap;    // next speedtrap to go through
+	int         race_speedtrap_behind;  // time behind racer in front (always 0 if first)
+	int         race_speedtrap_time;    // race_time() when hitting last speedtrap
+	int         race_speedtrap_pb[MAX_RACE_SPEEDTRAPS]; // splits for current route (personal best)
+	int         race_speedtrap_current[MAX_RACE_SPEEDTRAPS]; // splits for current run
+	int         race_speedtrap_total;   // race_time() for race_speedtrap_pb
 
 	// race_route_start entity fields
 	char*       race_route_name;            // the name of the route
@@ -1189,6 +1196,12 @@ typedef struct
 	vec3_t                  sizes;          // dimensions (if 0, default)
 } raceRouteNode_t;
 
+typedef struct {
+	vec3_t       position;
+	vec3_t       direction;
+	int          time;
+} raceSpeedtrap_t;
+
 typedef struct
 {
 	char					name[128]; 				// NOTE: this will probably FUCK QVM!!!
@@ -1198,6 +1211,9 @@ typedef struct
 	raceWeapoMode_t			weapon;					// weapon mode
 	raceFalseStartMode_t	falsestart;				// start mode
 	raceRouteNode_t			node[MAX_ROUTE_NODES];	// nodes of this route, fixed array, yeah I'm lazy
+
+	raceSpeedtrap_t         speedtrap[MAX_RACE_SPEEDTRAPS];
+	int                     speedtrap_count;
 } raceRoute_t;
  
 typedef struct
@@ -1271,6 +1287,10 @@ typedef struct
 
 	int                 rounds;              // number of rounds in this match
 	int                 round_number;        // current round number
+
+	// Speedtrap is a plane on the route, player is notified of time and speed as they pass by
+	raceSpeedtrap_t         speedtrap[MAX_RACE_SPEEDTRAPS];
+	int                     speedtrap_count;
 } race_t;
 
 extern race_t			race; // whole race struct

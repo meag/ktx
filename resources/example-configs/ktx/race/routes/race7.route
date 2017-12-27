@@ -6,4 +6,11 @@ race_route_add_start
 	race_set_route_timeout 40 
 	race_set_route_weapon_mode raceWeaponNo 
 	race_set_route_falsestart_mode raceFalseStartNo 
+
+	race_add_speedtrap 1900 -2200 1700 0 90
+	race_add_speedtrap 2150 -650 1900 0 180
+	race_add_speedtrap 3200 2500 2450 15 270
+	race_add_speedtrap 2000 -150 715 0 90
+	race_add_speedtrap 1350 -2800 600 0 0
+	race_add_speedtrap 145 800 340 0 0
 race_route_add_end

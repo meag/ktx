@@ -41,6 +41,8 @@ void SP_info_intermission();
 #define RACE_MIN_MATCH_ROUNDS           3
 #define RACE_MAX_MATCH_ROUNDS          21
 
+#define RACE_SPEEDTRAP_ALERT_TIMEOUT   2000  // time in ms before centerprint changes
+
 #define RACE_INCR_PARAMS(name) (RACE_PACEMAKER_##name##_CVAR),(RACE_PACEMAKER_##name##_INCR),(RACE_PACEMAKER_##name##_MIN),(RACE_PACEMAKER_##name##_MAX)
 
 void UserMode_SetMatchTag(char * matchtag);
@@ -69,8 +71,8 @@ typedef struct race_capture_playback_s {
 	int jump;
 } race_capture_playback_t;
 
-race_capture_t player_captures[MAX_CLIENTS];
-race_capture_playback_t guide;
+static race_capture_t player_captures[MAX_CLIENTS];
+static race_capture_playback_t guide;
 
 typedef struct race_player_match_info_s {
 	race_capture_t best_run_capture;
@@ -2072,6 +2074,31 @@ void race_follow( void )
 	}
 }
 
+static void race_centerprint_for_racer(gedict_t* p)
+{
+	if (p->race_speedtrap_time && race_time() - p->race_speedtrap_time < RACE_SPEEDTRAP_ALERT_TIMEOUT) {
+		if (! race_match_mode()) {
+			if (p->race_next_speedtrap >= 1 && p->race_next_speedtrap <= MAX_RACE_SPEEDTRAPS && p->race_speedtrap_pb[p->race_next_speedtrap - 1]) {
+				int diff = p->race_speedtrap_time - p->race_speedtrap_pb[p->race_next_speedtrap - 1];
+
+				G_centerprint(p, "%s", dig3s("time: %.1f\n%.3f (%+.3f)", race_time() / 1000.0, p->race_speedtrap_time / 1000.0f, diff / 1000.0f));
+			}
+			else {
+				G_centerprint(p, "%s", dig3s("time: %.1f\n%.3f", race_time() / 1000.0, p->race_speedtrap_time / 1000.0f));
+			}
+		}
+		else if (p->race_speedtrap_behind) {
+			G_centerprint(p, "%s", dig3s("time: %.1f\n%.3f (+%.3f)", race_time() / 1000.0, p->race_speedtrap_time / 1000.0f, p->race_speedtrap_behind / 1000.0f));
+		}
+		else {
+			G_centerprint(p, "%s", dig3s("time: %.1f\n%.3f", race_time() / 1000.0, p->race_speedtrap_time / 1000.0f));
+		}
+	}
+	else {
+		G_centerprint(p, "%s", dig3s("time: %.1f", race_time() / 1000.0));
+	}
+}
+
 void race_think( void )
 {
 	gedict_t *racer;
@@ -2183,6 +2210,19 @@ void race_think( void )
 			for (p = world; (p = find_client(p)); ) {
 				//stuffcmd (p, "play enforcer/enfire.wav\n");
 				stuffcmd(p, "play weapons/pkup.wav\n");  // I like this one better -- deurk.
+
+				// Clear speedtrap details
+				p->race_next_speedtrap = 0;
+				p->race_speedtrap_behind = p->race_speedtrap_time = 0;
+				memset(p->race_speedtrap_current, 0, sizeof(p->race_speedtrap_current));
+			}
+
+			// clear record of time speedtraps were first hit
+			{
+				int i;
+				for (i = 0; i < MAX_RACE_SPEEDTRAPS; ++i) {
+					race.speedtrap[i].time = 0;
+				}
 			}
 
 			race.status = raceActive; // countdown ends, now we ready for race
@@ -2254,7 +2294,7 @@ void race_think( void )
 					for( p = world; (p = find_client( p )); )
 					{
 						if ( p->racer ) {
-							G_centerprint( p, "%s", dig3s( "time: %.1f", race_time() / 1000.0 ) );
+							race_centerprint_for_racer(p);
 						}
 						else {
 							G_centerprint( p, "following %s\n%s\nspeed: %4.1f\ntime: %s",
@@ -2269,7 +2309,7 @@ void race_think( void )
 				else {
 					for (p = world; (p = find_client(p)); /**/) {
 						if (p->racer) {
-							G_centerprint(p, "%s", dig3s("time: %.1f", race_time() / 1000.0));
+							race_centerprint_for_racer(p);
 						}
 						else {
 							int player_num = NUM_FOR_EDICT(p) - 1;
@@ -2458,6 +2498,8 @@ void set_player_race_follow( gedict_t *e, int follow )
 
 void set_player_race_ready(	gedict_t *e, int ready )
 {
+	int plr = NUM_FOR_EDICT(e) - 1;
+
 	if ( ready )
 	{
 		if ( e->race_ready )
@@ -2744,6 +2786,9 @@ qbool race_load_route( int route )
 	race.timeout_setting	= bound( 1, race.route[ route ].timeout, RACE_MAX_TIMEOUT );
 	race.active_route		= route + 1; // mark this is not custom route now
 
+	memcpy(race.speedtrap, race.route[route].speedtrap, sizeof(race.route[route].speedtrap));
+	race.speedtrap_count = race.route[route].speedtrap_count;
+
 	read_topscores();
 
 	if (!strnull(cvar_string("cs_address"))) {
@@ -2775,6 +2820,16 @@ void race_print_route_info( gedict_t *p )
 			G_bprint(    2, "\220%s\221\n", race_route_desc() );
 
 		G_bprint(    2, "%s: %s\n", redtext( "weapon" ), race_weapon_mode( race.weapon ) );
+	}
+}
+
+static void race_pb_reset(void)
+{
+	gedict_t* r;
+
+	for (r = world; r = find_plr(r); /**/) {
+		memset(r->race_speedtrap_pb, 0, sizeof(r->race_speedtrap_pb));
+		r->race_speedtrap_total = 0;
 	}
 }
 
@@ -2834,6 +2889,7 @@ void r_route( void )
 	cvar_fset(RACE_ROUTE_NUMBER_CVAR, next_route);
 	cvar_set(RACE_ROUTE_MAPNAME_CVAR, g_globalvars.mapname);
 	race_clear_pacemaker();
+	race_pb_reset();
 }
 
 void r_print( )
@@ -3428,6 +3484,41 @@ void race_add_standard_routes( void )
 				for (i = 1; i < 4; ++i) {
 					trap_CmdArgv(i, token, MAX_TXTLEN);
 					race.route[race.cnt].node[race.route[race.cnt].cnt - 1].sizes[i - 1] = atof(token);
+				}
+			}
+			else if (!strcmp(token, "race_add_speedtrap")) {
+				vec3_t position;
+				float angles[3] = { 0, 0, 0 };
+
+				if (!in_route_def) {
+					G_bprint(PRINT_HIGH, "#%02d: Invalid route file: race_add_speedtrap outside of route definition\n", lineNumber);
+					valid_file = false;
+					break;
+				}
+				if (args != 6) {
+					G_bprint(PRINT_HIGH, "#%02d: Invalid route file: race_add_speedtrap should have 5 arguments, found %d\n", lineNumber, args - 1);
+					valid_file = false;
+					break;
+				}
+
+				for (i = 1; i <= 3; ++i) {
+					trap_CmdArgv(i, token, MAX_TXTLEN);
+					position[i - 1] = atof(token);
+				}
+
+				trap_CmdArgv(4, token, MAX_TXTLEN);
+				angles[0] = atof(token);
+				trap_CmdArgv(5, token, MAX_TXTLEN);
+				angles[1] = atof(token);
+
+				if (race.route[race.cnt].speedtrap_count < MAX_RACE_SPEEDTRAPS) {
+					raceSpeedtrap_t* trap = &race.route[race.cnt].speedtrap[race.route[race.cnt].speedtrap_count];
+
+					VectorCopy(position, trap->position);
+					trap_makevectors(angles);
+					VectorCopy(g_globalvars.v_forward, trap->direction);
+
+					++race.route[race.cnt].speedtrap_count;
 				}
 			}
 			else {
@@ -4083,6 +4174,19 @@ static qbool race_end(gedict_t* racer, qbool valid, qbool complete)
 		}
 	}
 
+	if (valid && complete) {
+		if (racer->race_speedtrap_total == 0 || racer->race_speedtrap_total > race_time()) {
+			if (racer->race_speedtrap_total) {
+				G_sprint(racer, PRINT_HIGH, "New recent PB set (%.3f vs %.3f)\n", race_time() / 1000.0f, racer->race_speedtrap_total / 1000.0f);
+			}
+			else {
+				G_sprint(racer, PRINT_HIGH, "New recent PB set (%.3f)\n", race_time() / 1000.0f);
+			}
+			racer->race_speedtrap_total = race_time();
+			memcpy(racer->race_speedtrap_pb, racer->race_speedtrap_current, sizeof(racer->race_speedtrap_pb));
+		}
+	}
+
 	if (race_get_racer() == NULL) {
 		race_over();
 		return true;
@@ -4122,9 +4226,40 @@ void race_player_post_think(void)
 {
 	if ( isRACE() )
 	{
+		int time_behind = 0;
+
 		// test for multirace
 		self->s.v.solid = SOLID_NOT;
 		setorigin (self, PASSVEC3( self->s.v.origin ) );
+
+		if (race.status == raceActive && self->race_next_speedtrap >= 0 && self->race_next_speedtrap < race.speedtrap_count && self->racer) {
+			vec3_t dir;
+			vec3_t direction;
+			raceSpeedtrap_t* trap = &race.speedtrap[self->race_next_speedtrap];
+
+			// if racer is past the trap
+			VectorSubtract(self->s.v.origin, trap->position, direction);
+			normalize(direction, dir);
+
+			if (DotProduct(dir, trap->direction) < 0) {
+				self->race_speedtrap_time = race_time();
+				if (self->race_next_speedtrap >= 0 && self->race_next_speedtrap < MAX_RACE_SPEEDTRAPS) {
+					self->race_speedtrap_current[self->race_next_speedtrap] = self->race_speedtrap_time;
+				}
+				stuffcmd(self, "//race-speedtrap %d %d %f\n", self->race_next_speedtrap, self->race_speedtrap_time, VectorLength(self->s.v.velocity));
+				if (trap->time) {
+					// player wasn't first to trigger, so we know how far behind they are
+					self->race_speedtrap_behind = self->race_speedtrap_time - trap->time;
+				}
+				else {
+					// first to touch, so just set the time
+					trap->time = race_time();
+					self->race_speedtrap_behind = 0;
+				}
+
+				++self->race_next_speedtrap;
+			}
+		}
 	}
 
 	race_follow();
