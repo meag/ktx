@@ -210,6 +210,7 @@
 
 // protocol bytes
 
+#define SVC_STUFFTEXT 9
 #define SVC_UPDATEFRAGS	14
 #define SVC_TEMPENTITY 23
 #define SVC_SETPAUSE 24

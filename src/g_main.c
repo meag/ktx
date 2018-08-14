@@ -44,19 +44,21 @@ gedict_t       *self, *other;
 //short shortvar=0xfedc;
 globalvars_t    g_globalvars;
 field_t         expfields[] = {
-	{"vw_index",    FOFS( vw_index ),    F_FLOAT},
-	{"movement",    FOFS( movement ),    F_VECTOR},
-	{"maxspeed",    FOFS( maxspeed ),    F_FLOAT},
-	{"gravity",     FOFS( gravity ),     F_FLOAT},
-	{"isBot",       FOFS( isBot ),       F_INT},
-	{"brokenankle", FOFS( brokenankle ), F_FLOAT},
-	{"mod_admin",   FOFS( k_admin ),     F_INT},
-	{"items2",      FOFS( items2 ),      F_FLOAT},
-	{"hideentity",  FOFS( hideentity ),  F_INT},
-	{"trackent",	FOFS( trackent ),	 F_INT},
-	{"hideplayers", FOFS( hideplayers ), F_INT},
-	{"visclients",  FOFS( visclients ),  F_INT},
-	{"teleported",  FOFS( teleported ),  F_INT},
+	{"vw_index",        FOFS( vw_index ),             F_FLOAT},
+	{"movement",        FOFS( movement ),             F_VECTOR},
+	{"maxspeed",        FOFS( maxspeed ),             F_FLOAT},
+	{"gravity",         FOFS( gravity ),              F_FLOAT},
+	{"isBot",           FOFS( isBot ),                F_INT},
+	{"brokenankle",     FOFS( brokenankle ),          F_FLOAT},
+	{"mod_admin",       FOFS( k_admin ),              F_INT},
+	{"items2",          FOFS( items2 ),               F_FLOAT},
+	{"hideentity",      FOFS( hideentity ),           F_INT},
+	{"trackent",	    FOFS( trackent ),	          F_INT},
+	{"hideplayers",     FOFS( hideplayers ),          F_INT},
+	{"visclients",      FOFS( visclients ),           F_INT},
+	{"teleported",      FOFS( teleported ),           F_INT},
+	{"ktxhint_clients", FOFS( movement_hint_sent ),   F_INT},
+	{"ktxhint_string",  FOFS( movement_hint_string ), F_LSTRING},
 	{NULL}
 };
 //static char     mapname[64];
@@ -473,6 +475,25 @@ void G_ShutDown()
 // Physics
 //
 //===========================================================================
+
+void TransmitMovementHints(gedict_t* obj)
+{
+	if (obj->movement_hint_string[0]) {
+		int i;
+
+		for (i = 0; i < MAX_CLIENTS; ++i) {
+			gedict_t* client = &g_edicts[i + 1];
+			qbool visible = (obj->visclients & (1 << i));
+			qbool sent = (obj->movement_hint_sent & (1 << i));
+
+			if (client->ct != ctNone && visible && !sent) {
+				stuffcmd(client, "//ktx mh %s\n", obj->movement_hint_string);
+				obj->movement_hint_sent |= (1 << i);
+			}
+		}
+	}
+}
+
 ////////////////
 // GlobalParams:
 // time
@@ -497,6 +518,8 @@ void G_EdictTouch()
 	{
 		G_Printf( "Null touch func" );
 	}
+
+	TransmitMovementHints(self);
 }
 
 ////////////////
@@ -509,14 +532,14 @@ void G_EdictThink()
 {
 	self = PROG_TO_EDICT( g_globalvars.self );
 	other = PROG_TO_EDICT( g_globalvars.other );
-	if ( self->think )
-	{
-		( ( void ( * )() ) ( self->think ) ) ();
-	} else
-	{
-		G_Printf( "Null think func" );
+	if (self->think) {
+		((void(*)()) (self->think)) ();
+	}
+	else {
+		G_Printf("Null think func");
 	}
 
+	TransmitMovementHints(self);
 }
 
 ////////////////
@@ -532,14 +555,14 @@ void G_EdictBlocked()
 	self = PROG_TO_EDICT( g_globalvars.self );
 	other = PROG_TO_EDICT( g_globalvars.other );
 
-	if ( self->blocked )
-	{
-		( ( void ( * )() ) ( self->blocked ) ) ();
-	} else
-	{
+	if (self->blocked) {
+		((void(*)()) (self->blocked)) ();
+	}
+	else {
 		//G_Printf("Null blocked func");
 	}
 
+	TransmitMovementHints(self);
 }
 
 

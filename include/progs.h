@@ -41,6 +41,7 @@ typedef struct shared_edict_s {
 struct gedict_s;
 typedef void (*th_die_funcref_t)();
 typedef void (*th_pain_funcref_t)(struct gedict_s *, float);
+typedef void (*th_movement_funcref_t)(struct gedict_s* player, struct gedict_s* ent);
 
 // { SP
 typedef void (*th_sp_funcref_t)();
@@ -1149,6 +1150,12 @@ typedef struct gedict_s {
 // { 
 	// let mvdsv know when player has teleported, and adjust for high-ping
 	int          teleported;
+// }
+
+// {
+	// players that this platform/door movement has been sent to
+	unsigned int movement_hint_sent;
+	char         movement_hint_string[64];
 // }
 } gedict_t;
 

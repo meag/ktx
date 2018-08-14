@@ -32,6 +32,7 @@ void            plat_trigger_use();
 void            plat_go_up();
 void            plat_go_down();
 void            plat_crush();
+void plat_set_movement_hint(gedict_t* plat, int new_state);
 
 #define PLAT_LOW_TRIGGER 1
 
@@ -90,6 +91,8 @@ void plat_hit_top()
 		BotEventPlatformHitTop(self);
 	}
 #endif
+
+	plat_set_movement_hint(self, STATE_TOP);
 }
 
 void plat_hit_bottom()
@@ -102,11 +105,16 @@ void plat_hit_bottom()
 		BotEventPlatformHitBottom(self);
 	}
 #endif
+
+	plat_set_movement_hint(self, STATE_BOTTOM);
 }
 
 void plat_go_down()
 {
 	sound( self, CHAN_VOICE, self->noise, 1, ATTN_NORM );
+	if (self->state != STATE_DOWN) {
+		plat_set_movement_hint(self, STATE_DOWN);
+	}
 	self->state = STATE_DOWN;
 	SUB_CalcMove( self->pos2, self->speed, plat_hit_bottom );
 }
@@ -114,6 +122,9 @@ void plat_go_down()
 void plat_go_up()
 {
 	sound( self, CHAN_VOICE, self->noise, 1, ATTN_NORM );
+	if (self->state != STATE_UP) {
+		plat_set_movement_hint(self, STATE_UP);
+	}
 	self->state = STATE_UP;
 	SUB_CalcMove( self->pos1, self->speed, plat_hit_top );
 }
@@ -198,6 +209,23 @@ void plat_use()
 		G_Error( "plat_use: not in up state" );
 
 	plat_go_down();
+}
+
+void plat_set_movement_hint(gedict_t* plat, int new_state)
+{
+	int ent = NUM_FOR_EDICT(plat);
+
+	if (new_state == STATE_UP) {
+		strlcpy(plat->movement_hint_string, va("p1 %d %d", ent, (int)(g_globalvars.time * 1000.0f)), sizeof(plat->movement_hint_string));
+		plat->movement_hint_sent = 0;
+	}
+	else if (new_state == STATE_DOWN) {
+		strlcpy(plat->movement_hint_string, va("p2 %d %d", ent, (int)(g_globalvars.time * 1000.0f)), sizeof(plat->movement_hint_string));
+		plat->movement_hint_sent = 0;
+	}
+	else {
+		plat->movement_hint_string[0] = '\0';
+	}
 }
 
 
@@ -289,6 +317,23 @@ void SP_func_plat()
 void            train_next();
 void            funcref_train_find();
 
+void SUB_CalcMoveDone();
+
+void train_set_movement_hint(gedict_t* train, gedict_t* targ, float delay)
+{
+	gedict_t* next_targ;
+	int ent = NUM_FOR_EDICT(train);
+
+	next_targ = find(world, FOFS(targetname), targ->target);
+	if (!next_targ) {
+		return;
+	}
+
+	// Moving towards next target
+	strlcpy(train->movement_hint_string, va("t %d %d %d %d", ent, NUM_FOR_EDICT(targ), NUM_FOR_EDICT(next_targ), (int)((g_globalvars.time + delay) * 1000.0f)), sizeof(train->movement_hint_string));
+	train->movement_hint_sent = 0;
+}
+
 void train_blocked()
 {
 	if ( g_globalvars.time < self->attack_finished )
@@ -309,20 +354,31 @@ void train_use()
 
 void train_wait()
 {
+	float old = self->s.v.ltime + self->wait;
+	float delay = 0.1;
 	if (self->wait) {
 		self->s.v.nextthink = self->s.v.ltime + self->wait;
 		sound(self, CHAN_NO_PHS_ADD + CHAN_VOICE, self->noise, 1, ATTN_NORM);
+		delay = self->wait;
 	}
 	else {
 		self->s.v.nextthink = self->s.v.ltime + 0.1;
 	}
 
     // make trains stop if frozen
-	if (match_in_progress == 2
-		|| (!cvar("k_freeze") && !match_in_progress)
-		|| k_practice  // #practice mode#
-		) {
-		self->think = (func_t)train_next;
+	if (match_in_progress == 2 || (!cvar("k_freeze") && !match_in_progress) || k_practice) {
+		gedict_t       *targ;
+
+		targ = find(world, FOFS(targetname), self->target);
+		if (targ) {
+			self->think = (func_t)train_next;
+
+			train_set_movement_hint(self, targ, delay);
+		}
+	}
+	else {
+		strlcpy(self->movement_hint_string, va("t %d freeze", NUM_FOR_EDICT(self)), sizeof(self->movement_hint_string));
+		self->movement_hint_sent = 0;
 	}
 }
 
@@ -347,6 +403,8 @@ void train_next()
 	sound( self, CHAN_VOICE, self->noise1, 1, ATTN_NORM );
 	VectorSubtract( targ->s.v.origin, self->s.v.mins, tmpv );
 	SUB_CalcMove( tmpv, self->speed, train_wait );
+
+	train_set_movement_hint(self, targ, 0);
 }
 
 void funcref_train_find()

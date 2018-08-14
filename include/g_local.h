@@ -108,6 +108,9 @@ void            G_Printf( const char *fmt, ... );
 void            G_Error( const char *fmt, ... );
 
 #define PASSVEC3(x) (x[0]),(x[1]),(x[2])
+#define PASSINTVEC3(x) ((int)x[0]),((int)x[1]),((int)x[2])
+#define PASSSCALEDINTVEC3(x,y) ((int)(x[0]*y)),((int)(x[1]*y)),((int)(x[2]*y))
+
 #define SetVector(v,x,y,z) (v[0]=x,v[1]=y,v[2]=z)
 
 // some types

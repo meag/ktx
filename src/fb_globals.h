@@ -391,9 +391,6 @@ void SetMarker (gedict_t* client, gedict_t* marker);
 #define MAX_FROGBOT_SKILL     20
 #define MAX_FROGBOT_AIM_SKILL 20
 
-#define PASSINTVEC3(x) ((int)x[0]),((int)x[1]),((int)x[2])
-#define PASSSCALEDINTVEC3(x,y) ((int)(x[0]*y)),((int)(x[1]*y)),((int)(x[2]*y))
-
 #define FB_MAPDEATHHEIGHT_DEFAULT -9999999
 
 int MapDeathHeight (void);

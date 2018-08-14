@@ -735,11 +735,92 @@ void G_SpawnEntitiesFromString( void )
 	SP_worldspawn( world );
 
 	// parse ents
-
 	while ( G_ParseSpawnVars() )
 	{
 		G_SpawnGEntityFromSpawnVars();
 		trap_FlushSignon();
+	}
+
+	// Send entities to help clients predict movement
+	{
+		gedict_t* ent;
+		gedict_t* targ;
+
+		for (ent = world; (ent = nextent(ent)); ) {
+			if (streq(ent->classname, "train")) {
+				// Need to notify client of all targets in the train's path
+				// // ktx train <ent> <speed:float>
+				WriteByte(MSG_INIT, SVC_STUFFTEXT);
+				WriteString(MSG_INIT, va("//ktx train %d %.3f %.3f %.3f %.3f\n", NUM_FOR_EDICT(ent), ent->speed, PASSVEC3(ent->s.v.mins)));
+				trap_FlushSignon();
+
+				targ = find(world, FOFS(targetname), ent->target);
+				while (targ && targ->cnt2 == 0) {
+					targ->cnt2 = 1;
+
+					WriteByte(MSG_INIT, SVC_STUFFTEXT);
+					WriteString(MSG_INIT, va("//ktx target %d %.3f %.3f %.3f %.3f 0 0 0\n", NUM_FOR_EDICT(targ), PASSVEC3(targ->s.v.origin), targ->delay ? targ->delay : 0.1));
+					trap_FlushSignon();
+
+					if (strnull(targ->target)) {
+						break;
+					}
+					targ = find(world, FOFS(targetname), targ->target);
+				}
+
+				targ = find(world, FOFS(targetname), ent->target);
+				while (targ && targ->cnt2 == 1) {
+					targ->cnt2 = 0;
+
+					if (strnull(targ->target)) {
+						break;
+					}
+					targ = find(world, FOFS(targetname), targ->target);
+				}
+
+				trap_FlushSignon();
+			}
+			else if (streq(ent->classname, "door")) {
+				// //ktx door <ent> <pos1:vec3> <pos2:vec3> <speed:float> <wait:float>
+				WriteByte(MSG_INIT, SVC_STUFFTEXT);
+				WriteString(MSG_INIT, va("//ktx door %d %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f\n", NUM_FOR_EDICT(ent), PASSVEC3(ent->pos1), PASSVEC3(ent->pos2), ent->speed, ent->wait));
+				trap_FlushSignon();
+			}
+			else if (streq(ent->classname, "plat")) {
+				// //ktx plat <ent> <pos1:vec3> <pos2:vec3> <speed:float>
+				WriteByte(MSG_INIT, SVC_STUFFTEXT);
+				WriteString(MSG_INIT, va("//ktx plat %d %.3f %.3f %.3f %.3f %.3f %.3f %.3f\n", NUM_FOR_EDICT(ent), PASSVEC3(ent->pos1), PASSVEC3(ent->pos2), ent->speed));
+				trap_FlushSignon();
+			}
+			else if (streq(ent->classname, "trigger_push")) {
+				vec3_t effect;
+
+				VectorScale(ent->s.v.movedir, 10 * ent->speed, effect);
+
+				// //ktx push <ent> <absmin:vec3> <absmax:vec3> <new-velocity:vec3>
+				WriteByte(MSG_INIT, SVC_STUFFTEXT);
+				WriteString(MSG_INIT, va("//ktx push %d %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f\n", NUM_FOR_EDICT(ent), PASSVEC3(ent->s.v.absmin), PASSVEC3(ent->s.v.absmax), PASSVEC3(effect)));
+				trap_FlushSignon();
+			}
+			else if (streq(ent->classname, "trigger_teleport")) {
+				char* targetname = streq("death32c", g_globalvars.mapname) && streq("dm220", ent->target) ? "dm6t1" : ent->target;
+				gedict_t* targ = find(world, FOFS(targetname), targetname);
+
+				if (targ) {
+					// Need to notify client of destination as well
+
+					// ktx target <ent> <origin> <delay> <angles>
+					WriteByte(MSG_INIT, SVC_STUFFTEXT);
+					WriteString(MSG_INIT, va("//ktx target %d %.3f %.3f %.3f 0 %.3f %.3f %.3f\n", NUM_FOR_EDICT(targ), PASSVEC3(targ->s.v.origin), PASSVEC3(targ->mangle)));
+					trap_FlushSignon();
+
+					// ktx tele <src> <dst> <absmin:vec3> <absmax:vec3>
+					WriteByte(MSG_INIT, SVC_STUFFTEXT);
+					WriteString(MSG_INIT, va("//ktx tele %d %d %.3f %.3f %.3f %.3f %.3f %.3f\n", NUM_FOR_EDICT(ent), NUM_FOR_EDICT(targ), PASSVEC3(ent->s.v.absmin), PASSVEC3(ent->s.v.absmax)));
+					trap_FlushSignon();
+				}
+			}
+		}
 	}
 
 	race_add_standard_routes ();

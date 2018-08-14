@@ -64,6 +64,23 @@ void            door_go_down();
 void            door_go_up();
 void            door_fire();
 
+void door_send_movement_hint(gedict_t* player, gedict_t* door)
+{
+	switch (door->state) {
+	case STATE_TOP:
+		if (door->think == (func_t)door_go_down) {
+			stuffcmd(player, "//ktx mh d1 %d %f %f %f %f\n", NUM_FOR_EDICT(door), PASSVEC3(door->pos1), door->speed);
+		}
+		break;
+	case STATE_UP:
+		stuffcmd(player, "//ktx mh d %d %f %f %f %f %f\n", NUM_FOR_EDICT(door), PASSVEC3(door->pos2), door->speed, door->wait);
+		break;
+	case STATE_DOWN:
+		stuffcmd(player, "//ktx mh d %d %f %f %f %f -1\n", NUM_FOR_EDICT(door), PASSVEC3(door->pos1), door->speed);
+		break;
+	}
+}
+
 void door_blocked()
 {
 	other->deathtype = dtSQUISH;
@@ -80,10 +97,10 @@ void door_blocked()
 	}
 }
 
-
 void door_hit_top()
 {
 	sound( self, CHAN_NO_PHS_ADD + CHAN_VOICE, self->noise1, 1, ATTN_NORM );
+	self->movement_hint_sent = 0;
 	self->state = STATE_TOP;
 
 #ifdef BOT_SUPPORT
@@ -109,6 +126,8 @@ void door_hit_bottom()
 		BotEventDoorHitBottom(self);
 	}
 #endif
+
+	self->movement_hint_sent = 0;
 }
 
 void door_go_down()
@@ -120,24 +139,28 @@ void door_go_down()
 		self->s.v.health = self->s.v.max_health;
 	}
 
+	if (self->state != STATE_DOWN) {
+		self->movement_hint_sent = 0;
+	}
 	self->state = STATE_DOWN;
 	SUB_CalcMove( self->pos1, self->speed, door_hit_bottom );
 }
 
 void door_go_up()
 {
-
 	if ( self->state == STATE_UP )
-		return;		// allready going up
+		return;		// already going up
 
 	if ( self->state == STATE_TOP )
-	{			// reset top wait time
-
+	{
+		// reset top wait time
 		self->s.v.nextthink = self->s.v.ltime + self->wait;
+		self->movement_hint_sent = 0;
 		return;
 	}
 
 	sound( self, CHAN_VOICE, self->noise2, 1, ATTN_NORM );
+	self->movement_hint_sent = 0;
 	self->state = STATE_UP;
 
 	SUB_CalcMove( self->pos2, self->speed, door_hit_top );
@@ -152,6 +175,7 @@ ACTIVATION FUNCTIONS
 
 =============================================================================
 */
+void TransmitMovementHints(gedict_t* obj);
 
 void door_fire()
 {
@@ -161,7 +185,6 @@ void door_fire()
 		G_Error( "door_fire: self.owner != self" );
 
 // play use key sound
-
 	if ( self->s.v.items )
 		sound( self, CHAN_VOICE, self->noise4, 1, ATTN_NORM );
 
@@ -176,6 +199,7 @@ void door_fire()
 			do
 			{
 				door_go_down();
+				TransmitMovementHints(self);
 
 				self = PROG_TO_EDICT( self->s.v.enemy );
 			}
@@ -191,6 +215,7 @@ void door_fire()
 	{
 		self->s.v.goalentity = EDICT_TO_PROG( activator );	// Who fired us
 		door_go_up( self );
+		TransmitMovementHints(self);
 		self = PROG_TO_EDICT( self->s.v.enemy );
 	}
 	while ( ( self != starte ) && ( self != world ) );
@@ -646,6 +671,7 @@ void SP_func_door()
 // the sizes can be detected properly.
 	self->think = ( func_t ) LinkDoors;
 	self->s.v.nextthink = self->s.v.ltime + 0.1;
+	//self->movement = door_send_movement_hint;
 }
 
 /*
